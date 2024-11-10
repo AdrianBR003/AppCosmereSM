@@ -30,6 +30,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private lateinit var drawable: Drawable
     private lateinit var arrowOverlayView: ArrowOverlayView
 
+
     // Coordenadas normalizadas asociadas por ID de libro
     private val libroCoordenadasNormalizadas = mapOf(
         1 to PointF(0.38f, 0.80f),  // ID 1
@@ -57,6 +58,8 @@ class MapaInteractivoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapa_interactivo)
+
+        supportActionBar?.hide() // Hide default topbar with app name
 
         // Inicializar el DatabaseHelper y cargar los datos iniciales si la base de datos está vacía
         dbHelper = DatabaseHelper(this)

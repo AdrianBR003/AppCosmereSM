@@ -29,6 +29,8 @@ class DetallesLibroActivity : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_detalles_libro)
 
+        supportActionBar?.hide() // Hide default topbar with app name
+
         // Inicializar vistas
         editTextProgressCurrent = findViewById(R.id.editTextProgressCurrent)
         editTextProgressTotal = findViewById(R.id.editTextProgressTotal)

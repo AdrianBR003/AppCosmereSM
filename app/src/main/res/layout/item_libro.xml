@@ -29,8 +29,7 @@
             android:layout_height="wrap_content"
             android:text="Nombre del Libro"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/gold" />
+            android:textColor="@color/white" />
 
         <!-- Texto del nombre de la saga -->
         <TextView
@@ -38,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Nombre de la Saga"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textColor="@color/gold_s" />
 
         <!-- Barra de progreso para el avance en la lectura -->

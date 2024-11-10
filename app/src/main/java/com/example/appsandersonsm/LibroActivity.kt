@@ -27,6 +27,8 @@ class LibroActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_libros)
 
+        supportActionBar?.hide() // Hide default topbar with app name
+
         // Inicializar el BottomNavigationView
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
 

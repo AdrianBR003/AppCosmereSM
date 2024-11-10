@@ -19,6 +19,8 @@ class AjustesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ajustes)
 
+        supportActionBar?.hide() // Hide default topbar with app name
+
         // Inicializar vistas
         textViewPaginasLeidas = findViewById(R.id.textViewPaginasLeidas)
         textViewLibrosLeidos = findViewById(R.id.textViewLibrosLeidos)
