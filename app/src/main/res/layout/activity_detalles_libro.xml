@@ -105,16 +105,16 @@
                     android:hint="0"
                     android:inputType="number"
                     android:maxLength="5"
-                    android:textColorHint="@color/gold"
-                    android:gravity="center"
-                    android:ems="4"/>
+                    android:textColor="@color/gold"
+                    android:textColorHint="@color/gold"                    android:gravity="center"
+                    android:ems="4" />
 
                 <TextView
                     android:id="@+id/textViewSeparator"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="/"
-                    android:textColor="@color/gold"
+                    android:textColor="@color/gold_s"
                     android:textSize="18sp"
                     android:gravity="center"/>
 
@@ -125,8 +125,8 @@
                     android:hint="100"
                     android:inputType="number"
                     android:maxLength="5"
-                    android:textColorHint="@color/gold"
-                    android:gravity="center"
+                    android:textColor="@color/gold"
+                    android:textColorHint="@color/gold"                        android:gravity="center"
                     android:ems="4"/>
 
             </LinearLayout>

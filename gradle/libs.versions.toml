@@ -13,8 +13,11 @@ activity = "1.9.3"
 constraintlayout = "2.1.4"
 photoviewVersion = "1.0.2"
 subsamplingScaleImageViewVersion = "3.10.0"
+core-splashscreen = "1.0.0"
+
 
 [libraries]
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 getstream-photoview = { module = "io.getstream:photoview", version.ref = "photoviewVersion" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }

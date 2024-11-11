@@ -12,6 +12,7 @@ import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.appsandersonsm.Modelo.Libro
@@ -58,9 +59,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapa_interactivo)
-
         supportActionBar?.hide() // Hide default topbar with app name
-
         // Inicializar el DatabaseHelper y cargar los datos iniciales si la base de datos está vacía
         dbHelper = DatabaseHelper(this)
         dbHelper.cargarDatosInicialesDesdeJson()

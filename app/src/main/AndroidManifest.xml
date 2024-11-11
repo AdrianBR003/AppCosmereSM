@@ -9,7 +9,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppSandersonSM"
         tools:targetApi="31">
@@ -22,16 +22,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LibroActivity"
+        <activity
+            android:name=".LibroActivity"
             android:exported="true"
             tools:ignore="MissingClass" />
-
-        <activity android:name="com.example.appsandersonsm.DetallesLibroActivity" />
-
-        <activity android:name=".AjustesActivity"
+        <activity android:name=".DetallesLibroActivity" />
+        <activity
+            android:name=".AjustesActivity"
             android:exported="true"
             tools:ignore="MissingClass" />
-
     </application>
 
 </manifest>

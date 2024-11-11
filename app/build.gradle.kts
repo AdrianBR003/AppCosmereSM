@@ -37,6 +37,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.core.splashscreen)
     implementation (libs.labs.subsampling.scale.image.view)
     implementation(libs.glide)
     implementation(libs.getstream.photoview)
