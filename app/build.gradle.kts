@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -8,14 +9,13 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        vectorDrawables.useSupportLibrary = true
         applicationId = "com.example.appsandersonsm"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
 
     buildTypes {
@@ -27,18 +27,49 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 
 dependencies {
+
+    implementation (libs.glide.v4120)
+    implementation (libs.glide.transformations)
+
+    // Firebase BOM (define versiones centralizadas para Firebase)
+    implementation(platform(libs.firebase.bom))
+
+    // Firebase y Google Sign-In
+    implementation(libs.firebase.auth.ktx) // Se gestiona a través de Firebase BOM
+    implementation(libs.play.services.auth) // Verifica la versión correcta
+
+    // Otras dependencias
+    implementation(libs.play.services.auth)
+    implementation(libs.firebase.analytics)
     implementation(libs.core.splashscreen)
-    implementation (libs.labs.subsampling.scale.image.view)
+    implementation(libs.labs.subsampling.scale.image.view)
     implementation(libs.glide)
     implementation(libs.getstream.photoview)
     implementation(libs.androidx.core.ktx)
@@ -46,7 +77,24 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+
+    // Compose dependencies
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+
+    // Test dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // Debug dependencies
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 }

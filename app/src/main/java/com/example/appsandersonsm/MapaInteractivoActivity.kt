@@ -1,10 +1,10 @@
 // src/main/java/com/example/appsandersonsm/MapaInteractivoActivity.kt
 package com.example.appsandersonsm
-
+import android.animation.ValueAnimator
 import android.content.Intent
-import android.graphics.Matrix
+import android.graphics.Color
 import android.graphics.PointF
-import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -12,7 +12,6 @@ import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.appsandersonsm.Modelo.Libro
@@ -28,9 +27,10 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var listaLibros: List<Libro>
     private val markers = mutableListOf<ImageView>()
-    private lateinit var drawable: Drawable
     private lateinit var arrowOverlayView: ArrowOverlayView
 
+    // Lista para guardar las animaciones y poder gestionarlas
+    private val animators = mutableListOf<ValueAnimator>()
 
     // Coordenadas normalizadas asociadas por ID de libro
     private val libroCoordenadasNormalizadas = mapOf(
@@ -38,28 +38,29 @@ class MapaInteractivoActivity : AppCompatActivity() {
         2 to PointF(0.45f, 0.86f),  // ID 2
         3 to PointF(0.55f, 0.88f),  // ID 3
         4 to PointF(0.64f, 0.85f),  // ID 4
-        5 to PointF(0.06f,0.76f), // aliento
-        6 to PointF(0.105f,0.63f),  // heroe
-        7 to PointF(0.07f,0.50f),  // pozo
-        8 to PointF(0.12f,0.40f),  // nacidos
-        )
+        5 to PointF(0.06f, 0.76f),  // Aliento
+        6 to PointF(0.105f, 0.63f), // Héroe
+        7 to PointF(0.07f, 0.50f),  // Pozo
+        8 to PointF(0.12f, 0.40f)   // Nacidos
+    )
 
     // Definir relaciones cronológicas entre libros
     private val relacionesCronologicas = listOf(
         Pair(1, 2),
         Pair(2, 3),
         Pair(3, 4),
-        Pair(5,1),
-        Pair(8,7),
-        Pair(7,6),
-        Pair(6,5),
+        Pair(5, 1),
+        Pair(8, 7),
+        Pair(7, 6),
+        Pair(6, 5)
         // Agrega más relaciones según tus necesidades
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapa_interactivo)
-        supportActionBar?.hide() // Hide default topbar with app name
+        supportActionBar?.hide() // Ocultar la barra de acción predeterminada
+
         // Inicializar el DatabaseHelper y cargar los datos iniciales si la base de datos está vacía
         dbHelper = DatabaseHelper(this)
         dbHelper.cargarDatosInicialesDesdeJson()
@@ -74,12 +75,11 @@ class MapaInteractivoActivity : AppCompatActivity() {
         arrowOverlayView = findViewById(R.id.arrowOverlayView)
 
         // Configuración de la imagen en el PhotoView
-        drawable = photoView.drawable ?: throw IllegalStateException("PhotoView no tiene una imagen establecida.")
         photoView.minimumScale = 1.0f
         photoView.mediumScale = 1.5f
         photoView.maximumScale = 3.0f
 
-        // Listener para inicializar los marcadores
+        // Listener para inicializar los marcadores una vez que la vista está lista
         photoView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 inicializarMarcadores()
@@ -113,20 +113,54 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
         // Configurar las relaciones cronológicas en el ArrowOverlayView
         arrowOverlayView.relaciones = relacionesCronologicas
-//        arrowOverlayView.libros = listaLibros
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Detener todas las animaciones cuando la actividad está en pausa
+        animators.forEach { it.cancel() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reanudar todas las animaciones cuando la actividad se reanuda
+        animators.forEach { it.start() }
     }
 
     private fun inicializarMarcadores() {
         listaLibros.forEach { libro ->
+            // Definir el tamaño estándar
+            var sizeInDpID = 60
+            var red = 255
+            var green = 255
+            var blue = 255
+
+            // Si inicialSaga es true, aumentar el tamaño
+            if (libro.inicialSaga) {
+                sizeInDpID = 90
+                 red = 214
+                 green = 168
+                 blue = 0
+            }
+
             val marker = ImageView(this).apply {
-                val sizeInDp = 60
                 val scale = resources.displayMetrics.density
-                val sizeInPx = (sizeInDp * scale + 0.5f).toInt()
+                val sizeInPx = (sizeInDpID * scale + 0.5f).toInt()
                 layoutParams = FrameLayout.LayoutParams(sizeInPx, sizeInPx)
+
+                val backgroundDrawable = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(Color.TRANSPARENT)
+                    val strokeWidth = (4 * scale + 0.5f).toInt() // 4dp
+                    val strokeColor = Color.BLACK
+                    setStroke(strokeWidth, strokeColor)
+                }
+                background = backgroundDrawable
+                val padding = (4 * scale + 0.5f).toInt()
+                setPadding(padding, padding, padding, padding)
                 scaleType = ImageView.ScaleType.CENTER_CROP
                 contentDescription = "Libro ${libro.id}"
 
-                // Cargar la imagen de la portada
                 val resID = resources.getIdentifier(libro.nombrePortada, "drawable", packageName)
                 Glide.with(this@MapaInteractivoActivity)
                     .load(resID)
@@ -136,7 +170,25 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 setOnClickListener {
                     abrirDetallesLibro(libro.id)
                 }
+
+                val animator = ValueAnimator.ofInt(255, 50, 255).apply {
+                    duration = 2500L
+                    repeatMode = ValueAnimator.RESTART
+                    repeatCount = ValueAnimator.INFINITE
+                    addUpdateListener { animation ->
+                        val alphaValue = animation.animatedValue as Int
+                        // Actualizar el color del trazo con el nuevo valor de alpha
+                        val strokeColorWithAlpha = Color.argb(alphaValue, red, green, blue)
+                        val strokeWidth = (2 * scale + 0.5f).toInt()
+                        backgroundDrawable.setStroke(strokeWidth, strokeColorWithAlpha)
+                        backgroundDrawable.invalidateSelf()
+                        invalidate()
+                    }
+                    start()
+                }
+                animators.add(animator)
             }
+
             markers.add(marker)
             markerContainer.addView(marker)
         }
@@ -151,13 +203,13 @@ class MapaInteractivoActivity : AppCompatActivity() {
         val matrix = FloatArray(9)
         photoView.imageMatrix.getValues(matrix)
 
-        val scaleX = matrix[Matrix.MSCALE_X]
-        val scaleY = matrix[Matrix.MSCALE_Y]
-        val transX = matrix[Matrix.MTRANS_X]
-        val transY = matrix[Matrix.MTRANS_Y]
+        val scaleX = matrix[android.graphics.Matrix.MSCALE_X]
+        val scaleY = matrix[android.graphics.Matrix.MSCALE_Y]
+        val transX = matrix[android.graphics.Matrix.MTRANS_X]
+        val transY = matrix[android.graphics.Matrix.MTRANS_Y]
 
-        val imageWidth = drawable.intrinsicWidth.toFloat()
-        val imageHeight = drawable.intrinsicHeight.toFloat()
+        val imageWidth = photoView.drawable.intrinsicWidth.toFloat()
+        val imageHeight = photoView.drawable.intrinsicHeight.toFloat()
 
         val scaledWidth = imageWidth * scaleX
         val scaledHeight = imageHeight * scaleY
@@ -170,10 +222,17 @@ class MapaInteractivoActivity : AppCompatActivity() {
             val coordNormalizada = libroCoordenadasNormalizadas[libro.id] ?: PointF(0.5f, 0.5f)
             val absX = (coordNormalizada.x * scaledWidth) + transX
             val absY = (coordNormalizada.y * scaledHeight) + transY
+
+            // Centrar el marcador en las coordenadas calculadas
             marker.x = absX - (marker.width / 2)
             marker.y = absY - (marker.height / 2)
 
-            coordenadasPantalla[libro.id] = Pair(absX, absY)
+            // Calcular las coordenadas centrales del ImageView
+            val centerX = marker.x + (marker.width / 2)
+            val centerY = marker.y + (marker.height / 2)
+
+            // Almacenar las coordenadas centrales en el mapa
+            coordenadasPantalla[libro.id] = Pair(centerX, centerY)
         }
 
         // Actualizar las coordenadas en el ArrowOverlayView

@@ -11,7 +11,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "libros.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2 // Incrementado de 1 a 2
 
         // Nombre de la tabla y columnas
         const val TABLE_LIBROS = "libros"
@@ -20,7 +20,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_NOMBRE_SAGA = "nombreSaga"
         const val COLUMN_NOMBRE_PORTADA = "nombrePortada"
         const val COLUMN_PROGRESO = "progreso"
-        const val COLUMN_TOTAL_PAGINAS = "totalPaginas" // Si tienes este campo en tu base de datos
+        const val COLUMN_TOTAL_PAGINAS = "totalPaginas"
+        const val COLUMN_INICIAL_SAGA = "inicialSaga"
     }
 
     private val jsonHandler = JsonHandler(context) // Instancia de JsonHandler para leer JSON
@@ -32,13 +33,20 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 + "$COLUMN_NOMBRE_SAGA TEXT,"
                 + "$COLUMN_NOMBRE_PORTADA TEXT,"
                 + "$COLUMN_PROGRESO INTEGER,"
-                + "$COLUMN_TOTAL_PAGINAS INTEGER)") // Añadir esta columna si es necesaria
+                + "$COLUMN_TOTAL_PAGINAS INTEGER," // Añadida la coma aquí
+                + "$COLUMN_INICIAL_SAGA INTEGER DEFAULT 0)" // Cambiado a INTEGER con valor por defecto
+                )
         db?.execSQL(CREATE_LIBROS_TABLE)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        db?.execSQL("DROP TABLE IF EXISTS $TABLE_LIBROS")
-        onCreate(db)
+        if (oldVersion < 2) {
+            val alterTable = """
+                ALTER TABLE $TABLE_LIBROS ADD COLUMN $COLUMN_INICIAL_SAGA INTEGER DEFAULT 0
+            """.trimIndent()
+            db?.execSQL(alterTable)
+        }
+        // Maneja futuras actualizaciones de la base de datos aquí
     }
 
     // Método para cargar libros desde JSON si la base de datos está vacía (solo la primera vez)
@@ -70,7 +78,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COLUMN_NOMBRE_SAGA, libro.nombreSaga)
                 put(COLUMN_NOMBRE_PORTADA, libro.nombrePortada)
                 put(COLUMN_PROGRESO, libro.progreso)
-                put(COLUMN_TOTAL_PAGINAS, libro.totalPaginas) // Si tienes este campo en tu modelo
+                put(COLUMN_TOTAL_PAGINAS, libro.totalPaginas)
+                put(COLUMN_INICIAL_SAGA, if (libro.inicialSaga) 1 else 0) // Asegurarse de que es 0 o 1
             }
             db.insert(TABLE_LIBROS, null, values)
         }
@@ -93,7 +102,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val db = this.readableDatabase
         val cursor: Cursor = db.query(
             TABLE_LIBROS,
-            arrayOf(COLUMN_ID, COLUMN_NOMBRE_LIBRO, COLUMN_NOMBRE_SAGA, COLUMN_NOMBRE_PORTADA, COLUMN_PROGRESO, COLUMN_TOTAL_PAGINAS),
+            arrayOf(COLUMN_ID, COLUMN_NOMBRE_LIBRO, COLUMN_NOMBRE_SAGA, COLUMN_NOMBRE_PORTADA, COLUMN_PROGRESO, COLUMN_TOTAL_PAGINAS, COLUMN_INICIAL_SAGA),
             "$COLUMN_ID=?",
             arrayOf(id.toString()),
             null, null, null, null
@@ -107,7 +116,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 nombreSaga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA)),
                 nombrePortada = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_PORTADA)),
                 progreso = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PROGRESO)),
-                totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS))
+                totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS)),
+                inicialSaga = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INICIAL_SAGA)) > 0 // Asumiendo que es INTEGER 0 o 1
             )
         }
         cursor.close()
@@ -144,7 +154,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     nombreSaga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA)),
                     nombrePortada = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_PORTADA)),
                     progreso = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PROGRESO)),
-                    totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS))
+                    totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS)),
+                    inicialSaga = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INICIAL_SAGA)) > 0
                 )
                 libros.add(libro)
             } while (cursor.moveToNext())
@@ -160,7 +171,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val db = this.readableDatabase
         val cursor = db.query(
             TABLE_LIBROS,
-            arrayOf(COLUMN_ID, COLUMN_NOMBRE_LIBRO, COLUMN_NOMBRE_SAGA, COLUMN_NOMBRE_PORTADA, COLUMN_PROGRESO, COLUMN_TOTAL_PAGINAS),
+            arrayOf(COLUMN_ID, COLUMN_NOMBRE_LIBRO, COLUMN_NOMBRE_SAGA, COLUMN_NOMBRE_PORTADA, COLUMN_PROGRESO, COLUMN_TOTAL_PAGINAS, COLUMN_INICIAL_SAGA),
             "$COLUMN_NOMBRE_SAGA = ?",
             arrayOf(nombreSaga),
             null, null, null
@@ -174,7 +185,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     nombreSaga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA)),
                     nombrePortada = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_PORTADA)),
                     progreso = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PROGRESO)),
-                    totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS))
+                    totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS)),
+                    inicialSaga = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INICIAL_SAGA)) > 0 // Asumiendo que es INTEGER 0 o 1
                 )
                 libros.add(libro)
             } while (cursor.moveToNext())

@@ -39,7 +39,8 @@ class JsonHandler(private val context: Context) {
                     nombreSaga = jsonObject.getString("nombreSaga"),
                     nombrePortada = jsonObject.getString("nombrePortada"),
                     progreso = jsonObject.optInt("progreso", 0),
-                    totalPaginas = jsonObject.optInt("totalPaginas", 100) // Usar optInt para totalPaginas con valor predeterminado
+                    totalPaginas = jsonObject.optInt("totalPaginas", 100), // Usar optInt para totalPaginas con valor predeterminado
+                    inicialSaga = jsonObject.optBoolean("inicialSaga", false)
                 )
                 libros.add(libro)
             }
@@ -59,6 +60,7 @@ class JsonHandler(private val context: Context) {
                 put("nombreSaga", libro.nombreSaga)
                 put("nombrePortada", libro.nombrePortada)
                 put("progreso", libro.progreso)
+                put("inicialSaga", libro.inicialSaga)
             }
             jsonArray.put(jsonObject)
         }

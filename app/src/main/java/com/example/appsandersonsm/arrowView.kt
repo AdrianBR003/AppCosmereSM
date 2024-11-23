@@ -97,23 +97,25 @@ class ArrowOverlayView @JvmOverloads constructor(
         endX: Float,
         endY: Float
     ) {
-        // Calcular el punto medio de la línea
-        val midX = (startX + endX) / 2
-        val midY = (startY + endY) / 2
+
+        val t = 0.6f
+
+        val posX = startX + t * (endX - startX)
+        val posY = startY + t * (endY - startY)
 
         val path = Path()
-        val arrowSize = 35f // Puedes ajustar el tamaño de la punta de flecha en la mitad
+        val arrowSize = 35f
 
         val angle = Math.atan2((endY - startY).toDouble(), (endX - startX).toDouble())
 
-        path.moveTo(midX, midY)
+        path.moveTo(posX, posY)
         path.lineTo(
-            (midX - arrowSize * Math.cos(angle - Math.PI / 6)).toFloat(),
-            (midY - arrowSize * Math.sin(angle - Math.PI / 6)).toFloat()
+            (posX - arrowSize * Math.cos(angle - Math.PI / 6)).toFloat(),
+            (posY - arrowSize * Math.sin(angle - Math.PI / 6)).toFloat()
         )
         path.lineTo(
-            (midX - arrowSize * Math.cos(angle + Math.PI / 6)).toFloat(),
-            (midY - arrowSize * Math.sin(angle + Math.PI / 6)).toFloat()
+            (posX - arrowSize * Math.cos(angle + Math.PI / 6)).toFloat(),
+            (posY - arrowSize * Math.sin(angle + Math.PI / 6)).toFloat()
         )
         path.close()
 

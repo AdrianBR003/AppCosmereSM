@@ -5,7 +5,8 @@
     "nombreSaga": "El Archivo de las Tormentas",
     "nombrePortada": "portada_elcamino",
     "progreso": 0,
-    "totalPaginas": 1500
+    "totalPaginas": 1500,
+    "inicialSaga": true
   },
   {
     "id": 2,
@@ -13,7 +14,8 @@
     "nombreSaga": "El Archivo de las Tormentas",
     "nombrePortada": "portada_palabrasradiantes",
     "progreso": 0,
-    "totalPaginas": 1500
+    "totalPaginas": 1500,
+    "inicialSaga": false
   },
   {
     "id": 3,
@@ -21,7 +23,8 @@
     "nombreSaga": "El Archivo de las Tormentas",
     "nombrePortada": "portada_juramentada",
     "progreso": 0,
-    "totalPaginas": 1500
+    "totalPaginas": 1500,
+    "inicialSaga": false
   },
   {
     "id": 4,
@@ -29,7 +32,8 @@
     "nombreSaga": "El Archivo de las Tormentas",
     "nombrePortada": "portada_elritmoguerra",
     "progreso": 0,
-    "totalPaginas": 1500
+    "totalPaginas": 1500,
+    "inicialSaga": false
   },
   {
     "id": 5,
@@ -37,7 +41,8 @@
     "nombreSaga": "Libro Independiente",
     "nombrePortada": "portada_elaliento",
     "progreso": 0,
-    "totalPaginas": 1500
+    "totalPaginas": 1500,
+    "inicialSaga": true
   },
   {
     "id": 6,
@@ -45,7 +50,8 @@
     "nombreSaga": "Nacidos de la Bruma",
     "nombrePortada": "portada_elheroe",
     "progreso": 0,
-    "totalPaginas": 1500
+    "totalPaginas": 1500,
+    "inicialSaga": false
   },
   {
     "id": 7,
@@ -53,7 +59,8 @@
     "nombreSaga": "Nacidos de la Bruma",
     "nombrePortada": "portada_elpozo",
     "progreso": 0,
-    "totalPaginas": 1500
+    "totalPaginas": 1500,
+    "inicialSaga": false
   },
   {
     "id": 8,
@@ -61,6 +68,7 @@
     "nombreSaga": "Nacidos de la Bruma",
     "nombrePortada": "portada_nacidos",
     "progreso": 0,
-    "totalPaginas": 1500
+    "totalPaginas": 1500,
+    "inicialSaga": true
   }
 ]

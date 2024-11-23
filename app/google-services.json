@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "592736434825",
+    "project_id": "appcosmere",
+    "storage_bucket": "appcosmere.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592736434825:android:e6b95d81bf0ca1ff5ce458",
+        "android_client_info": {
+          "package_name": "com.example.appsandersonsm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "592736434825-bin143j9qbmp16u1pjd4gentqstckl03.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.appsandersonsm",
+            "certificate_hash": "969b26d52336a0b66a493773c97578f610972a80"
+          }
+        },
+        {
+          "client_id": "592736434825-l422ecmildqh7i7cn1i0mcnf4ae5mqfs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDatlo9Oy_jMQGEy1dMKDBBJclOFbx0xuU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "592736434825-l422ecmildqh7i7cn1i0mcnf4ae5mqfs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
