@@ -4,8 +4,10 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
 import com.example.appsandersonsm.Modelo.Libro
+import com.example.appsandersonsm.Repositorio.JsonHandler
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -13,7 +15,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         private const val DATABASE_NAME = "libros.db"
         private const val DATABASE_VERSION = 2 // Incrementado de 1 a 2
 
-        // Nombre de la tabla y columnas
+        // Tabla libros
         const val TABLE_LIBROS = "libros"
         const val COLUMN_ID = "id"
         const val COLUMN_NOMBRE_LIBRO = "nombreLibro"
@@ -22,133 +24,216 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_PROGRESO = "progreso"
         const val COLUMN_TOTAL_PAGINAS = "totalPaginas"
         const val COLUMN_INICIAL_SAGA = "inicialSaga"
+
+        // Tabla notas
+        const val TABLE_NOTAS = "notas"
+        const val COLUMN_NOTA_ID = "id"
+        const val COLUMN_LIBRO_ID = "libro_id"
+        const val COLUMN_CONTENIDO = "contenido"
+        const val COLUMN_FECHA_CREACION = "fecha_creacion"
+        const val COLUMN_FECHA_MODIFICACION = "fecha_modificacion"
     }
 
-    private val jsonHandler = JsonHandler(context) // Instancia de JsonHandler para leer JSON
+    private val jsonHandler = JsonHandler(context)
 
     override fun onCreate(db: SQLiteDatabase?) {
-        val CREATE_LIBROS_TABLE = ("CREATE TABLE $TABLE_LIBROS ("
-                + "$COLUMN_ID INTEGER PRIMARY KEY,"
-                + "$COLUMN_NOMBRE_LIBRO TEXT,"
-                + "$COLUMN_NOMBRE_SAGA TEXT,"
-                + "$COLUMN_NOMBRE_PORTADA TEXT,"
-                + "$COLUMN_PROGRESO INTEGER,"
-                + "$COLUMN_TOTAL_PAGINAS INTEGER," // Añadida la coma aquí
-                + "$COLUMN_INICIAL_SAGA INTEGER DEFAULT 0)" // Cambiado a INTEGER con valor por defecto
-                )
+        val CREATE_LIBROS_TABLE = """
+            CREATE TABLE $TABLE_LIBROS (
+                $COLUMN_ID INTEGER PRIMARY KEY,
+                $COLUMN_NOMBRE_LIBRO TEXT,
+                $COLUMN_NOMBRE_SAGA TEXT,
+                $COLUMN_NOMBRE_PORTADA TEXT,
+                $COLUMN_PROGRESO INTEGER,
+                $COLUMN_TOTAL_PAGINAS INTEGER,
+                $COLUMN_INICIAL_SAGA INTEGER DEFAULT 0
+            );
+        """.trimIndent()
+
+        val CREATE_NOTAS_TABLE = """
+            CREATE TABLE $TABLE_NOTAS (
+                $COLUMN_NOTA_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_LIBRO_ID INTEGER NOT NULL,
+                $COLUMN_CONTENIDO TEXT NOT NULL,
+                $COLUMN_FECHA_CREACION TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                $COLUMN_FECHA_MODIFICACION TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY ($COLUMN_LIBRO_ID) REFERENCES $TABLE_LIBROS($COLUMN_ID) ON DELETE CASCADE
+            );
+        """.trimIndent()
+
         db?.execSQL(CREATE_LIBROS_TABLE)
+        db?.execSQL(CREATE_NOTAS_TABLE)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) {
-            val alterTable = """
-                ALTER TABLE $TABLE_LIBROS ADD COLUMN $COLUMN_INICIAL_SAGA INTEGER DEFAULT 0
+            val CREATE_NOTAS_TABLE = """
+                CREATE TABLE $TABLE_NOTAS (
+                    $COLUMN_NOTA_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    $COLUMN_LIBRO_ID INTEGER NOT NULL,
+                    $COLUMN_CONTENIDO TEXT NOT NULL,
+                    $COLUMN_FECHA_CREACION TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    $COLUMN_FECHA_MODIFICACION TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY ($COLUMN_LIBRO_ID) REFERENCES $TABLE_LIBROS($COLUMN_ID) ON DELETE CASCADE
+                );
             """.trimIndent()
-            db?.execSQL(alterTable)
+            db?.execSQL(CREATE_NOTAS_TABLE)
         }
-        // Maneja futuras actualizaciones de la base de datos aquí
     }
 
-    // Método para cargar libros desde JSON si la base de datos está vacía (solo la primera vez)
     fun cargarDatosInicialesDesdeJson() {
         if (isDatabaseEmpty()) {
-            jsonHandler.copiarJsonDesdeAssetsSiNoExiste() // Asegura que el JSON está en almacenamiento interno
-            val libros = jsonHandler.cargarLibrosDesdeJson() // Carga la lista de libros desde JSON
+            jsonHandler.copiarJsonDesdeAssetsSiNoExiste()
+            val libros = jsonHandler.cargarLibrosDesdeJson()
             insertarLibros(libros)
         }
     }
 
-    // Verifica si la base de datos está vacía
     private fun isDatabaseEmpty(): Boolean {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_LIBROS", null)
-        val count = if (cursor.moveToFirst()) cursor.getInt(0) else 0
-        cursor.close()
-        db.close()
-        return count == 0
+        var cursor: Cursor? = null
+        return try {
+            cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_LIBROS", null)
+            cursor.moveToFirst() && cursor.getInt(0) == 0
+        } finally {
+            cursor?.close()
+            db.close()
+        }
     }
 
-    // Inserta la lista de libros en la base de datos (sin sobrescribir)
+    fun agregarNota(libroId: Int, contenido: String): Long {
+        if (contenido.isBlank()) throw IllegalArgumentException("El contenido no puede estar vacío.")
+
+        val db = this.writableDatabase
+        return try {
+            val values = ContentValues().apply {
+                put(COLUMN_LIBRO_ID, libroId)
+                put(COLUMN_CONTENIDO, contenido)
+            }
+            db.insert(TABLE_NOTAS, null, values)
+        } catch (e: SQLiteException) {
+            e.printStackTrace()
+            -1
+        } finally {
+            db.close()
+        }
+    }
+
+    fun obtenerNotasPorLibro(libroId: Int): List<Map<String, Any>> {
+        val notas = mutableListOf<Map<String, Any>>()
+        val db = this.readableDatabase
+        var cursor: Cursor? = null
+        try {
+            cursor = db.query(
+                TABLE_NOTAS,
+                null,
+                "$COLUMN_LIBRO_ID = ?",
+                arrayOf(libroId.toString()),
+                null,
+                null,
+                "$COLUMN_FECHA_CREACION ASC"
+            )
+
+            if (cursor.moveToFirst()) {
+                do {
+                    val nota = mapOf(
+                        COLUMN_NOTA_ID to cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_NOTA_ID)),
+                        COLUMN_LIBRO_ID to cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_LIBRO_ID)),
+                        COLUMN_CONTENIDO to cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENIDO)),
+                        COLUMN_FECHA_CREACION to cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FECHA_CREACION)),
+                        COLUMN_FECHA_MODIFICACION to cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FECHA_MODIFICACION))
+                    )
+                    notas.add(nota)
+                } while (cursor.moveToNext())
+            }
+        } finally {
+            cursor?.close()
+            db.close()
+        }
+        return notas
+    }
+
+    fun actualizarNota(notaId: Int, nuevoContenido: String): Int {
+        if (nuevoContenido.isBlank()) throw IllegalArgumentException("El contenido no puede estar vacío.")
+
+        val db = this.writableDatabase
+        return try {
+            val values = ContentValues().apply {
+                put(COLUMN_CONTENIDO, nuevoContenido)
+                put(COLUMN_FECHA_MODIFICACION, "CURRENT_TIMESTAMP")
+            }
+            db.update(TABLE_NOTAS, values, "$COLUMN_NOTA_ID = ?", arrayOf(notaId.toString()))
+        } catch (e: SQLiteException) {
+            e.printStackTrace()
+            0
+        } finally {
+            db.close()
+        }
+    }
+
+    fun eliminarNota(notaId: Int): Int {
+        val db = this.writableDatabase
+        return try {
+            db.delete(TABLE_NOTAS, "$COLUMN_NOTA_ID = ?", arrayOf(notaId.toString()))
+        } catch (e: SQLiteException) {
+            e.printStackTrace()
+            0
+        } finally {
+            db.close()
+        }
+    }
+
     private fun insertarLibros(libros: List<Libro>) {
         val db = this.writableDatabase
-        libros.forEach { libro ->
-            val values = ContentValues().apply {
-                put(COLUMN_ID, libro.id)
-                put(COLUMN_NOMBRE_LIBRO, libro.nombreLibro)
-                put(COLUMN_NOMBRE_SAGA, libro.nombreSaga)
-                put(COLUMN_NOMBRE_PORTADA, libro.nombrePortada)
-                put(COLUMN_PROGRESO, libro.progreso)
-                put(COLUMN_TOTAL_PAGINAS, libro.totalPaginas)
-                put(COLUMN_INICIAL_SAGA, if (libro.inicialSaga) 1 else 0) // Asegurarse de que es 0 o 1
+        try {
+            libros.forEach { libro ->
+                val values = ContentValues().apply {
+                    put(COLUMN_ID, libro.id)
+                    put(COLUMN_NOMBRE_LIBRO, libro.nombreLibro)
+                    put(COLUMN_NOMBRE_SAGA, libro.nombreSaga)
+                    put(COLUMN_NOMBRE_PORTADA, libro.nombrePortada)
+                    put(COLUMN_PROGRESO, libro.progreso)
+                    put(COLUMN_TOTAL_PAGINAS, libro.totalPaginas)
+                    put(COLUMN_INICIAL_SAGA, if (libro.inicialSaga) 1 else 0)
+                }
+                db.insert(TABLE_LIBROS, null, values)
             }
-            db.insert(TABLE_LIBROS, null, values)
+        } finally {
+            db.close()
         }
-        db.close()
     }
 
-    // Método para actualizar el progreso de un libro en la base de datos
     fun actualizarProgresoLibro(libro: Libro) {
         val db = this.writableDatabase
-        val values = ContentValues().apply {
-            put(COLUMN_PROGRESO, libro.progreso)
-            put(COLUMN_TOTAL_PAGINAS, libro.totalPaginas)
+        try {
+            val values = ContentValues().apply {
+                put(COLUMN_PROGRESO, libro.progreso)
+                put(COLUMN_TOTAL_PAGINAS, libro.totalPaginas)
+            }
+            db.update(TABLE_LIBROS, values, "$COLUMN_ID = ?", arrayOf(libro.id.toString()))
+        } finally {
+            db.close()
         }
-        db.update(TABLE_LIBROS, values, "$COLUMN_ID = ?", arrayOf(libro.id.toString()))
-        db.close()
     }
 
-    // Método para obtener un libro por ID
     fun getLibroById(id: Int): Libro? {
         val db = this.readableDatabase
-        val cursor: Cursor = db.query(
-            TABLE_LIBROS,
-            arrayOf(COLUMN_ID, COLUMN_NOMBRE_LIBRO, COLUMN_NOMBRE_SAGA, COLUMN_NOMBRE_PORTADA, COLUMN_PROGRESO, COLUMN_TOTAL_PAGINAS, COLUMN_INICIAL_SAGA),
-            "$COLUMN_ID=?",
-            arrayOf(id.toString()),
-            null, null, null, null
-        )
-
-        var libro: Libro? = null
-        if (cursor.moveToFirst()) {
-            libro = Libro(
-                id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                nombreLibro = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_LIBRO)),
-                nombreSaga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA)),
-                nombrePortada = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_PORTADA)),
-                progreso = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PROGRESO)),
-                totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS)),
-                inicialSaga = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INICIAL_SAGA)) > 0 // Asumiendo que es INTEGER 0 o 1
+        var cursor: Cursor? = null
+        return try {
+            cursor = db.query(
+                TABLE_LIBROS,
+                arrayOf(
+                    COLUMN_ID, COLUMN_NOMBRE_LIBRO, COLUMN_NOMBRE_SAGA,
+                    COLUMN_NOMBRE_PORTADA, COLUMN_PROGRESO, COLUMN_TOTAL_PAGINAS, COLUMN_INICIAL_SAGA
+                ),
+                "$COLUMN_ID = ?",
+                arrayOf(id.toString()),
+                null,
+                null,
+                null
             )
-        }
-        cursor.close()
-        db.close()
-        return libro
-    }
 
-    // Método para obtener todas las sagas
-    fun getAllSagas(): List<String> {
-        val sagas = mutableListOf<String>()
-        val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT DISTINCT $COLUMN_NOMBRE_SAGA FROM $TABLE_LIBROS", null)
-        if (cursor.moveToFirst()) {
-            do {
-                val saga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA))
-                sagas.add(saga)
-            } while (cursor.moveToNext())
-        }
-        cursor.close()
-        db.close()
-        return sagas
-    }
-
-    // Método para obtener todos los libros desde la base de datos
-    fun getAllLibros(): List<Libro> {
-        val libros = mutableListOf<Libro>()
-        val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_LIBROS", null)
-        if (cursor.moveToFirst()) {
-            do {
-                val libro = Libro(
+            if (cursor.moveToFirst()) {
+                Libro(
                     id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
                     nombreLibro = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_LIBRO)),
                     nombreSaga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA)),
@@ -157,42 +242,95 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS)),
                     inicialSaga = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INICIAL_SAGA)) > 0
                 )
-                libros.add(libro)
-            } while (cursor.moveToNext())
+            } else null
+        } finally {
+            cursor?.close()
+            db.close()
         }
-        cursor.close()
-        db.close()
+    }
+
+    fun getAllSagas(): List<String> {
+        val sagas = mutableListOf<String>()
+        val db = this.readableDatabase
+        var cursor: Cursor? = null
+        try {
+            cursor = db.rawQuery("SELECT DISTINCT $COLUMN_NOMBRE_SAGA FROM $TABLE_LIBROS", null)
+            if (cursor.moveToFirst()) {
+                do {
+                    val saga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA))
+                    sagas.add(saga)
+                } while (cursor.moveToNext())
+            }
+        } finally {
+            cursor?.close()
+            db.close()
+        }
+        return sagas
+    }
+
+    fun getAllLibros(): List<Libro> {
+        val libros = mutableListOf<Libro>()
+        val db = this.readableDatabase
+        var cursor: Cursor? = null
+        try {
+            cursor = db.rawQuery("SELECT * FROM $TABLE_LIBROS", null)
+            if (cursor.moveToFirst()) {
+                do {
+                    val libro = Libro(
+                        id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                        nombreLibro = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_LIBRO)),
+                        nombreSaga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA)),
+                        nombrePortada = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_PORTADA)),
+                        progreso = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PROGRESO)),
+                        totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS)),
+                        inicialSaga = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INICIAL_SAGA)) > 0
+                    )
+                    libros.add(libro)
+                } while (cursor.moveToNext())
+            }
+        } finally {
+            cursor?.close()
+            db.close()
+        }
         return libros
     }
 
-    // Método para obtener libros por saga
     fun getLibrosBySagaId(nombreSaga: String): List<Libro> {
         val libros = mutableListOf<Libro>()
         val db = this.readableDatabase
-        val cursor = db.query(
-            TABLE_LIBROS,
-            arrayOf(COLUMN_ID, COLUMN_NOMBRE_LIBRO, COLUMN_NOMBRE_SAGA, COLUMN_NOMBRE_PORTADA, COLUMN_PROGRESO, COLUMN_TOTAL_PAGINAS, COLUMN_INICIAL_SAGA),
-            "$COLUMN_NOMBRE_SAGA = ?",
-            arrayOf(nombreSaga),
-            null, null, null
-        )
+        var cursor: Cursor? = null
+        try {
+            cursor = db.query(
+                TABLE_LIBROS,
+                arrayOf(
+                    COLUMN_ID, COLUMN_NOMBRE_LIBRO, COLUMN_NOMBRE_SAGA,
+                    COLUMN_NOMBRE_PORTADA, COLUMN_PROGRESO, COLUMN_TOTAL_PAGINAS, COLUMN_INICIAL_SAGA
+                ),
+                "$COLUMN_NOMBRE_SAGA = ?",
+                arrayOf(nombreSaga),
+                null,
+                null,
+                null
+            )
 
-        if (cursor.moveToFirst()) {
-            do {
-                val libro = Libro(
-                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                    nombreLibro = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_LIBRO)),
-                    nombreSaga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA)),
-                    nombrePortada = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_PORTADA)),
-                    progreso = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PROGRESO)),
-                    totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS)),
-                    inicialSaga = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INICIAL_SAGA)) > 0 // Asumiendo que es INTEGER 0 o 1
-                )
-                libros.add(libro)
-            } while (cursor.moveToNext())
+            if (cursor.moveToFirst()) {
+                do {
+                    val libro = Libro(
+                        id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                        nombreLibro = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_LIBRO)),
+                        nombreSaga = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_SAGA)),
+                        nombrePortada = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE_PORTADA)),
+                        progreso = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PROGRESO)),
+                        totalPaginas = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_PAGINAS)),
+                        inicialSaga = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INICIAL_SAGA)) > 0
+                    )
+                    libros.add(libro)
+                } while (cursor.moveToNext())
+            }
+        } finally {
+            cursor?.close()
+            db.close()
         }
-        cursor.close()
-        db.close()
         return libros
     }
 }

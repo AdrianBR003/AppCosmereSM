@@ -1,14 +1,18 @@
 package com.example.appsandersonsm
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.MotionEvent
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Repositorio.DatabaseHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -23,13 +27,36 @@ class DetallesLibroActivity : AppCompatActivity() {
     private lateinit var dbHelper: DatabaseHelper
     private var libro: Libro? = null
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Ocultar el Action Bar si es necesario
         supportActionBar?.hide()
         setContentView(R.layout.activity_detalles_libro)
 
         supportActionBar?.hide() // Hide default topbar with app name
+
+        // Recycler View Notas
+        val recyclerViewNotas = findViewById<RecyclerView>(R.id.recyclerViewNotas)
+        recyclerViewNotas.layoutManager = LinearLayoutManager(this)
+        recyclerViewNotas.adapter = NotasAdapter()
+
+        recyclerViewNotas.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // Deshabilita el scroll del padre cuando el usuario toca el RecyclerView
+                    recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(true)
+                }
+                MotionEvent.ACTION_UP -> {
+                    // Habilita el scroll del padre cuando el usuario deja de tocar el RecyclerView
+                    recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(false)
+                    // Llama a performClick para cumplir con las reglas de accesibilidad
+                    recyclerViewNotas.performClick()
+                }
+            }
+            false // Permitir que el RecyclerView maneje el evento táctil
+        }
+
+
 
         // Inicializar vistas
         editTextProgressCurrent = findViewById(R.id.editTextProgressCurrent)

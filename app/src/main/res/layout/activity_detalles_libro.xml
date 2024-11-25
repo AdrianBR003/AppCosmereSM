@@ -15,8 +15,7 @@
         android:layout_height="match_parent"
         android:background="@drawable/image_border"
         android:fillViewport="true"
-        tools:context=".DetallesLibroActivity"
-        >
+        tools:context=".DetallesLibroActivity">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/detailConstraintLayout"
@@ -24,8 +23,7 @@
             android:layout_height="wrap_content"
             android:background="#1A1A1F"
             android:clipChildren="false"
-            android:clipToPadding="false"
-            >
+            android:clipToPadding="false">
 
             <!-- INICIO Guidelines ImageView -->
 
@@ -55,7 +53,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                app:layout_constraintGuide_percent="0.75" />
+                app:layout_constraintGuide_percent="0.6" />
 
             <!-- FIN Guidelines ImageView -->
 
@@ -65,11 +63,10 @@
                 android:layout_height="0dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/portada_elcamino"
+                app:layout_constraintBottom_toTopOf="@id/guideline_horizontal_imageViewD"
                 app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
                 app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
-                app:layout_constraintTop_toBottomOf="@id/guideline_horizontal_imageViewU"
-                app:layout_constraintBottom_toTopOf="@id/guideline_horizontal_imageViewD"
-                />
+                app:layout_constraintTop_toBottomOf="@id/guideline_horizontal_imageViewU" />
 
 
             <!-- ProgressBar Personalizada -->
@@ -78,59 +75,84 @@
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="0dp"
                 android:layout_height="10dp"
+                android:layout_marginTop="-10dp"
                 android:progress="50"
                 android:progressDrawable="@drawable/progress_bar_custom"
-                android:layout_marginTop="-10dp"
-                app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
-                app:layout_constraintTop_toBottomOf="@id/portadaImageView"
-                app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
                 app:layout_constraintBottom_toTopOf="@id/guideline_horizontal_imageViewD"
-                />
+                app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
+                app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
+                app:layout_constraintTop_toBottomOf="@id/portadaImageView" />
 
             <LinearLayout
                 android:id="@+id/lnLprogressInput"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:gravity="center"
                 android:orientation="horizontal"
-                app:layout_constraintTop_toBottomOf="@id/progressBar"
                 app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
                 app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
-                android:layout_marginTop="15dp"
-                android:gravity="center">
+                app:layout_constraintTop_toBottomOf="@id/progressBar">
 
                 <EditText
                     android:id="@+id/editTextProgressCurrent"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:ems="4"
+                    android:gravity="center"
                     android:hint="0"
                     android:inputType="number"
                     android:maxLength="5"
                     android:textColor="@color/gold"
-                    android:textColorHint="@color/gold"                    android:gravity="center"
-                    android:ems="4" />
+                    android:textColorHint="@color/gold" />
 
                 <TextView
                     android:id="@+id/textViewSeparator"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:text="/"
                     android:textColor="@color/gold_s"
-                    android:textSize="18sp"
-                    android:gravity="center"/>
+                    android:textSize="18sp" />
 
                 <EditText
                     android:id="@+id/editTextProgressTotal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:ems="4"
+                    android:gravity="center"
                     android:hint="100"
                     android:inputType="number"
                     android:maxLength="5"
                     android:textColor="@color/gold"
-                    android:textColorHint="@color/gold"                        android:gravity="center"
-                    android:ems="4"/>
+                    android:textColorHint="@color/gold" />
 
             </LinearLayout>
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewNotas"
+                android:layout_width="0dp"
+                android:layout_height="200dp"
+                android:layout_marginTop="16dp"
+                android:background="@color/gold_s"
+                android:nestedScrollingEnabled="false"
+                android:padding="1dp"
+                app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
+                app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
+                app:layout_constraintTop_toBottomOf="@id/lnLprogressInput"
+                tools:listitem="@layout/item_nota" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:background="@color/purple_500"
+                android:textColor="@color/white"
+                android:layout_marginTop="100dp"
+                android:text="Descripcion"
+                app:layout_constraintTop_toBottomOf="@id/recyclerViewNotas"
+                />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -140,12 +162,11 @@
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:translationY="-41dp"
         android:layout_gravity="bottom"
-        app:itemIconTint="@drawable/menu_iconos_color"
         android:background="@drawable/rounded_bottom_nav"
-        app:menu="@menu/bottom_nav_menu"
+        android:translationY="-41dp"
+        app:itemIconTint="@drawable/menu_iconos_color"
         app:labelVisibilityMode="labeled"
-        />
+        app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>

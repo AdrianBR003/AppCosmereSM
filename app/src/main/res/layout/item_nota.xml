@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/libros_border"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <!-- Texto de la nota -->
+    <TextView
+        android:id="@+id/tvContenidoNota"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Esta es una nota estática de prueba"
+        android:textColor="@color/white"
+        android:textSize="16sp" />
+
+    <!-- Fecha de la nota -->
+    <TextView
+        android:id="@+id/tvFechaNota"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fecha: 2024-01-01"
+        android:textColor="@color/gray"
+        android:textSize="14sp" />
+
+</LinearLayout>
