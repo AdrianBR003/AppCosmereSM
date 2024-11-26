@@ -2,7 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Definir el color de fondo del ImageView -->
-    <solid android:color="#242426" /> <!-- Color de fondo añadido -->
+    <solid android:color="#1A1A1F" /> <!-- Color de fondo añadido -->
 
     <!-- Definir el borde -->
     <stroke

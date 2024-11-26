@@ -4,7 +4,8 @@
     android:layout_height="wrap_content"
     android:background="@drawable/libros_border"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="8dp"
+    android:layout_marginVertical="5dp">
 
     <!-- Texto de la nota -->
     <TextView

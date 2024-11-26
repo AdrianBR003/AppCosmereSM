@@ -2,4 +2,5 @@
     <string name="app_name">AppSandersonSM</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="default_web_client_id">592736434825-bin143j9qbmp16u1pjd4gentqstckl03.apps.googleusercontent.com</string>
+    <string name="Titulonotas">Notas</string>
 </resources>

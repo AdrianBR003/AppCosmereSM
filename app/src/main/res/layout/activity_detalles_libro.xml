@@ -5,10 +5,10 @@
     android:id="@+id/nestedScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/image_border"
     android:fillViewport="true"
     android:orientation="vertical"
-    tools:context=".DetallesLibroActivity">
+    tools:context=".DetallesLibroActivity"
+    >
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -21,7 +21,6 @@
             android:id="@+id/detailConstraintLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#1A1A1F"
             android:clipChildren="false"
             android:clipToPadding="false">
 
@@ -129,18 +128,46 @@
 
             </LinearLayout>
 
+
+            <View
+                android:id="@+id/vwLineaNotasl"
+                android:layout_width="0dp"
+                android:layout_height="2dp"
+                android:background="@color/gold"
+                app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
+                app:layout_constraintTop_toBottomOf="@id/tvTituloNotas"
+                app:layout_constraintBottom_toTopOf="@id/recyclerViewNotas"
+                android:layout_marginBottom="20dp"
+                />
+
+            <TextView
+                android:id="@+id/tvTituloNotas"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
+                app:layout_constraintBottom_toTopOf="@id/vwLineaNotasl"
+                app:layout_constraintTop_toBottomOf="@id/lnLprogressInput"
+                android:paddingHorizontal="10dp"
+                android:gravity="center"
+                android:text="@string/Titulonotas"
+                android:textSize="20dp"
+                android:textColor="@color/gold_s"
+                />
+
+
             <androidx.recyclerview.widget.RecyclerView
+                android:background="#242426"
                 android:id="@+id/recyclerViewNotas"
                 android:layout_width="0dp"
-                android:layout_height="200dp"
+                android:layout_height="250dp"
                 android:layout_marginTop="16dp"
-                android:background="@color/gold_s"
                 android:nestedScrollingEnabled="false"
-                android:padding="1dp"
+                android:padding="5dp"
                 app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
                 app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
-                app:layout_constraintTop_toBottomOf="@id/lnLprogressInput"
-                tools:listitem="@layout/item_nota" />
+                app:layout_constraintTop_toBottomOf="@id/vwLineaNotasl"
+                tools:listitem="@layout/item_nota"
+                />
 
             <TextView
                 android:layout_width="0dp"
