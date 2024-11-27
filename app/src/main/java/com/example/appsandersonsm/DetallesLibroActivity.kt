@@ -1,16 +1,29 @@
 package com.example.appsandersonsm
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.method.ScrollingMovementMethod
+import android.transition.AutoTransition
+import android.transition.ChangeBounds
+import android.transition.TransitionManager
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.view.marginTop
+import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Modelo.Libro
@@ -34,6 +47,34 @@ class DetallesLibroActivity : AppCompatActivity() {
         setContentView(R.layout.activity_detalles_libro)
 
         supportActionBar?.hide() // Hide default topbar with app name
+
+        // Descripcion
+        // Referencias a las vistas
+        val btnExpandirDescripcion = findViewById<ImageView>(R.id.btnExpandirDescripcion)
+        val scrollViewDescripcion = findViewById<NestedScrollView>(R.id.scrollViewDescripcion)
+        val tvDescripcion = findViewById<TextView>(R.id.tvDescripcion)
+        val detailConstraintLayout = findViewById<ConstraintLayout>(R.id.detailConstraintLayout)
+        var isExpanded = false
+
+        btnExpandirDescripcion.setOnClickListener {
+            isExpanded = !isExpanded
+
+            // Iniciar una transición para animar los cambios en el layout
+            val transition = AutoTransition()
+            transition.duration = 200
+            TransitionManager.beginDelayedTransition(detailConstraintLayout, transition)
+
+            if (isExpanded) {
+                // Mostrar el NestedScrollView y cambiar icono
+                scrollViewDescripcion.visibility = View.VISIBLE
+                btnExpandirDescripcion.setImageResource(R.drawable.ic_updesc) // Reemplaza con tu icono de 'up'
+            } else {
+                // Ocultar el NestedScrollView y restaurar icono
+                scrollViewDescripcion.visibility = View.GONE
+                btnExpandirDescripcion.setImageResource(R.drawable.ic_downdesc) // Reemplaza con tu icono de 'down'
+            }
+        }
+
 
         // Recycler View Notas
         val recyclerViewNotas = findViewById<RecyclerView>(R.id.recyclerViewNotas)
@@ -162,4 +203,10 @@ class DetallesLibroActivity : AppCompatActivity() {
             "Progreso guardado: ${libro?.progreso}, Total páginas guardado: ${libro?.totalPaginas}"
         )
     }
+
+
+
+
+
+
 }
