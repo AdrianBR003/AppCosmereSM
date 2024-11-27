@@ -87,6 +87,7 @@ class DetallesLibroActivity : AppCompatActivity() {
                     // Deshabilita el scroll del padre cuando el usuario toca el RecyclerView
                     recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(true)
                 }
+
                 MotionEvent.ACTION_UP -> {
                     // Habilita el scroll del padre cuando el usuario deja de tocar el RecyclerView
                     recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(false)
@@ -96,7 +97,6 @@ class DetallesLibroActivity : AppCompatActivity() {
             }
             false // Permitir que el RecyclerView maneje el evento táctil
         }
-
 
 
         // Inicializar vistas
@@ -127,14 +127,17 @@ class DetallesLibroActivity : AppCompatActivity() {
                     startActivity(Intent(this, AjustesActivity::class.java))
                     true
                 }
+
                 R.id.nav_map -> {
                     startActivity(Intent(this, MapaInteractivoActivity::class.java))
                     true
                 }
+
                 R.id.nav_book -> {
                     startActivity(Intent(this, LibroActivity::class.java))
                     true
                 }
+
                 else -> false
             }
         }
@@ -179,7 +182,8 @@ class DetallesLibroActivity : AppCompatActivity() {
 
     private fun updateProgressBar() {
         val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
-        val total = editTextProgressTotal.text.toString().toIntOrNull() ?: libro?.totalPaginas ?: 100
+        val total =
+            editTextProgressTotal.text.toString().toIntOrNull() ?: libro?.totalPaginas ?: 100
 
         val progresoPorcentaje = calcularProgreso(current, total)
         progressBar.max = 100
@@ -203,10 +207,6 @@ class DetallesLibroActivity : AppCompatActivity() {
             "Progreso guardado: ${libro?.progreso}, Total páginas guardado: ${libro?.totalPaginas}"
         )
     }
-
-
-
-
 
 
 }
