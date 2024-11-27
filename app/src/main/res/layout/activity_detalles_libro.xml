@@ -129,6 +129,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:layout_marginTop="10dp"
                 android:id="@+id/llDescripcion"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -143,7 +144,7 @@
                     android:id="@+id/tvTituloDescripcion"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="14dp"
+                    android:paddingLeft="10dp"
                     android:text="Descripción"
                     android:textColor="@color/gold_s"
                     android:textSize="20sp" />
@@ -166,6 +167,7 @@
 
             <!-- NestedScrollView para la Descripción -->
             <LinearLayout
+                android:paddingBottom="20dp"
                 android:id="@+id/llNetScroll"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -199,7 +201,6 @@
                 app:layout_constraintBottom_toTopOf="@id/recyclerViewNotas"
                 app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
                 android:orientation="vertical"
-                android:gravity="left"
                 >
 
             <TextView
@@ -207,6 +208,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center"
+                android:layout_marginVertical="5dp"
                 android:paddingHorizontal="10dp"
                 android:text="@string/Titulonotas"
                 android:textColor="@color/gold_s"
@@ -217,7 +219,6 @@
                 android:id="@+id/vwLineaNotasl"
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
-                android:layout_marginBottom="20dp"
                 android:background="@color/gold"
                  />
 
@@ -227,14 +228,24 @@
                 android:id="@+id/recyclerViewNotas"
                 android:layout_width="0dp"
                 android:layout_height="250dp"
-                android:layout_marginTop="16dp"
-                android:background="#242426"
                 android:nestedScrollingEnabled="false"
                 android:padding="5dp"
                 app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
                 app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
                 app:layout_constraintTop_toBottomOf="@id/llNotas"
                 tools:listitem="@layout/item_nota" />
+
+            <View
+                android:id="@+id/vwLineaNotasD"
+                android:layout_width="0dp"
+                android:layout_height="2dp"
+
+                android:layout_marginVertical="5dp"
+                android:background="@color/gold"
+                app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
+                app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
+                app:layout_constraintTop_toBottomOf="@id/recyclerViewNotas"
+                />
 
             <TextView
                 android:id="@+id/tvdescripcion2"
@@ -246,7 +257,7 @@
                 android:textColor="@color/white"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/recyclerViewNotas" />
+                app:layout_constraintTop_toBottomOf="@id/vwLineaNotasD" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
