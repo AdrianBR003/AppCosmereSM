@@ -1,33 +1,26 @@
 package com.example.appsandersonsm
 
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.text.method.ScrollingMovementMethod
 import android.transition.AutoTransition
-import android.transition.ChangeBounds
 import android.transition.TransitionManager
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.view.marginTop
 import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.appsandersonsm.Adapter.NotasAdapter
 import com.example.appsandersonsm.Modelo.Libro
-import com.example.appsandersonsm.Repositorio.DatabaseHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class DetallesLibroActivity : AppCompatActivity() {
@@ -37,7 +30,7 @@ class DetallesLibroActivity : AppCompatActivity() {
     private lateinit var imagenPortada: ImageView
     private lateinit var editTextProgressCurrent: EditText
     private lateinit var editTextProgressTotal: EditText
-    private lateinit var dbHelper: DatabaseHelper
+//    private lateinit var dbHelper: DatabaseHelper
     private var libro: Libro? = null
 
     @SuppressLint("ClickableViewAccessibility")
@@ -106,11 +99,11 @@ class DetallesLibroActivity : AppCompatActivity() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         imagenPortada = findViewById(R.id.portadaImageView)
 
-        // Inicializar el DatabaseHelper
-        dbHelper = DatabaseHelper(this)
-
-        // Cargar datos iniciales en la base de datos si es la primera vez
-        dbHelper.cargarDatosInicialesDesdeJson()
+//        // Inicializar el DatabaseHelper
+//        dbHelper = DatabaseHelper(this)
+//
+//        // Cargar datos iniciales en la base de datos si es la primera vez
+//        dbHelper.cargarDatosInicialesDesdeJson()
 
         // Obtener el ID del libro del Intent
         val libroId = intent.getIntExtra("LIBRO_ID", 0)
@@ -165,7 +158,7 @@ class DetallesLibroActivity : AppCompatActivity() {
     }
 
     private fun cargarDatosLibro(libroId: Int) {
-        libro = dbHelper.getLibroById(libroId)
+//        libro = dbHelper.getLibroById(libroId)
 
         libro?.let {
             val resID = resources.getIdentifier(it.nombrePortada, "drawable", packageName)
@@ -199,7 +192,7 @@ class DetallesLibroActivity : AppCompatActivity() {
         libro?.totalPaginas = total
 
         // Guardar el libro actualizado en la base de datos
-        libro?.let { dbHelper.actualizarProgresoLibro(it) }
+//        libro?.let { dbHelper.actualizarProgresoLibro(it) }
 
         // Log para depuración
         Log.d(

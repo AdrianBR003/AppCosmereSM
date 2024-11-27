@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
+    id ("kotlin-kapt")
 }
 
 android {
@@ -53,7 +54,17 @@ android {
     }
 }
 
+
 dependencies {
+
+    // ROOM
+    implementation(libs.androidx.room.runtime)
+    implementation (libs.androidx.lifecycle.viewmodel.ktx)
+    implementation (libs.androidx.lifecycle.livedata.ktx.v261)
+    kapt ("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+
+
 
     implementation (libs.glide.v4120)
     implementation (libs.glide.transformations)
@@ -86,6 +97,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.sqlite.ktx)
 
     // Test dependencies
     testImplementation(libs.junit)

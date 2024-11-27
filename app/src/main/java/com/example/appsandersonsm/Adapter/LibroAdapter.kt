@@ -1,23 +1,24 @@
-package com.example.appsandersonsm
+package com.example.appsandersonsm.Adapter
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Modelo.Libro
+import com.example.appsandersonsm.R
 
 class LibroAdapter(
     private val context: Context,
-    private var libros: List<Libro>,
     private val onItemClick: (Libro) -> Unit
-) : RecyclerView.Adapter<LibroAdapter.LibroViewHolder>() {
+) : ListAdapter<Libro, LibroAdapter.LibroViewHolder>(LibroDiffCallback()) {
 
-    // Clase interna LibroViewHolder
+    // ViewHolder para representar un elemento de la lista
     inner class LibroViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageViewPortada: ImageView = itemView.findViewById(R.id.imageViewPortada)
         val textViewNombreLibro: TextView = itemView.findViewById(R.id.textViewNombreLibro)
@@ -31,41 +32,48 @@ class LibroAdapter(
     }
 
     override fun onBindViewHolder(holder: LibroViewHolder, position: Int) {
-        val libro = libros[position]
-        val resID = context.resources.getIdentifier(libro.nombrePortada, "drawable", context.packageName)
-        holder.imageViewPortada.setImageResource(resID)
+        val libro = getItem(position)
+
+        // Configuración de los valores en las vistas
         holder.textViewNombreLibro.text = libro.nombreLibro
         holder.textViewNombreSaga.text = libro.nombreSaga
 
-        // Calcular el progreso como porcentaje
+        // Cálculo del progreso en porcentaje
         val progresoPorcentaje = if (libro.totalPaginas > 0) {
             (libro.progreso * 100) / libro.totalPaginas
         } else {
             0
         }
 
-        // Asignar el progreso calculado al ProgressBar
+        // Cargar la imagen
+        val resourceId = context.resources.getIdentifier(
+            libro.nombrePortada,
+            "drawable",
+            context.packageName
+        )
+        if (resourceId != 0) {
+            holder.imageViewPortada.setImageResource(resourceId)
+        } else {
+            holder.imageViewPortada.setImageResource(R.drawable.portada_elcamino)
+        }
+
         holder.progressBar.max = 100
         holder.progressBar.progress = progresoPorcentaje.coerceIn(0, 100)
 
-        // Log para depuración
-        Log.d(
-            "LibroAdapter",
-            "Libro: ${libro.nombreLibro}, Progreso: ${libro.progreso}, Total Páginas: ${libro.totalPaginas}, Progreso Calculado: $progresoPorcentaje"
-        )
-
+        // Configuración del evento de clic
         holder.itemView.setOnClickListener {
             onItemClick(libro)
         }
     }
+}
 
-    override fun getItemCount(): Int {
-        return libros.size
+// Clase DiffCallback para optimizar cambios en la lista
+class LibroDiffCallback : DiffUtil.ItemCallback<Libro>() {
+    override fun areItemsTheSame(oldItem: Libro, newItem: Libro): Boolean {
+        return oldItem.id == newItem.id // Compara por ID único
     }
 
-    // Método para actualizar la lista de libros
-    fun actualizarLista(nuevaLista: List<Libro>) {
-        libros = nuevaLista
-        notifyDataSetChanged()
+    override fun areContentsTheSame(oldItem: Libro, newItem: Libro): Boolean {
+        return oldItem == newItem // Compara por contenido completo
     }
 }
