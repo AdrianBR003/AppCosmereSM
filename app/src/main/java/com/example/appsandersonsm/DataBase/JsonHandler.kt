@@ -29,7 +29,10 @@ class JsonHandler(private val context: Context) {
                         nombrePortada = jsonObject.getString("nombrePortada"),
                         progreso = jsonObject.optInt("progreso", 0),
                         totalPaginas = jsonObject.optInt("totalPaginas", 1500),
-                        inicialSaga = jsonObject.optBoolean("inicialSaga", false)
+                        inicialSaga = jsonObject.optBoolean("inicialSaga", false),
+                        sinopsis = jsonObject.optString("sinopsis", "Sinopsis no disponible"),
+                        valoracion = jsonObject.optDouble("valoracion", 0.0).toFloat(),
+                        nNotas = jsonObject.optInt("nNotas", 0)
                     )
                     Log.d("JsonHandler", "Libro cargado: $libro")
                     libros.add(libro)

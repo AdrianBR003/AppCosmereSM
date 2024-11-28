@@ -128,7 +128,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/llDescripcion"
+                android:id="@+id/llSinopsis"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -140,31 +140,29 @@
 
                 <!-- Título -->
                 <TextView
-                    android:id="@+id/tvTituloDescripcion"
+                    android:id="@+id/tvTituloSinopsis"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
-                    android:text="Descripción"
+                    android:text="Sinopsis"
                     android:textColor="@color/gold_s"
                     android:textSize="20sp" />
 
 
                 <!-- Botón de expandir/desplegar -->
                 <ImageView
-                    android:id="@+id/btnExpandirDescripcion"
+                    android:id="@+id/btnExpandirSinopsis"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:clickable="true"
-                    android:contentDescription="icono descripcion abajo"
+                    android:contentDescription="icono sinopsis abajo"
                     android:focusable="true"
                     android:paddingLeft="4dp"
                     android:src="@drawable/ic_downdesc" />
             </LinearLayout>
 
-            <!-- Descripción oculta inicialmente -->
-
-            <!-- NestedScrollView para la Descripción -->
+            <!-- NestedScrollView para la Sinopsis -->
             <LinearLayout
                 android:id="@+id/llNetScroll"
                 android:layout_width="0dp"
@@ -173,21 +171,21 @@
                 app:layout_constraintBottom_toTopOf="@id/llNotas"
                 app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
                 app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
-                app:layout_constraintTop_toBottomOf="@id/llDescripcion">
+                app:layout_constraintTop_toBottomOf="@id/llSinopsis">
 
                 <androidx.core.widget.NestedScrollView
-                    android:id="@+id/scrollViewDescripcion"
+                    android:id="@+id/scrollViewSinopsis"
                     android:layout_width="wrap_content"
                     android:layout_height="100dp"
                     android:padding="5dp"
                     android:visibility="gone">
 
                     <TextView
-                        android:id="@+id/tvDescripcion"
+                        android:id="@+id/tvSinopsis"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="16dp"
-                        android:text="@string/descripcion"
+                        android:text=""
                         android:textColor="@color/white"
                         android:textSize="16sp" />
                 </androidx.core.widget.NestedScrollView>
@@ -202,6 +200,11 @@
                 app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
                 app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL">
 
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    >
                 <TextView
                     android:id="@+id/tvTituloNotas"
                     android:layout_width="wrap_content"
@@ -213,6 +216,17 @@
                     android:textColor="@color/gold_s"
                     android:textSize="20dp" />
 
+                    <TextView
+                        android:id="@+id/tvNumeroNotas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginVertical="5dp"
+                        android:gravity="center"
+                        android:text="0"
+                        android:textColor="@color/gold_s"
+                        android:textSize="20dp" />
+
+                </LinearLayout>
                 <View
                     android:id="@+id/vwLineaNotasl"
                     android:layout_width="match_parent"
@@ -247,7 +261,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginTop="20dp"
-                android:paddingBottom="20dp"
+                android:paddingBottom="40dp"
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
                 app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
@@ -264,25 +278,13 @@
                     android:textColor="@color/gold_s"
                     android:textSize="20dp" />
 
-                <EditText
-                    android:id="@+id/etvaloracion"
+                <RatingBar
+                    android:id="@+id/ratingBarValoracion"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:ems="2"
-                    android:gravity="center"
-                    android:hint="0"
-                    android:inputType="number"
-                    android:maxLength="2"
-                    android:textColorHint="@color/gold" />
-
-                <TextView
-                    android:id="@+id/tvvaloracionN"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text=" / 10"
-                    android:gravity="center"
-                    android:textSize="20sp"
-                    android:textColor="@color/gold"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:stepSize="0.5"
+                    android:rating="0.0"
                     />
 
             </LinearLayout>

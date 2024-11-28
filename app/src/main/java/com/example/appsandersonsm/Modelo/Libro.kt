@@ -13,7 +13,7 @@ data class Libro(
     var totalPaginas: Int,
     var inicialSaga: Boolean,
     var nNotas: Int = 0, // Número de notas, predeterminado a 0
-    var sinopsis: String = "", // Descripción como texto
+    var sinopsis: String? = "", // Descripción como texto
     var valoracion: Float = 0.0f // Valoración entre 0 y 10
 ) {
     init {

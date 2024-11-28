@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.RatingBar
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -33,12 +34,13 @@ class DetallesLibroActivity : AppCompatActivity() {
     private lateinit var imagenPortada: ImageView
     private lateinit var editTextProgressCurrent: EditText
     private lateinit var editTextProgressTotal: EditText
-//    private lateinit var dbHelper: DatabaseHelper
+    private lateinit var textViewSinopsis: TextView
+    private lateinit var textViewNumeroNotas: TextView
+    private lateinit var ratingBarValoracion: RatingBar
     private var libro: Libro? = null
     private val libroViewModel: LibroViewModel by viewModels {
         LibroViewModelFactory((application as InitApplication).libroRepository)
     }
-
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,18 +48,25 @@ class DetallesLibroActivity : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_detalles_libro)
 
-        supportActionBar?.hide() // Hide default topbar with app name
+        supportActionBar?.hide() // Ocultar la barra de acción predeterminada
 
-        // Descripcion
-        // Referencias a las vistas
-
-        val btnExpandirDescripcion = findViewById<ImageView>(R.id.btnExpandirDescripcion)
-        val scrollViewDescripcion = findViewById<NestedScrollView>(R.id.scrollViewDescripcion)
-        val tvDescripcion = findViewById<TextView>(R.id.tvDescripcion)
+        // Inicializar vistas
+        editTextProgressCurrent = findViewById(R.id.editTextProgressCurrent)
+        editTextProgressTotal = findViewById(R.id.editTextProgressTotal)
+        progressBar = findViewById(R.id.progressBar)
+        bottomNavigationView = findViewById(R.id.bottomNavigationView)
+        imagenPortada = findViewById(R.id.portadaImageView)
+        textViewSinopsis = findViewById(R.id.tvSinopsis)
+        textViewNumeroNotas = findViewById(R.id.tvNumeroNotas)
+        ratingBarValoracion = findViewById(R.id.ratingBarValoracion)
+        val btnExpandirSinopsis = findViewById<ImageView>(R.id.btnExpandirSinopsis)
+        val scrollViewSinopsis = findViewById<NestedScrollView>(R.id.scrollViewSinopsis)
         val detailConstraintLayout = findViewById<ConstraintLayout>(R.id.detailConstraintLayout)
+        val recyclerViewNotas = findViewById<RecyclerView>(R.id.recyclerViewNotas)
+
         var isExpanded = false
 
-        btnExpandirDescripcion.setOnClickListener {
+        btnExpandirSinopsis.setOnClickListener {
             isExpanded = !isExpanded
 
             // Iniciar una transición para animar los cambios en el layout
@@ -67,18 +76,24 @@ class DetallesLibroActivity : AppCompatActivity() {
 
             if (isExpanded) {
                 // Mostrar el NestedScrollView y cambiar icono
-                scrollViewDescripcion.visibility = View.VISIBLE
-                btnExpandirDescripcion.setImageResource(R.drawable.ic_updesc) // Reemplaza con tu icono de 'up'
+                scrollViewSinopsis.visibility = View.VISIBLE
+                btnExpandirSinopsis.setImageResource(R.drawable.ic_updesc) // Cambiar al icono "arriba"
             } else {
                 // Ocultar el NestedScrollView y restaurar icono
-                scrollViewDescripcion.visibility = View.GONE
-                btnExpandirDescripcion.setImageResource(R.drawable.ic_downdesc) // Reemplaza con tu icono de 'down'
+                scrollViewSinopsis.visibility = View.GONE
+                btnExpandirSinopsis.setImageResource(R.drawable.ic_downdesc) // Cambiar al icono "abajo"
             }
         }
 
+        // Obtener el ID del libro del Intent
+        val libroId = intent.getIntExtra("LIBRO_ID", 0)
+
+        // Cargar el libro desde la base de datos
+        cargarDatosLibro(libroId)
+
+        // Configuracion RecyclerView Notas
 
         // Recycler View Notas
-        val recyclerViewNotas = findViewById<RecyclerView>(R.id.recyclerViewNotas)
         recyclerViewNotas.layoutManager = LinearLayoutManager(this)
         recyclerViewNotas.adapter = NotasAdapter()
 
@@ -107,12 +122,6 @@ class DetallesLibroActivity : AppCompatActivity() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         imagenPortada = findViewById(R.id.portadaImageView)
 
-
-        // Obtener el ID del libro del Intent
-        val libroId = intent.getIntExtra("LIBRO_ID", 0)
-
-        // Cargar el libro desde la base de datos
-        cargarDatosLibro(libroId)
 
         // Configuración del BottomNavigationView
         bottomNavigationView.selectedItemId = R.id.nav_book
@@ -158,6 +167,13 @@ class DetallesLibroActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
+
+        // Listener para actualizar la valoración
+        ratingBarValoracion.setOnRatingBarChangeListener { _, rating, _ ->
+            libro?.let {
+                libroViewModel.actualizarValoracion(it.id, rating)
+            }
+        }
     }
 
     private fun cargarDatosLibro(libroId: Int) {
@@ -169,16 +185,23 @@ class DetallesLibroActivity : AppCompatActivity() {
 
             libro = libroCargado
             libro?.let {
-                Log.d("DetallesLibroActivity", "Libro cargado: totalPaginas = ${it.totalPaginas}")
+                // Rellenar campos con datos del libro
                 val resID = resources.getIdentifier(it.nombrePortada, "drawable", packageName)
                 imagenPortada.setImageResource(resID)
                 editTextProgressCurrent.setText(it.progreso.toString())
-                // Solo asigna el valor a editTextProgressTotal si totalPaginas es mayor que 0
+                Log.d("DetallesLibroActivity", "Sinopsis cargada: ${it.sinopsis}")
                 if (it.totalPaginas > 0) {
                     editTextProgressTotal.setText(it.totalPaginas.toString())
                 } else {
                     Log.w("DetallesLibroActivity", "El valor de totalPaginas es 0 o inválido.")
                 }
+
+                // Rellenar las nuevas propiedades
+                textViewSinopsis.text = it.sinopsis ?: "Sinopsis no disponible"
+                textViewNumeroNotas.text = "0" // TODO Terminar esto
+                ratingBarValoracion.rating = it.valoracion
+
+                // Actualizar la barra de progreso
                 updateProgressBar()
             }
         }
@@ -194,7 +217,6 @@ class DetallesLibroActivity : AppCompatActivity() {
                 it.totalPaginas = total
                 libroViewModel.updateLibro(it)
 
-                // Log para depuración
                 Log.d(
                     "DetallesLibroActivity",
                     "Progreso guardado: ${it.progreso}, Total páginas guardado: ${it.totalPaginas}"
@@ -204,8 +226,6 @@ class DetallesLibroActivity : AppCompatActivity() {
             Log.w("DetallesLibroActivity", "El total de páginas no es válido. No se guardará.")
         }
     }
-
-
 
     private fun calcularProgreso(current: Int, total: Int): Int {
         return if (total > 0) (current * 100) / total else 0
@@ -220,7 +240,4 @@ class DetallesLibroActivity : AppCompatActivity() {
         progressBar.max = 100
         progressBar.progress = progresoPorcentaje.coerceIn(0, 100)
     }
-
-
-
 }
