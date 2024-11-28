@@ -58,7 +58,7 @@ class DetallesLibroActivity : AppCompatActivity() {
         imagenPortada = findViewById(R.id.portadaImageView)
         textViewSinopsis = findViewById(R.id.tvSinopsis)
         textViewNumeroNotas = findViewById(R.id.tvNumeroNotas)
-        ratingBarValoracion = findViewById(R.id.ratingBarValoracion)
+        ratingBarValoracion = findViewById(R.id.ratingBar)
         val btnExpandirSinopsis = findViewById<ImageView>(R.id.btnExpandirSinopsis)
         val scrollViewSinopsis = findViewById<NestedScrollView>(R.id.scrollViewSinopsis)
         val detailConstraintLayout = findViewById<ConstraintLayout>(R.id.detailConstraintLayout)

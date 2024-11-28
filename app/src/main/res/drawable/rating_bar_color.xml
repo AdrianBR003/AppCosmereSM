@@ -1,0 +1,16 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Fondo de las estrellas vacías -->
+    <item android:id="@android:id/background">
+        <drawable android:color="#CCCCCC" /> <!-- Color para las estrellas vacías -->
+    </item>
+
+    <!-- Color de las estrellas parcialmente llenas (si se usa stepSize menor a 1) -->
+    <item android:id="@android:id/secondaryProgress">
+        <drawable android:color="#FFD700" /> <!-- Color para progreso parcial -->
+    </item>
+
+    <!-- Color de las estrellas completamente llenas -->
+    <item android:id="@android:id/progress">
+        <drawable android:color="#FFA500" /> <!-- Color para las estrellas llenas -->
+    </item>
+</layer-list>

@@ -90,6 +90,9 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation (libs.androidx.appcompat.v161)
+    implementation (libs.materialratingbar.library)
+
 
     // Compose dependencies
     implementation(platform(libs.androidx.compose.bom))

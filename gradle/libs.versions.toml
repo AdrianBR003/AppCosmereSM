@@ -1,5 +1,6 @@
 [versions]
 agp = "8.6.0"
+appcompatVersion = "1.6.1"
 firebaseBom = "33.5.1" # Usar solo esta versión para firebaseBom
 glide = "4.15.1"
 glideTransformations = "4.3.0"
@@ -10,6 +11,7 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
+libraryVersion = "1.4.0"
 lifecycleLivedataKtxVersion = "2.6.1"
 lifecycleViewmodelKtx = "2.8.7"
 material = "1.12.0"
@@ -29,6 +31,7 @@ lifecycleLivedataKtx = "2.8.7"
 sqliteKtx = "2.4.0"
 
 [libraries]
+androidx-appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-lifecycle-livedata-ktx-v261 = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtxVersion" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
@@ -47,6 +50,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 labs-subsampling-scale-image-view = { module = "com.davemorrissey.labs:subsampling-scale-image-view", version.ref = "subsamplingScaleImageViewVersion" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+materialratingbar-library = { module = "me.zhanghai.android.materialratingbar:library", version.ref = "libraryVersion" }
 photoview = { module = "com.github.chrisbanes:PhotoView", version.ref = "photoview" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
