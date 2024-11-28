@@ -17,8 +17,6 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
         return repository.getLibrosBySaga(nombreSaga).asLiveData()
     }
 
-
-
     fun getLibroById(id: Int): LiveData<Libro?> {
         val libro = MutableLiveData<Libro?>()
         viewModelScope.launch {
@@ -38,6 +36,9 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
     fun deleteLibro(libro: Libro) = viewModelScope.launch {
         repository.deleteLibro(libro)
     }
+
+
+
 }
 
 class LibroViewModelFactory(private val repository: LibroRepository) : ViewModelProvider.Factory {

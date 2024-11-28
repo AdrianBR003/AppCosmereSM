@@ -6,7 +6,10 @@
     "nombrePortada": "portada_elcamino",
     "progreso": 0,
     "totalPaginas": 1500,
-    "inicialSaga": true
+    "inicialSaga": true,
+    "nNotas": 0,
+    "sinopsis": "Anhelo los días previos a la Última Desolación.Los días en que los Heraldos nos abandonaron y los Caballeros Radiantes se giraron en nuestra contra. Un tiempo en que aún había magia en el mundo y honor en el corazón de los hombres.El mundo fue nuestro, pero lo perdimos. Probablemente no hay nada más estimulante para las almas de los hombres que la victoria.¿O tal vez fue la victoria una ilusión durante todo ese tiempo? ¿Comprendieron nuestros enemigos que cuanto más duramente luchaban, más resistíamos nosotros? Quizá vieron que el fuego y el martillo tan solo producían mejores espadas. Pero ignoraron el acero durante el tiempo suficiente para oxidarse.Hay cuatro personas a las que observamos. La primera es el médico, quien dejó de curar para convertirse en soldado durante la guerra más brutal de nuestro tiempo. La segunda es el asesino, un homicida que llora siempre que mata. La tercera es la mentirosa, una joven que viste un manto de erudita sobre un corazón de ladrona. Por último está el alto príncipe, un guerrero que mira al pasado mientras languidece su sed de guerra.El mundo puede cambiar. La potenciación y el uso de las esquirlas pueden aparecer de nuevo, la magia de los días pasados puede volver a ser nuestra. Esas cuatro personas son la clave.Una de ellas nos redimirá.Y una de ellas nos destruirá",
+    "valoracion": 0
   },
   {
     "id": 2,
@@ -15,7 +18,10 @@
     "nombrePortada": "portada_palabrasradiantes",
     "progreso": 0,
     "totalPaginas": 1500,
-    "inicialSaga": false
+    "inicialSaga": false,
+    "nNotas": 0,
+    "sinopsis": "Los Caballeros Radiantes deben volver a alzarse.Los antiguos juramentos por fin se han pronunciado. Los hombres buscan lo que se perdió. Temo que la búsqueda los destruya.Es la naturaleza de la magia. Un alma rota tiene grietas donde puede colarse algo más. Las potencias, los poderes de la creación misma, pueden abrazar un alma rota, pero también pueden ampliar sus fisuras.El Corredor del Viento está perdido en una tierra quebrada, en equilibro entre la venganza y el honor. La Tejedora de Luz, lentamente consumida por su pasado, busca la mentira en la que debe convertirse. El Forjador de Vínculos, nacido en la sangre y la muerte, se esfuerza ahora por reconstruir lo que fue destruido. La Exploradora, a caballo entre los destinos de dos pueblos, se ve obligada a elegir entre una muerte lenta y una terrible traición a todo en lo que cree.Ya es hora de despertarlos, pues acecha la eterna tormenta.Y el Asesino ha llegado.",
+    "valoracion": 0
   },
   {
     "id": 3,
@@ -24,7 +30,10 @@
     "nombrePortada": "portada_juramentada",
     "progreso": 0,
     "totalPaginas": 1500,
-    "inicialSaga": false
+    "inicialSaga": false,
+    "nNotas": 0,
+    "sinopsis": "Una nueva tormenta se avecina.Ceniza y relámpagos rojos barren la tierra, despertando a nuestros antiguos enemigos. Los Deshechos—sombras del alma del Enemigo—se agitan, mientras los ojos de los hombres se abren. Esta guerra no es, y nunca fue, lo que pensaban que era.Pronto podremos blandir las Potenciaciones de nuevo, pues el Resplandor ha vuelto a algunos, y brilla hacia otros. El Capitán', roto por la pérdida, busca la reconciliación. La espía, rota por la crueldad, busca que todo acabe. El caminante de piedras, roto por juramentos, busca la verdad. La Traidora, rota por la ambición, busca la libertad.Y finalemente el Rey. Roto por la guerra, busca su pasado. El cual fue abandonado. El cual no debe conocer.Porque esos secretos le aplastarán como hicieron con los caballeros que vinieron antes.[1]",
+    "valoracion": 0
   },
   {
     "id": 4,
@@ -33,7 +42,10 @@
     "nombrePortada": "portada_elritmoguerra",
     "progreso": 0,
     "totalPaginas": 1500,
-    "inicialSaga": false
+    "inicialSaga": false,
+    "nNotas": 0,
+    "sinopsis": "Hay secretos que hemos guardado mucho tiempo. Vigilantes. Insomnes. Eternos. Y pronto dejarán de ser nuestros.La Una que es Tres busca, sin saberlo, el alma capturada. El spren aprisionado, olvidado hace mucho tiempo. ¿Puede liberar su propia alma a tiempo de hallar el conocimiento que condena a todos los pueblos de Roshar?.El Soldado Caído acaricia y ama la lanza, incluso mientras el arma hiende su propia carne. Camina siempre hacia delante, siempre hacia la oscuridad, sin luz. No puede llevar consigo a nadie, salvo aquello que él mismo puede avivar.La Hermana Derrumbada comprende sus errores y piensa que ella misma es un error. Parece muy alejada de sus antepasados, pero no comprende que son quienes la llevan a hombros. Hacia la victoria, y hacia ese silencio, el más importante de todos.Y la Madre de Máquinas, la más crucial de todos ellos, danza con mentirosos en un gran baile. Debe desenmascararlos, alcanzar sus verdades ocultas y entregarlas al mundo. Tiene que reconocer que las peores mentiras son las que se cuenta a sí misma.Si lo hace, nuestros secretos por fin se convertirán en verdades.",
+    "valoracion": 0
   },
   {
     "id": 5,
@@ -42,7 +54,10 @@
     "nombrePortada": "portada_elaliento",
     "progreso": 0,
     "totalPaginas": 1500,
-    "inicialSaga": true
+    "inicialSaga": true,
+    "nNotas": 0,
+    "sinopsis": " [No Oficial] El Aliento de los Dioses es una novela de fantasía de Brandon Sanderson, ambientada en un mundo donde la magia proviene del Aliento y los colores. La historia sigue a dos hermanas atrapadas en intrigas políticas y divinas, mientras exploran el poder del sacrificio, la libertad y la identidad en un reino al borde de la guerra.",
+    "valoracion": 0
   },
   {
     "id": 6,
@@ -51,7 +66,10 @@
     "nombrePortada": "portada_elheroe",
     "progreso": 0,
     "totalPaginas": 1500,
-    "inicialSaga": false
+    "inicialSaga": false,
+    "nNotas": 0,
+    "sinopsis": " [No Oficial] El Héroe de las Eras es el épico desenlace de la trilogía Nacidos de la Bruma de Brandon Sanderson. Mientras el mundo se desmorona, Vin y Elend luchan por descubrir los secretos del pasado y detener una fuerza ancestral que amenaza con destruirlo todo. Es una historia de sacrificio, esperanza y el verdadero significado del heroísmo.",
+    "valoracion": 0
   },
   {
     "id": 7,
@@ -60,7 +78,10 @@
     "nombrePortada": "portada_elpozo",
     "progreso": 0,
     "totalPaginas": 1500,
-    "inicialSaga": false
+    "inicialSaga": false,
+    "nNotas": 0,
+    "sinopsis": "Durante mil años nada ha cambiado: han caído las cenizas, los skaa han sido esclavizados y el lord Legislador ha dominado el mundo. Pero lo imposible ha sucedido. El lord Legislador ha muerto. Sin embargo, vencer y matarlo fue la parte sencilla. El verdadero desafío será sobrevivir a las consecuencias de su caída. Tomar el poder tal vez resultó fácil, pero ¿qué ocurre después?, ¿cómo se utiliza? La tarea de reconstruir el mundo, ahora que Kelsier no está, ha quedado en manos de Vin. Y las brumas, desde que el lord Legislador cayó, se han vuelto cada vez más impredecibles...A medida que el asedio se intensifica, la antigua leyenda del Pozo de la Ascensión ofrece un único rayo de esperanza.En ese mundo de aventura épica, la estrategia política y religiosa debe lidiar con los siempre misteriosos poderes de la alomancia...",
+    "valoracion": 0
   },
   {
     "id": 8,
@@ -69,6 +90,9 @@
     "nombrePortada": "portada_nacidos",
     "progreso": 0,
     "totalPaginas": 1500,
-    "inicialSaga": true
+    "inicialSaga": true,
+    "nNotas": 0,
+    "sinopsis": "El Imperio Final es el inicio de la trilogía Nacidos de la Bruma de Brandon Sanderson. En un mundo gobernado por un tirano inmortal, una joven ladrona descubre que posee un poder extraordinario y se une a una rebelión que busca liberar a la humanidad. Una historia de lucha, esperanza y revolución en un mundo de cenizas y metales mágicos.",
+    "valoracion": 0
   }
 ]

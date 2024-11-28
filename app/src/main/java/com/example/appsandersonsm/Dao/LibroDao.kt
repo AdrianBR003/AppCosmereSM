@@ -31,6 +31,18 @@ interface LibroDao {
     @Query("SELECT COUNT(*) FROM libros")
     suspend fun getCount(): Int
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLibro(libro: Libro)
+
+    @Query("UPDATE libros SET nNotas = :nNotas WHERE id = :libroId")
+    suspend fun actualizarNumeroNotas(libroId: Int, nNotas: Int)
+
+    @Query("UPDATE libros SET sinopsis = :sinopsis WHERE id = :libroId")
+    suspend fun actualizarSinopsis(libroId: Int, sinopsis: String)
+
+    @Query("UPDATE libros SET valoracion = :valoracion WHERE id = :libroId")
+    suspend fun actualizarValoracion(libroId: Int, valoracion: Float)
+
 }
 
 
