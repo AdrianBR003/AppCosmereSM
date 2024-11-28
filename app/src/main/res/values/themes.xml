@@ -14,13 +14,9 @@
         <item name="android:statusBarColor">@color/menufondo</item>
     </style>
 
-    <style name="RatingBar" parent="Theme.AppCompat">
-        <item name="mrb_progressTint">@color/white</item>
-        <item name="mrb_secondaryProgressTint">@color/white</item>
-        <item name="mrb_progressBackgroundTint">@color/inicio</item>
-        <item name="mrb_fillBackgroundStars">false</item>
-        <item name="mrb_indeterminateTint">@color/gold</item>
+    <style name="RecyclerViewScrollbar" parent="Theme.AppCompat.Light">
+        <item name="android:scrollbarThumbVertical">@drawable/custom_scrollbar</item>
+        <item name="android:scrollbarTrackVertical">@drawable/custom_scrollbartfondo</item>
     </style>
-
 
 </resources>

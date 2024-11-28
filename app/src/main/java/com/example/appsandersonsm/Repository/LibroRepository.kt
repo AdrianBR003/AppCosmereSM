@@ -1,5 +1,6 @@
 package com.example.appsandersonsm.Repository
 
+import androidx.lifecycle.LiveData
 import com.example.appsandersonsm.Dao.LibroDao
 import com.example.appsandersonsm.Modelo.Libro
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,7 @@ class LibroRepository(private val libroDao: LibroDao) {
     suspend fun deleteLibro(libro: Libro) {
         libroDao.deleteLibro(libro)
     }
+
 
     suspend fun actualizarSinopsis(libroId: Int, sinopsis: String) {
         libroDao.actualizarSinopsis(libroId, sinopsis)

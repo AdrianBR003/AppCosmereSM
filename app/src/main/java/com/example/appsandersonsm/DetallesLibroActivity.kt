@@ -15,20 +15,26 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.RatingBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.NestedScrollView
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Adapter.NotasAdapter
 import com.example.appsandersonsm.Modelo.Libro
+import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
+import com.example.appsandersonsm.ViewModel.NotaViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
-class DetallesLibroActivity : AppCompatActivity() {
+class DetallesLibroActivity : AppCompatActivity(),NotasAdapter.OnNotaClickListener {
 
+
+    private lateinit var notaViewModel: NotaViewModel
     private lateinit var progressBar: ProgressBar
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var imagenPortada: ImageView
@@ -48,6 +54,22 @@ class DetallesLibroActivity : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_detalles_libro)
 
+        // Inicializacion RecyclerViewNotas
+        val recyclerViewNotas = findViewById<RecyclerView>(R.id.recyclerViewNotas)
+        val notasAdapter = NotasAdapter(this)
+        recyclerViewNotas.layoutManager = LinearLayoutManager(this)
+        recyclerViewNotas.adapter = notasAdapter
+
+        // Carga de datos estáticos
+        val notasEstaticas = listOf(
+            Nota(1, 1, "Contenido de la nota estática 1", "2024-01-01"),
+            Nota(2, 1, "Contenido de la nota estática 2", "2024-01-02"),
+            Nota(3, 2, "Contenido de la nota estática 3", "2024-01-03")
+        )
+
+        // Asignar las notas estáticas al adaptador
+        notasAdapter.setNotas(notasEstaticas)
+
         supportActionBar?.hide() // Ocultar la barra de acción predeterminada
 
         // Inicializar vistas
@@ -62,7 +84,10 @@ class DetallesLibroActivity : AppCompatActivity() {
         val btnExpandirSinopsis = findViewById<ImageView>(R.id.btnExpandirSinopsis)
         val scrollViewSinopsis = findViewById<NestedScrollView>(R.id.scrollViewSinopsis)
         val detailConstraintLayout = findViewById<ConstraintLayout>(R.id.detailConstraintLayout)
-        val recyclerViewNotas = findViewById<RecyclerView>(R.id.recyclerViewNotas)
+        notaViewModel = ViewModelProvider(
+            this,
+            NotaViewModel.NotaViewModelFactory((application as InitApplication).notaRepository)
+        )[NotaViewModel::class.java]
 
         var isExpanded = false
 
@@ -93,26 +118,50 @@ class DetallesLibroActivity : AppCompatActivity() {
 
         // Configuracion RecyclerView Notas
 
-        // Recycler View Notas
-        recyclerViewNotas.layoutManager = LinearLayoutManager(this)
-        recyclerViewNotas.adapter = NotasAdapter()
+
+        // Inicializamos el notaViewModel para las notas estaticas y demas
+        notaViewModel.notas.observe(this) { notas ->
+            if (!notas.isNullOrEmpty()) {
+                Log.d("DetallesLibroActivity", "Actualizando adaptador con notas: $notas")
+                notasAdapter.setNotas(notas)
+            } else {
+                Log.w("DetallesLibroActivity", "Notas observadas están vacías o nulas.")
+            }
+        }
+
+        notaViewModel.getNotasByLibroId(libroId).observe(this) { notas ->
+            if (notas.isNotEmpty()) {
+                Log.d("DetallesLibroActivity", "Notas observadas para libro $libroId: $notas")
+                notasAdapter.setNotas(notas)
+            } else {
+                Log.w("DetallesLibroActivity", "No se encontraron notas para libro $libroId.")
+            }
+        }
+
+        recyclerViewNotas.isNestedScrollingEnabled = false
 
         recyclerViewNotas.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    // Deshabilita el scroll del padre cuando el usuario toca el RecyclerView
-                    recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(true)
+                    // Si el RecyclerView puede desplazarse, deshabilita la intercepción del padre
+                    if (recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(1)) {
+                        recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(true)
+                    }
                 }
-
-                MotionEvent.ACTION_UP -> {
-                    // Habilita el scroll del padre cuando el usuario deja de tocar el RecyclerView
+                MotionEvent.ACTION_MOVE -> {
+                    // Sigue deshabilitando la intercepción si se está desplazando
+                    recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(
+                        recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(1)
+                    )
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    // Cuando se suelta el gesto, permite que el padre recupere el control
                     recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(false)
-                    // Llama a performClick para cumplir con las reglas de accesibilidad
-                    recyclerViewNotas.performClick()
                 }
             }
-            false // Permitir que el RecyclerView maneje el evento táctil
+            false
         }
+
 
 
         // Inicializar vistas
@@ -198,7 +247,7 @@ class DetallesLibroActivity : AppCompatActivity() {
 
                 // Rellenar las nuevas propiedades
                 textViewSinopsis.text = it.sinopsis ?: "Sinopsis no disponible"
-                textViewNumeroNotas.text = "0" // TODO Terminar esto
+                textViewNumeroNotas.text = ""
                 ratingBarValoracion.rating = it.valoracion
 
                 // Actualizar la barra de progreso
@@ -208,22 +257,19 @@ class DetallesLibroActivity : AppCompatActivity() {
     }
 
     private fun guardarProgresoEnBaseDeDatos() {
-        val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: libro?.progreso ?: 0
-        val total = editTextProgressTotal.text.toString().toIntOrNull()
+        val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
+        val total = editTextProgressTotal.text.toString().toIntOrNull() ?: 0
 
-        if (total != null && total > 0) {
+        if (total > 0) {
             libro?.let {
                 it.progreso = current
                 it.totalPaginas = total
                 libroViewModel.updateLibro(it)
 
-                Log.d(
-                    "DetallesLibroActivity",
-                    "Progreso guardado: ${it.progreso}, Total páginas guardado: ${it.totalPaginas}"
-                )
+                Log.d("DetallesLibroActivity", "Progreso actualizado: $current / $total")
             }
         } else {
-            Log.w("DetallesLibroActivity", "El total de páginas no es válido. No se guardará.")
+            Log.w("DetallesLibroActivity", "Total de páginas inválido, no se actualiza el progreso.")
         }
     }
 
@@ -239,5 +285,14 @@ class DetallesLibroActivity : AppCompatActivity() {
         val progresoPorcentaje = calcularProgreso(current, total)
         progressBar.max = 100
         progressBar.progress = progresoPorcentaje.coerceIn(0, 100)
+    }
+
+    override fun onNotaClick(nota: Nota) {
+        Toast.makeText(this, "Nota seleccionada: ${nota.titulo}", Toast.LENGTH_SHORT).show()
+
+        // Navegar a otra actividad si es necesario
+        val intent = Intent(this, EditarNotaActivity::class.java)
+        intent.putExtra("NOTA_ID", nota.id)
+        startActivity(intent)
     }
 }

@@ -1,6 +1,7 @@
 package com.example.appsandersonsm.Adapter
 
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,27 +9,21 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.R
 
-// Clase Nota
-data class Nota(val contenido: String, val fecha: String)
+class NotasAdapter(private val listener: OnNotaClickListener) : RecyclerView.Adapter<NotasAdapter.NotaViewHolder>() {
 
-// Adaptador de notas
-class NotasAdapter : ListAdapter<Nota, NotasAdapter.NotaViewHolder>(NotaDiffCallback()) {
+    private var notas: List<Nota> = emptyList()
 
-    // Datos estáticos para pruebas
-    private val notasEstaticas = listOf(
-        Nota("Esta es la nota 1", "2024-01-01"),
-        Nota("Esta es la nota 2", "2024-01-02"),
-        Nota("Esta es la nota 3", "2024-01-03"),
-        Nota("Esta es la nota 4", "2024-01-04"),
-        Nota("Esta es la nota 5", "2024-01-05"),
-    )
+    interface OnNotaClickListener {
+        fun onNotaClick(nota: Nota)
+    }
 
-    // ViewHolder para los elementos de la lista
-    inner class NotaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val tvContenidoNota: TextView = itemView.findViewById(R.id.tvContenidoNota)
-        val tvFechaNota: TextView = itemView.findViewById(R.id.tvFechaNota)
+    fun setNotas(nuevasNotas: List<Nota>) {
+        this.notas = nuevasNotas
+        Log.d("NotasAdapter", "Notas asignadas al adaptador: $notas")
+        notifyDataSetChanged() // Refresca el RecyclerView
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotaViewHolder {
@@ -37,26 +32,24 @@ class NotasAdapter : ListAdapter<Nota, NotasAdapter.NotaViewHolder>(NotaDiffCall
     }
 
     override fun onBindViewHolder(holder: NotaViewHolder, position: Int) {
-        // Obtener la nota de la lista estática o dinámica
-        val nota = if (position < notasEstaticas.size) notasEstaticas[position] else getItem(position - notasEstaticas.size)
-
-        // Configurar los valores en las vistas
-        holder.tvContenidoNota.text = nota.contenido
-        holder.tvFechaNota.text = "Fecha: ${nota.fecha}"
+        val nota = notas[position]
+        Log.d("LogNotasAdapter", "Enlazando nota: $nota")
+        holder.bind(nota)
     }
 
-    override fun getItemCount(): Int = notasEstaticas.size + currentList.size
-}
+    override fun getItemCount() = notas.size
 
-// DiffCallback para optimización
-class NotaDiffCallback : DiffUtil.ItemCallback<Nota>() {
-    override fun areItemsTheSame(oldItem: Nota, newItem: Nota): Boolean {
-        // Compara por contenido único
-        return oldItem.contenido == newItem.contenido && oldItem.fecha == newItem.fecha
-    }
+    inner class NotaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val textViewContenido: TextView = itemView.findViewById(R.id.tvContenidoNota)
+        private val textViewFecha: TextView = itemView.findViewById(R.id.tvFechaNota)
 
-    override fun areContentsTheSame(oldItem: Nota, newItem: Nota): Boolean {
-        // Compara todos los datos
-        return oldItem == newItem
+        fun bind(nota: Nota) {
+            textViewContenido.text = nota.contenido
+            textViewFecha.text = "Fecha: ${nota.fechaCreacion}"
+
+            itemView.setOnClickListener {
+                listener.onNotaClick(nota)
+            }
+        }
     }
 }

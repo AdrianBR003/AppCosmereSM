@@ -1,5 +1,6 @@
 package com.example.appsandersonsm.Dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.appsandersonsm.Modelo.Libro
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,9 @@ interface LibroDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLibro(libro: Libro)
+
+    @Query("SELECT * FROM libros")
+    fun obtenerTodosLosLibros(): LiveData<List<Libro>>
 
     @Query("UPDATE libros SET nNotas = :nNotas WHERE id = :libroId")
     suspend fun actualizarNumeroNotas(libroId: Int, nNotas: Int)

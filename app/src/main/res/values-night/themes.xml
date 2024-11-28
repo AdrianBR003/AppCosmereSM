@@ -12,4 +12,10 @@
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
     </style>
+
+    <style name="RecyclerViewScrollbar" parent="Theme.AppCompat.Light">
+        <item name="android:scrollbarThumbVertical">@drawable/custom_scrollbar</item>
+        <item name="android:scrollbarTrackVertical">@drawable/custom_scrollbartfondo</item>
+    </style>
+
 </resources>

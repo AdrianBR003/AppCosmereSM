@@ -1,0 +1,44 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Campo para editar el título de la nota -->
+    <EditText
+        android:id="@+id/editTextTitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColorHint="@color/gold_s"
+        android:hint="Título"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:padding="8dp"
+        android:inputType="textCapSentences" />
+
+    <!-- Campo para editar el contenido de la nota -->
+    <EditText
+        android:id="@+id/editTextContenido"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:hint="Contenido"
+        android:textColorHint="@color/white"
+        android:textSize="25sp"
+        android:gravity="top"
+        android:padding="8dp"
+        android:inputType="textMultiLine"
+        android:scrollbars="vertical" />
+
+    <!-- Botón para guardar los cambios -->
+    <Button
+        android:id="@+id/botonGuardar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Guardar"
+        android:padding="12dp"
+        android:backgroundTint="@color/menufondo"
+        android:textColor="@color/gold_s"
+        android:textStyle="bold" />
+
+</LinearLayout>
