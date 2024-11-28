@@ -31,7 +31,7 @@ import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.example.appsandersonsm.ViewModel.NotaViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
-class DetallesLibroActivity : AppCompatActivity(),NotasAdapter.OnNotaClickListener {
+class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListener {
 
 
     private lateinit var notaViewModel: NotaViewModel
@@ -61,14 +61,56 @@ class DetallesLibroActivity : AppCompatActivity(),NotasAdapter.OnNotaClickListen
         recyclerViewNotas.adapter = notasAdapter
 
         // Carga de datos estáticos
-        val notasEstaticas = listOf(
-            Nota(1, 1, "Contenido de la nota estática 1", "2024-01-01"),
-            Nota(2, 1, "Contenido de la nota estática 2", "2024-01-02"),
-            Nota(3, 2, "Contenido de la nota estática 3", "2024-01-03")
-        )
+        notaViewModel = ViewModelProvider(
+            this,
+            NotaViewModel.NotaViewModelFactory((application as InitApplication).notaRepository)
+        )[NotaViewModel::class.java]
 
-        // Asignar las notas estáticas al adaptador
-        notasAdapter.setNotas(notasEstaticas)
+        // **Llamada a la función para verificar e insertar las notas estáticas**
+        notaViewModel.verificarEInsertarNotasEstaticas(
+            listOf(
+                Nota(
+                    0,
+                    1,
+                    "Nota predeterminada 1",
+                    "Contenido predeterminado 1",
+                    "2024-01-01",
+                    "2024-01-01"
+                ),
+                Nota(
+                    1,
+                    1,
+                    "Nota predeterminada 2",
+                    "Contenido predeterminado 2",
+                    "2024-01-01",
+                    "2024-01-01"
+                ),
+                Nota(
+                    2,
+                    1,
+                    "Nota predeterminada 2",
+                    "Contenido predeterminado 2",
+                    "2024-01-01",
+                    "2024-01-01"
+                ),
+                Nota(
+                    3,
+                    1,
+                    "Nota predeterminada 2",
+                    "Contenido predeterminado 2",
+                    "2024-01-01",
+                    "2024-01-01"
+                ),
+                Nota(
+                    4,
+                    1,
+                    "Nota predeterminada 2",
+                    "Contenido predeterminado 2",
+                    "2024-01-01",
+                    "2024-01-01"
+                )
+            )
+        )
 
         supportActionBar?.hide() // Ocultar la barra de acción predeterminada
 
@@ -84,10 +126,7 @@ class DetallesLibroActivity : AppCompatActivity(),NotasAdapter.OnNotaClickListen
         val btnExpandirSinopsis = findViewById<ImageView>(R.id.btnExpandirSinopsis)
         val scrollViewSinopsis = findViewById<NestedScrollView>(R.id.scrollViewSinopsis)
         val detailConstraintLayout = findViewById<ConstraintLayout>(R.id.detailConstraintLayout)
-        notaViewModel = ViewModelProvider(
-            this,
-            NotaViewModel.NotaViewModelFactory((application as InitApplication).notaRepository)
-        )[NotaViewModel::class.java]
+
 
         var isExpanded = false
 
@@ -144,16 +183,23 @@ class DetallesLibroActivity : AppCompatActivity(),NotasAdapter.OnNotaClickListen
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     // Si el RecyclerView puede desplazarse, deshabilita la intercepción del padre
-                    if (recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(1)) {
+                    if (recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(
+                            1
+                        )
+                    ) {
                         recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(true)
                     }
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     // Sigue deshabilitando la intercepción si se está desplazando
                     recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(
-                        recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(1)
+                        recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(
+                            1
+                        )
                     )
                 }
+
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     // Cuando se suelta el gesto, permite que el padre recupere el control
                     recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(false)
@@ -161,7 +207,6 @@ class DetallesLibroActivity : AppCompatActivity(),NotasAdapter.OnNotaClickListen
             }
             false
         }
-
 
 
         // Inicializar vistas
@@ -228,7 +273,10 @@ class DetallesLibroActivity : AppCompatActivity(),NotasAdapter.OnNotaClickListen
     private fun cargarDatosLibro(libroId: Int) {
         libroViewModel.getLibroById(libroId).observe(this) { libroCargado ->
             if (libroCargado == null) {
-                Log.e("DetallesLibroActivity", "Libro no encontrado en la base de datos para ID: $libroId")
+                Log.e(
+                    "DetallesLibroActivity",
+                    "Libro no encontrado en la base de datos para ID: $libroId"
+                )
                 return@observe
             }
 
@@ -269,7 +317,10 @@ class DetallesLibroActivity : AppCompatActivity(),NotasAdapter.OnNotaClickListen
                 Log.d("DetallesLibroActivity", "Progreso actualizado: $current / $total")
             }
         } else {
-            Log.w("DetallesLibroActivity", "Total de páginas inválido, no se actualiza el progreso.")
+            Log.w(
+                "DetallesLibroActivity",
+                "Total de páginas inválido, no se actualiza el progreso."
+            )
         }
     }
 
@@ -292,6 +343,7 @@ class DetallesLibroActivity : AppCompatActivity(),NotasAdapter.OnNotaClickListen
 
         // Navegar a otra actividad si es necesario
         val intent = Intent(this, EditarNotaActivity::class.java)
+        Log.d("DetallesLibroActivity", "NOta ${nota}}")
         intent.putExtra("NOTA_ID", nota.id)
         startActivity(intent)
     }

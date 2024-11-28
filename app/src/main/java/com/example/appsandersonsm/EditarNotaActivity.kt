@@ -1,8 +1,10 @@
 package com.example.appsandersonsm
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.appsandersonsm.Modelo.Nota
@@ -22,16 +24,14 @@ class EditarNotaActivity : AppCompatActivity() {
         setContentView(R.layout.activity_editar_nota)
 
         // Inicializar vistas
-
-        notaViewModel = ViewModelProvider(this,
-            NotaViewModel.NotaViewModelFactory((application as InitApplication).notaRepository)
-        ).get(NotaViewModel::class.java)
         editTextTitulo = findViewById(R.id.editTextTitulo)
         editTextContenido = findViewById(R.id.editTextContenido)
         botonGuardar = findViewById(R.id.botonGuardar)
 
-        // Inicializar ViewModel
-        notaViewModel = ViewModelProvider(this).get(NotaViewModel::class.java)
+        // Inicializar ViewModel con la fábrica personalizada
+        notaViewModel = ViewModelProvider(this,
+            NotaViewModel.NotaViewModelFactory((application as InitApplication).notaRepository)
+        ).get(NotaViewModel::class.java)
 
         // Obtener el ID de la nota pasada en el Intent
         notaId = intent.getIntExtra("NOTA_ID", 0)
@@ -42,6 +42,9 @@ class EditarNotaActivity : AppCompatActivity() {
                 this.nota = nota
                 editTextTitulo.setText(nota.titulo)
                 editTextContenido.setText(nota.contenido)
+            } else {
+                Toast.makeText(this, "Nota no encontrada", Toast.LENGTH_SHORT).show()
+                finish()
             }
         }
 
@@ -53,16 +56,42 @@ class EditarNotaActivity : AppCompatActivity() {
 
     private fun guardarCambios() {
         // Validar que la nota no sea nula
-        val notaActual = nota ?: return
+        val notaActual = nota ?: run {
+            Toast.makeText(this, "No se encontró la nota", Toast.LENGTH_SHORT).show()
+            Log.e("EditarNotaActivity", "Intento de guardar cambios sin una nota válida")
+            return
+        }
+
+        // Validar que los campos no estén vacíos
+        val nuevoTitulo = editTextTitulo.text.toString().trim()
+        val nuevoContenido = editTextContenido.text.toString().trim()
+
+        if (nuevoTitulo.isEmpty()) {
+            editTextTitulo.error = "El título no puede estar vacío"
+            Log.e("EditarNotaActivity", "Título vacío")
+            return
+        }
+
+        if (nuevoContenido.isEmpty()) {
+            editTextContenido.error = "El contenido no puede estar vacío"
+            Log.e("EditarNotaActivity", "Contenido vacío")
+            return
+        }
 
         // Actualizar los datos de la nota
-        notaActual.titulo = editTextTitulo.text.toString()
-        notaActual.contenido = editTextContenido.text.toString()
+        notaActual.titulo = nuevoTitulo
+        notaActual.contenido = nuevoContenido
+        Log.d("EditarNotaActivity", "Actualizando nota: $notaActual")
 
         // Actualizar la nota en la base de datos
         notaViewModel.updateNota(notaActual)
 
+        // Opcional: Mostrar un mensaje de confirmación
+        Toast.makeText(this, "Nota actualizada correctamente", Toast.LENGTH_SHORT).show()
+        Log.d("EditarNotaActivity", "Nota actualizada correctamente")
+
         // Finalizar la actividad
         finish()
     }
+
 }

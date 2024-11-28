@@ -40,11 +40,11 @@ class NotasAdapter(private val listener: OnNotaClickListener) : RecyclerView.Ada
     override fun getItemCount() = notas.size
 
     inner class NotaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val textViewContenido: TextView = itemView.findViewById(R.id.tvContenidoNota)
+        private val textViewTitulo: TextView = itemView.findViewById(R.id.tvTituloitemNota)
         private val textViewFecha: TextView = itemView.findViewById(R.id.tvFechaNota)
 
         fun bind(nota: Nota) {
-            textViewContenido.text = nota.contenido
+            textViewTitulo.text = nota.titulo
             textViewFecha.text = "Fecha: ${nota.fechaCreacion}"
 
             itemView.setOnClickListener {

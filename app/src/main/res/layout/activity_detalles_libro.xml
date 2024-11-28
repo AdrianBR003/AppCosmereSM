@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     tools:context=".DetallesLibroActivity">
 
     <androidx.core.widget.NestedScrollView
@@ -241,7 +241,7 @@
                 android:layout_width="0dp"
                 android:layout_height="250dp"
                 android:nestedScrollingEnabled="false"
-                android:padding="5dp"
+                android:padding="10dp"
                 android:scrollbars="vertical"
                 android:scrollbarAlwaysDrawVerticalTrack="true"
                 app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"

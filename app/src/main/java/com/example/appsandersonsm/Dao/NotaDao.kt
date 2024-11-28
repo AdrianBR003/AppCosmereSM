@@ -11,6 +11,15 @@ interface NotaDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNota(nota: Nota): Long
 
+    @Query("SELECT COUNT(*) FROM notas")
+    suspend fun countNotas(): Int
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(nota: Nota)
+
+    @Query("SELECT * FROM notas")
+    fun getAllNotas(): LiveData<List<Nota>>
+
     @Update
     suspend fun updateNota(nota: Nota)
 

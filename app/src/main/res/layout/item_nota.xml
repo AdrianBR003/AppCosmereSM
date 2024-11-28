@@ -9,7 +9,7 @@
 
     <!-- Texto de la nota -->
     <TextView
-        android:id="@+id/tvContenidoNota"
+        android:id="@+id/tvTituloitemNota"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Esta es una nota estática de prueba"
