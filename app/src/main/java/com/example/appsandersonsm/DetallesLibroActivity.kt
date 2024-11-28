@@ -14,6 +14,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.NestedScrollView
@@ -21,6 +22,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Adapter.NotasAdapter
 import com.example.appsandersonsm.Modelo.Libro
+import com.example.appsandersonsm.ViewModel.LibroViewModel
+import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class DetallesLibroActivity : AppCompatActivity() {
@@ -32,6 +35,10 @@ class DetallesLibroActivity : AppCompatActivity() {
     private lateinit var editTextProgressTotal: EditText
 //    private lateinit var dbHelper: DatabaseHelper
     private var libro: Libro? = null
+    private val libroViewModel: LibroViewModel by viewModels {
+        LibroViewModelFactory((application as InitApplication).libroRepository)
+    }
+
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +50,7 @@ class DetallesLibroActivity : AppCompatActivity() {
 
         // Descripcion
         // Referencias a las vistas
+
         val btnExpandirDescripcion = findViewById<ImageView>(R.id.btnExpandirDescripcion)
         val scrollViewDescripcion = findViewById<NestedScrollView>(R.id.scrollViewDescripcion)
         val tvDescripcion = findViewById<TextView>(R.id.tvDescripcion)
@@ -99,11 +107,6 @@ class DetallesLibroActivity : AppCompatActivity() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         imagenPortada = findViewById(R.id.portadaImageView)
 
-//        // Inicializar el DatabaseHelper
-//        dbHelper = DatabaseHelper(this)
-//
-//        // Cargar datos iniciales en la base de datos si es la primera vez
-//        dbHelper.cargarDatosInicialesDesdeJson()
 
         // Obtener el ID del libro del Intent
         val libroId = intent.getIntExtra("LIBRO_ID", 0)
@@ -158,16 +161,51 @@ class DetallesLibroActivity : AppCompatActivity() {
     }
 
     private fun cargarDatosLibro(libroId: Int) {
-//        libro = dbHelper.getLibroById(libroId)
+        libroViewModel.getLibroById(libroId).observe(this) { libroCargado ->
+            if (libroCargado == null) {
+                Log.e("DetallesLibroActivity", "Libro no encontrado en la base de datos para ID: $libroId")
+                return@observe
+            }
 
-        libro?.let {
-            val resID = resources.getIdentifier(it.nombrePortada, "drawable", packageName)
-            imagenPortada.setImageResource(resID)
-            updateProgressBar()
-            editTextProgressCurrent.setText(it.progreso.toString())
-            editTextProgressTotal.setText(it.totalPaginas.toString())
+            libro = libroCargado
+            libro?.let {
+                Log.d("DetallesLibroActivity", "Libro cargado: totalPaginas = ${it.totalPaginas}")
+                val resID = resources.getIdentifier(it.nombrePortada, "drawable", packageName)
+                imagenPortada.setImageResource(resID)
+                editTextProgressCurrent.setText(it.progreso.toString())
+                // Solo asigna el valor a editTextProgressTotal si totalPaginas es mayor que 0
+                if (it.totalPaginas > 0) {
+                    editTextProgressTotal.setText(it.totalPaginas.toString())
+                } else {
+                    Log.w("DetallesLibroActivity", "El valor de totalPaginas es 0 o inválido.")
+                }
+                updateProgressBar()
+            }
         }
     }
+
+    private fun guardarProgresoEnBaseDeDatos() {
+        val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: libro?.progreso ?: 0
+        val total = editTextProgressTotal.text.toString().toIntOrNull()
+
+        if (total != null && total > 0) {
+            libro?.let {
+                it.progreso = current
+                it.totalPaginas = total
+                libroViewModel.updateLibro(it)
+
+                // Log para depuración
+                Log.d(
+                    "DetallesLibroActivity",
+                    "Progreso guardado: ${it.progreso}, Total páginas guardado: ${it.totalPaginas}"
+                )
+            }
+        } else {
+            Log.w("DetallesLibroActivity", "El total de páginas no es válido. No se guardará.")
+        }
+    }
+
+
 
     private fun calcularProgreso(current: Int, total: Int): Int {
         return if (total > 0) (current * 100) / total else 0
@@ -183,23 +221,6 @@ class DetallesLibroActivity : AppCompatActivity() {
         progressBar.progress = progresoPorcentaje.coerceIn(0, 100)
     }
 
-    private fun guardarProgresoEnBaseDeDatos() {
-        val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
-        val total = editTextProgressTotal.text.toString().toIntOrNull() ?: 0
-
-        // Actualizar las propiedades del objeto 'libro'
-        libro?.progreso = current
-        libro?.totalPaginas = total
-
-        // Guardar el libro actualizado en la base de datos
-//        libro?.let { dbHelper.actualizarProgresoLibro(it) }
-
-        // Log para depuración
-        Log.d(
-            "DetallesLibroActivity",
-            "Progreso guardado: ${libro?.progreso}, Total páginas guardado: ${libro?.totalPaginas}"
-        )
-    }
 
 
 }
