@@ -16,13 +16,13 @@ import kotlinx.coroutines.SupervisorJob
 
 class InitApplication : Application() {
 
-    // Scope para la aplicación
+    // Scope para operaciones asincrónicas
     private val applicationScope = CoroutineScope(SupervisorJob())
 
     // Instancia de la base de datos
-    val database by lazy { AppDatabase.getDatabase(this, applicationScope) }
+    val database: AppDatabase by lazy { AppDatabase.getDatabase(this, applicationScope) }
 
     // Repositorios
-    val libroRepository by lazy { LibroRepository(database.libroDao()) }
-    val notaRepository by lazy { NotaRepository(database.notaDao()) }
+    val libroRepository: LibroRepository by lazy { LibroRepository(database.libroDao()) }
+    val notaRepository: NotaRepository by lazy { NotaRepository(database.notaDao()) }
 }

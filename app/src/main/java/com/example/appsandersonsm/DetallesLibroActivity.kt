@@ -5,30 +5,25 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.transition.AutoTransition
-import android.transition.TransitionManager
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.NestedScrollView
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Adapter.NotasAdapter
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Modelo.Nota
-import com.example.appsandersonsm.Repository.NotaRepository
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.example.appsandersonsm.ViewModel.NotaViewModel
@@ -47,13 +42,27 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private lateinit var textViewNumeroNotas: TextView
     private lateinit var ratingBarValoracion: RatingBar
     private lateinit var notasAdapter: NotasAdapter
+    private lateinit var btnExpandirSinopsis: ImageView
+    private lateinit var llNetScroll: LinearLayout
+    private lateinit var nestedScrollViewSinopsis: NestedScrollView
 
     private var libro: Libro? = null
     private var idLibro: Int = 0
+    private var isExpanded = false // Variable para gestionar el estado expandido/colapsado
 
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("DetallesLibroActivity", "Application context: $applicationContext")
         setContentView(R.layout.activity_detalles_libro)
+
+        // Inicializar ViewModel después de que la actividad esté completamente creada
+        notaViewModel = ViewModelProvider(
+            this,
+            NotaViewModel.NotaViewModelFactory((application as InitApplication).notaRepository)
+        ).get(NotaViewModel::class.java)
+
         supportActionBar?.hide() // Ocultar la barra de acción predeterminada
 
         // Obtener el ID del libro del Intent
@@ -68,8 +77,38 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         observarNotas()
         inicializarDatosLibro()
 
-    }
+        // Inicialmente, ocultar el LinearLayout y el NestedScrollView
 
+        nestedScrollViewSinopsis = findViewById(R.id.scrollViewSinopsis)
+
+        btnExpandirSinopsis = findViewById(R.id.btnExpandirSinopsis)
+        nestedScrollViewSinopsis.visibility = View.GONE
+
+        // Configurar el botón de expandir
+        btnExpandirSinopsis.setOnClickListener {
+            toggleSinopsisVisibility(nestedScrollViewSinopsis, btnExpandirSinopsis)
+        }
+
+
+
+        // Configurar el comportamiento táctil del NestedScrollView
+        nestedScrollViewSinopsis.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                    nestedScrollViewSinopsis.parent.requestDisallowInterceptTouchEvent(
+                        nestedScrollViewSinopsis.canScrollVertically(-1) || nestedScrollViewSinopsis.canScrollVertically(
+                            1
+                        )
+                    )
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    nestedScrollViewSinopsis.parent.requestDisallowInterceptTouchEvent(false)
+                }
+            }
+            false
+        }
+    }
     private fun inicializarViewModels() {
         notaViewModel = ViewModelProvider(
             this,
@@ -105,9 +144,12 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                     recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(
-                        recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(1)
+                        recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(
+                            1
+                        )
                     )
                 }
+
                 else -> recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(false)
             }
             false
@@ -126,6 +168,49 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             true
         }
     }
+
+    fun toggleSinopsisVisibility(llNetScroll: NestedScrollView, btnExpandirSinopsis: ImageView) {
+        val duration = 300L // Duración de la animación en milisegundos
+        val interpolator = AccelerateDecelerateInterpolator()
+
+        if (isExpanded) {
+            // Colapsar: animar la desaparición del NestedScrollView
+            llNetScroll.animate()
+                .translationY(-llNetScroll.height.toFloat())
+                .alpha(0f)
+                .setInterpolator(interpolator)
+                .setDuration(duration)
+                .withEndAction {
+                    llNetScroll.visibility = View.GONE
+                    llNetScroll.translationY = 0f
+                    llNetScroll.alpha = 1f
+                    btnExpandirSinopsis.setImageResource(R.drawable.ic_updesc)
+                }
+                .start()
+        } else {
+            // Asegurarse de que la vista está medida antes de animar
+            llNetScroll.visibility = View.VISIBLE
+            llNetScroll.alpha = 0f
+            llNetScroll.translationY = -llNetScroll.height.toFloat()
+
+            // Usar post para asegurar que las propiedades se actualicen después de la medida
+            llNetScroll.post {
+                llNetScroll.animate()
+                    .translationY(0f)
+                    .alpha(1f)
+                    .setInterpolator(interpolator)
+                    .setDuration(duration)
+                    .withEndAction {
+                        btnExpandirSinopsis.setImageResource(R.drawable.ic_downdesc)
+                    }
+                    .start()
+            }
+        }
+
+        // Cambiar el estado
+        isExpanded = !isExpanded
+    }
+
 
     private fun configurarListeners() {
         editTextProgressCurrent.addTextChangedListener(object : TextWatcher {
@@ -179,7 +264,10 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private fun cargarDatosLibro(libroId: Int, callback: (Libro?) -> Unit) {
         libroViewModel.getLibroById(libroId).observe(this) { libroCargado ->
             if (libroCargado == null) {
-                Log.e("DetallesLibroActivity", "Libro no encontrado en la base de datos para ID: $libroId")
+                Log.e(
+                    "DetallesLibroActivity",
+                    "Libro no encontrado en la base de datos para ID: $libroId"
+                )
             }
             callback(libroCargado)
         }
@@ -215,13 +303,17 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 }
             }
         } else {
-            Log.w("DetallesLibroActivity", "Total de páginas inválido, no se actualiza el progreso.")
+            Log.w(
+                "DetallesLibroActivity",
+                "Total de páginas inválido, no se actualiza el progreso."
+            )
         }
     }
 
     private fun updateProgressBar() {
         val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
-        val total = editTextProgressTotal.text.toString().toIntOrNull() ?: libro?.totalPaginas ?: 100
+        val total =
+            editTextProgressTotal.text.toString().toIntOrNull() ?: libro?.totalPaginas ?: 100
         progressBar.max = 100
         progressBar.progress = calcularProgreso(current, total).coerceIn(0, 100)
     }
@@ -249,7 +341,10 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
     private fun observarNotas() {
         notaViewModel.getNotasByLibroId(idLibro).observe(this) { notas ->
-            Log.d("DetallesLibroActivity", "Notas cargadas desde ViewModel: $notas") // Verifica que las notas llegan
+            Log.d(
+                "DetallesLibroActivity",
+                "Notas cargadas desde ViewModel: $notas"
+            ) // Verifica que las notas llegan
             notasAdapter.submitList(notas) // Actualiza el RecyclerView con las notas
         }
     }

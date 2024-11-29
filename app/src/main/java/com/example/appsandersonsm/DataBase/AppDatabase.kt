@@ -23,17 +23,13 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        fun getDatabase(
-            context: Context,
-            scope: CoroutineScope
-        ): AppDatabase {
+        fun getDatabase(context: Context, scope: CoroutineScope): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
-                    context.applicationContext,
+                    context.applicationContext, // Usa applicationContext para evitar problemas
                     AppDatabase::class.java,
-                    "libros_database"
-                )
-                    .addCallback(AppDatabaseCallback(context, scope))
+                    "app_database"
+                ).addCallback(AppDatabaseCallback(context.applicationContext, scope))
                     .build()
                 INSTANCE = instance
                 instance
@@ -49,18 +45,18 @@ abstract class AppDatabase : RoomDatabase() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             INSTANCE?.let { database ->
-                // Llama a populateDatabase en un hilo separado
-                CoroutineScope(Dispatchers.IO).launch {
+                scope.launch(Dispatchers.IO) {
                     populateDatabase(database.libroDao(), context)
                 }
             }
         }
 
-        suspend fun populateDatabase(libroDao: LibroDao, context: Context) {
+        private suspend fun populateDatabase(libroDao: LibroDao, context: Context) {
+            // Simula cargar datos desde un archivo JSON o fuente externa
             val jsonHandler = JsonHandler(context)
             val libros = jsonHandler.cargarLibrosDesdeJson()
-            Log.d("AppDatabase", "Libros cargados del JSON: $libros")
-            libroDao.insertLibros(libros)
+            Log.d("AppDatabase", "Libros cargados desde JSON: $libros")
+            libroDao.insertLibros(libros) // Asegúrate de que este método exista en el DAO
         }
     }
 }
