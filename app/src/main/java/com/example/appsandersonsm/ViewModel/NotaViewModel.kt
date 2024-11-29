@@ -27,10 +27,9 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
         }
     }
 
-    fun actualizarFechaModificacion(notaId: Int) {
+    fun insertarNota(nota: Nota) {
         viewModelScope.launch {
-            val nuevaFecha = obtenerFechaActual()
-            repository.actualizarFechaModificacion(notaId, nuevaFecha)
+            repository.insertOrUpdateNota(nota)
         }
     }
 

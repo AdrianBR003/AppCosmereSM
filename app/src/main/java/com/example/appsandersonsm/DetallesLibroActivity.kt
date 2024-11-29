@@ -49,6 +49,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private var libro: Libro? = null
     private var idLibro: Int = 0
     private var isExpanded = false // Variable para gestionar el estado expandido/colapsado
+    private var contadorNotas: Int = 3 // Empezamos con 3 notas estáticas
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -89,6 +90,11 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             toggleSinopsisVisibility(nestedScrollViewSinopsis, btnExpandirSinopsis)
         }
 
+        // Anyadir la nota
+        val addNotaImageView = findViewById<ImageView>(R.id.btn_anyadirnotas)
+        addNotaImageView.setOnClickListener {
+            agregarNuevaNota()
+        }
 
 
         // Configurar el comportamiento táctil del NestedScrollView
@@ -109,6 +115,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             false
         }
     }
+
     private fun inicializarViewModels() {
         notaViewModel = ViewModelProvider(
             this,
@@ -349,4 +356,21 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+    private fun agregarNuevaNota() {
+        // Incrementar el contador para generar una nueva nota
+        contadorNotas++
+
+        val nuevaNota = Nota(
+            libroId = idLibro,
+            titulo = "Nota $contadorNotas",
+            contenido = "Contenido de la nota $contadorNotas"
+        )
+
+        // Insertar la nueva nota
+        notaViewModel.insertarNota(nuevaNota)
+
+        // Opcional: Mostrar un mensaje al usuario (ejemplo, Toast)
+        Toast.makeText(this, "Nota $contadorNotas añadida", Toast.LENGTH_SHORT).show()
+    }
 }
+
