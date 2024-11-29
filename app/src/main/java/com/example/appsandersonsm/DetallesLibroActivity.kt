@@ -37,6 +37,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListener {
 
     private lateinit var notaViewModel: NotaViewModel
+    private lateinit var libroViewModel: LibroViewModel
     private lateinit var progressBar: ProgressBar
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var imagenPortada: ImageView
@@ -45,208 +46,88 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private lateinit var textViewSinopsis: TextView
     private lateinit var textViewNumeroNotas: TextView
     private lateinit var ratingBarValoracion: RatingBar
+    private lateinit var notasAdapter: NotasAdapter
+
     private var libro: Libro? = null
     private var idLibro: Int = 0
-    private val libroViewModel: LibroViewModel by viewModels {
-        LibroViewModelFactory((application as InitApplication).libroRepository)
-    }
 
-    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        idLibro = intent?.getIntExtra("LIBRO_ID", 0) ?: 0
-        Log.d("DetallesLibroActivity", "Libro ID: $idLibro")
-        supportActionBar?.hide()
         setContentView(R.layout.activity_detalles_libro)
+        supportActionBar?.hide() // Ocultar la barra de acción predeterminada
 
-        // Inicializacion RecyclerViewNotas
-        val recyclerViewNotas = findViewById<RecyclerView>(R.id.recyclerViewNotas)
-        val notasAdapter = NotasAdapter(this)
-        recyclerViewNotas.layoutManager = LinearLayoutManager(this)
-        recyclerViewNotas.adapter = notasAdapter
+        // Obtener el ID del libro del Intent
+        idLibro = intent.getIntExtra("LIBRO_ID", 0)
+        Log.d("DetallesLibroActivity", "Libro ID: $idLibro")
 
-        // Carga de datos estáticos
+        inicializarViewModels()
+        inicializarVistas()
+        configurarRecyclerView()
+        configurarBottomNavigation()
+        configurarListeners()
+        observarNotas()
+        inicializarDatosLibro()
+
+    }
+
+    private fun inicializarViewModels() {
         notaViewModel = ViewModelProvider(
             this,
             NotaViewModel.NotaViewModelFactory((application as InitApplication).notaRepository)
         )[NotaViewModel::class.java]
 
-        // **Llamada a la función para verificar e insertar las notas estáticas**
-        notaViewModel.verificarEInsertarNotasEstaticas(
-            listOf(
-                Nota(
-                    0,
-                    idLibro,
-                    "Nota predeterminada 1",
-                    "Contenido predeterminado 1",
-                    "2024-01-01",
-                    "2024-01-01"
-                ),
-                Nota(
-                    1,
-                    idLibro,
-                    "Nota predeterminada 2",
-                    "Contenido predeterminado 2",
-                    "2024-01-01",
-                    "2024-01-01"
-                ),
-                Nota(
-                    2,
-                    idLibro,
-                    "Nota predeterminada 2",
-                    "Contenido predeterminado 2",
-                    "2024-01-01",
-                    "2024-01-01"
-                ),
-                Nota(
-                    3,
-                    idLibro,
-                    "Nota predeterminada 2",
-                    "Contenido predeterminado 2",
-                    "2024-01-01",
-                    "2024-01-01"
-                ),
-                Nota(
-                    4,
-                    idLibro,
-                    "Nota predeterminada 2",
-                    "Contenido predeterminado 2",
-                    "2024-01-01",
-                    "2024-01-01"
-                )
-            ),idLibro
-        )
+        libroViewModel = ViewModelProvider(
+            this,
+            LibroViewModelFactory((application as InitApplication).libroRepository)
+        )[LibroViewModel::class.java]
+    }
 
-        supportActionBar?.hide() // Ocultar la barra de acción predeterminada
-
-        // Inicializar vistas
-        editTextProgressCurrent = findViewById(R.id.editTextProgressCurrent)
-        editTextProgressTotal = findViewById(R.id.editTextProgressTotal)
+    private fun inicializarVistas() {
         progressBar = findViewById(R.id.progressBar)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         imagenPortada = findViewById(R.id.portadaImageView)
+        editTextProgressCurrent = findViewById(R.id.editTextProgressCurrent)
+        editTextProgressTotal = findViewById(R.id.editTextProgressTotal)
         textViewSinopsis = findViewById(R.id.tvSinopsis)
         textViewNumeroNotas = findViewById(R.id.tvNumeroNotas)
         ratingBarValoracion = findViewById(R.id.ratingBar)
-        val btnExpandirSinopsis = findViewById<ImageView>(R.id.btnExpandirSinopsis)
-        val scrollViewSinopsis = findViewById<NestedScrollView>(R.id.scrollViewSinopsis)
-        val detailConstraintLayout = findViewById<ConstraintLayout>(R.id.detailConstraintLayout)
+    }
 
-
-        var isExpanded = false
-
-        btnExpandirSinopsis.setOnClickListener {
-            isExpanded = !isExpanded
-
-            // Iniciar una transición para animar los cambios en el layout
-            val transition = AutoTransition()
-            transition.duration = 200
-            TransitionManager.beginDelayedTransition(detailConstraintLayout, transition)
-
-            if (isExpanded) {
-                // Mostrar el NestedScrollView y cambiar icono
-                scrollViewSinopsis.visibility = View.VISIBLE
-                btnExpandirSinopsis.setImageResource(R.drawable.ic_updesc) // Cambiar al icono "arriba"
-            } else {
-                // Ocultar el NestedScrollView y restaurar icono
-                scrollViewSinopsis.visibility = View.GONE
-                btnExpandirSinopsis.setImageResource(R.drawable.ic_downdesc) // Cambiar al icono "abajo"
-            }
-        }
-
-        // Obtener el ID del libro del Intent
-        val libroId = intent.getIntExtra("LIBRO_ID", 0)
-
-        // Cargar el libro desde la base de datos
-        cargarDatosLibro(libroId)
-
-        // Configuracion RecyclerView Notas
-
-
-        // Inicializamos el notaViewModel para las notas estaticas y demas
-        notaViewModel.notas.observe(this) { notas ->
-            if (!notas.isNullOrEmpty()) {
-                Log.d("DetallesLibroActivity", "Actualizando adaptador con notas: $notas")
-                notasAdapter.setNotas(notas)
-            } else {
-                Log.w("DetallesLibroActivity", "Notas observadas están vacías o nulas.")
-            }
-        }
-
-        notaViewModel.getNotasByLibroId(libroId).observe(this) { notas ->
-            if (notas.isNotEmpty()) {
-                Log.d("DetallesLibroActivity", "Notas observadas para libro $libroId: $notas")
-                notasAdapter.setNotas(notas)
-            } else {
-                Log.w("DetallesLibroActivity", "No se encontraron notas para libro $libroId.")
-            }
-        }
+    @SuppressLint("ClickableViewAccessibility")
+    private fun configurarRecyclerView() {
+        val recyclerViewNotas = findViewById<RecyclerView>(R.id.recyclerViewNotas)
+        notasAdapter = NotasAdapter(this)
+        recyclerViewNotas.layoutManager = LinearLayoutManager(this)
+        recyclerViewNotas.adapter = notasAdapter
 
         recyclerViewNotas.isNestedScrollingEnabled = false
-
         recyclerViewNotas.setOnTouchListener { _, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    // Si el RecyclerView puede desplazarse, deshabilita la intercepción del padre
-                    if (recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(
-                            1
-                        )
-                    ) {
-                        recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(true)
-                    }
-                }
-
-                MotionEvent.ACTION_MOVE -> {
-                    // Sigue deshabilitando la intercepción si se está desplazando
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                     recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(
-                        recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(
-                            1
-                        )
+                        recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(1)
                     )
                 }
-
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    // Cuando se suelta el gesto, permite que el padre recupere el control
-                    recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(false)
-                }
+                else -> recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(false)
             }
             false
         }
+    }
 
-
-        // Inicializar vistas
-        editTextProgressCurrent = findViewById(R.id.editTextProgressCurrent)
-        editTextProgressTotal = findViewById(R.id.editTextProgressTotal)
-        progressBar = findViewById(R.id.progressBar)
-        bottomNavigationView = findViewById(R.id.bottomNavigationView)
-        imagenPortada = findViewById(R.id.portadaImageView)
-
-
-        // Configuración del BottomNavigationView
+    private fun configurarBottomNavigation() {
         bottomNavigationView.selectedItemId = R.id.nav_book
-
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_settings -> {
-                    startActivity(Intent(this, AjustesActivity::class.java))
-                    true
-                }
-
-                R.id.nav_map -> {
-                    startActivity(Intent(this, MapaInteractivoActivity::class.java))
-                    true
-                }
-
-                R.id.nav_book -> {
-                    startActivity(Intent(this, LibroActivity::class.java))
-                    true
-                }
-
+                R.id.nav_settings -> startActivity(Intent(this, AjustesActivity::class.java))
+                R.id.nav_map -> startActivity(Intent(this, MapaInteractivoActivity::class.java))
+                R.id.nav_book -> startActivity(Intent(this, LibroActivity::class.java))
                 else -> false
             }
+            true
         }
+    }
 
-        // Listeners para actualizar el progreso cuando cambian los valores
+    private fun configurarListeners() {
         editTextProgressCurrent.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 guardarProgresoEnBaseDeDatos()
@@ -267,14 +148,27 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-        // Listener para actualizar la valoración
         ratingBarValoracion.setOnRatingBarChangeListener { _, rating, _ ->
-            libro?.let {
-                libroViewModel.actualizarValoracion(it.id, rating)
-            }
+            libro?.let { libroViewModel.actualizarValoracion(it.id, rating) }
         }
     }
 
+    private fun inicializarDatosLibro() {
+        // Primero, contar las notas y actualizar el libro en memoria
+        contarNotas(idLibro) { numeroNotas ->
+            Log.d("DetallesLibroActivity", "Número de notas para libro $idLibro: $numeroNotas")
+
+            // Inicializar notas estaticas
+            insertarNotasEstaticasSiNecesario()
+
+            // Una vez se obtienen las notas, cargar los datos del libro
+            cargarDatosLibro(idLibro) { libroCargado ->
+                libro = libroCargado
+                libro?.numeroNotas = numeroNotas
+                actualizarUIConDatosLibro(libroCargado)
+            }
+        }
+    }
 
     private fun contarNotas(libroId: Int, callback: (Int) -> Unit) {
         notaViewModel.contarNotasPorLibro(libroId).observe(this) { numeroNotas ->
@@ -282,42 +176,29 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
-
-
-    private fun cargarDatosLibro(libroId: Int) {
+    private fun cargarDatosLibro(libroId: Int, callback: (Libro?) -> Unit) {
         libroViewModel.getLibroById(libroId).observe(this) { libroCargado ->
             if (libroCargado == null) {
-                Log.e(
-                    "DetallesLibroActivity",
-                    "Libro no encontrado en la base de datos para ID: $libroId"
-                )
-                return@observe
+                Log.e("DetallesLibroActivity", "Libro no encontrado en la base de datos para ID: $libroId")
             }
-
-            libro = libroCargado
-            libro?.let {
-                // Rellenar campos con datos del libro
-                val resID = resources.getIdentifier(it.nombrePortada, "drawable", packageName)
-                imagenPortada.setImageResource(resID)
-                editTextProgressCurrent.setText(it.progreso.toString())
-                Log.d("DetallesLibroActivity", "Sinopsis cargada: ${it.sinopsis}")
-
-                // Total Paginas
-                if (it.totalPaginas > 0) {
-                    editTextProgressTotal.setText(it.totalPaginas.toString())
-                } else {
-                    Log.w("DetallesLibroActivity", "El valor de totalPaginas es 0 o inválido.")
-                }
-
-                textViewSinopsis.text = it.sinopsis ?: "Sinopsis no disponible"
-                textViewNumeroNotas.text = it.numeroNotas.toString()
-                ratingBarValoracion.rating = it.valoracion
-
-                // Actualizar la barra de progreso
-                updateProgressBar()
-            }
+            callback(libroCargado)
         }
     }
+
+    private fun actualizarUIConDatosLibro(libro: Libro?) {
+        libro?.let {
+            // Actualizar vistas con los datos del libro
+            val resID = resources.getIdentifier(it.nombrePortada, "drawable", packageName)
+            imagenPortada.setImageResource(resID)
+            editTextProgressCurrent.setText(it.progreso.toString())
+            editTextProgressTotal.setText(it.totalPaginas.toString())
+            textViewSinopsis.text = it.sinopsis ?: "Sinopsis no disponible"
+            textViewNumeroNotas.text = it.numeroNotas.toString()
+            ratingBarValoracion.rating = it.valoracion
+            updateProgressBar()
+        }
+    }
+
     private fun guardarProgresoEnBaseDeDatos() {
         val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
         val total = editTextProgressTotal.text.toString().toIntOrNull() ?: 0
@@ -327,45 +208,50 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 libroActualizado.progreso = current
                 libroActualizado.totalPaginas = total
 
-                contarNotas(intent.getIntExtra("LIBRO_ID", 0)) { numeroNotas ->
+                contarNotas(idLibro) { numeroNotas ->
                     libroActualizado.numeroNotas = numeroNotas
-                    Log.d("DetallesLibroActivity", "Número de notas: $numeroNotas")
-
-                    // Actualiza el libro después de modificar todos los valores
                     libroViewModel.updateLibro(libroActualizado)
                     Log.d("DetallesLibroActivity", "Progreso actualizado: $current / $total")
                 }
             }
         } else {
-            Log.w(
-                "DetallesLibroActivity",
-                "Total de páginas inválido, no se actualiza el progreso."
-            )
+            Log.w("DetallesLibroActivity", "Total de páginas inválido, no se actualiza el progreso.")
         }
     }
 
+    private fun updateProgressBar() {
+        val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
+        val total = editTextProgressTotal.text.toString().toIntOrNull() ?: libro?.totalPaginas ?: 100
+        progressBar.max = 100
+        progressBar.progress = calcularProgreso(current, total).coerceIn(0, 100)
+    }
 
     private fun calcularProgreso(current: Int, total: Int): Int {
         return if (total > 0) (current * 100) / total else 0
     }
 
-    private fun updateProgressBar() {
-        val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
-        val total =
-            editTextProgressTotal.text.toString().toIntOrNull() ?: libro?.totalPaginas ?: 100
-
-        val progresoPorcentaje = calcularProgreso(current, total)
-        progressBar.max = 100
-        progressBar.progress = progresoPorcentaje.coerceIn(0, 100)
-    }
-
     override fun onNotaClick(nota: Nota) {
         Toast.makeText(this, "Nota seleccionada: ${nota.titulo}", Toast.LENGTH_SHORT).show()
-
-        // Navegar a otra actividad si es necesario
-        val intent = Intent(this, EditarNotaActivity::class.java)
-        Log.d("DetallesLibroActivity", "NOta ${nota}}")
-        intent.putExtra("NOTA_ID", nota.id)
-        startActivity(intent)
+        startActivity(Intent(this, EditarNotaActivity::class.java).apply {
+            putExtra("NOTA_ID", nota.id)
+        })
     }
+
+    private fun insertarNotasEstaticasSiNecesario() {
+        val notasEstaticas = listOf(
+            Nota(libroId = idLibro, titulo = "Nota 1", contenido = "Contenido de la nota 1"),
+            Nota(libroId = idLibro, titulo = "Nota 2", contenido = "Contenido de la nota 2"),
+            Nota(libroId = idLibro, titulo = "Nota 3", contenido = "Contenido de la nota 3")
+        )
+
+        notaViewModel.insertarNotasEstaticasSiVacia(notasEstaticas, idLibro)
+    }
+
+    private fun observarNotas() {
+        notaViewModel.getNotasByLibroId(idLibro).observe(this) { notas ->
+            Log.d("DetallesLibroActivity", "Notas cargadas desde ViewModel: $notas") // Verifica que las notas llegan
+            notasAdapter.submitList(notas) // Actualiza el RecyclerView con las notas
+        }
+    }
+
 }

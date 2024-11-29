@@ -8,6 +8,9 @@ import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.Repository.LibroRepository
 import com.example.appsandersonsm.Repository.NotaRepository
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
 
@@ -16,13 +19,24 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
     private val _notas = MutableLiveData<List<Nota>>()
     val notas: LiveData<List<Nota>> = repository.notas
 
-    private val _numeroNotas = MutableLiveData<Int>()
 
 
-    fun verificarEInsertarNotasEstaticas(notasEstaticas: List<Nota>, idLibro: Int) {
+    fun insertarNotasEstaticasSiVacia(notasEstaticas: List<Nota>, idLibro: Int) {
         viewModelScope.launch {
             repository.insertarNotasEstaticasSiTablaVacia(notasEstaticas, idLibro)
         }
+    }
+
+    fun actualizarFechaModificacion(notaId: Int) {
+        viewModelScope.launch {
+            val nuevaFecha = obtenerFechaActual()
+            repository.actualizarFechaModificacion(notaId, nuevaFecha)
+        }
+    }
+
+    private fun obtenerFechaActual(): String {
+        val formatoFecha = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        return formatoFecha.format(Date())
     }
 
     fun getNotaById(id: Int): LiveData<Nota> {

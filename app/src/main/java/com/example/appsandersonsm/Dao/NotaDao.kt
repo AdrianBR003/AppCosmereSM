@@ -1,5 +1,6 @@
 package com.example.appsandersonsm.Dao
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.appsandersonsm.Modelo.Nota
@@ -15,12 +16,25 @@ interface NotaDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(nota: Nota)
 
+    @Query("UPDATE notas SET fechaModificacion = :nuevaFecha WHERE id = :notaId")
+    suspend fun actualizarFechaModificacion(notaId: Int, nuevaFecha: String)
 
     @Query("SELECT COUNT(*) FROM notas WHERE libroId = :libroId")
     fun contarNotasPorLibro(libroId: Int): LiveData<Int>
 
     @Query("SELECT COUNT(*) FROM notas WHERE libroId = :libroId")
     suspend fun contarNotasPorLibroSync(libroId: Int): Int
+
+    @Transaction
+    suspend fun insertarNotasSiTablaVaciaTransaccion(notasEstaticas: List<Nota>, libroId: Int) {
+        val numeroNotas = contarNotasPorLibroSync(libroId)
+        if (numeroNotas == 0) {
+            insertarNotas(notasEstaticas)
+            Log.d("NotaDao", "Notas estáticas insertadas: $notasEstaticas")
+        } else {
+            Log.d("NotaDao", "La tabla ya contiene $numeroNotas notas. No se insertaron notas estáticas.")
+        }
+    }
 
     @Query("SELECT * FROM notas")
     fun getAllNotas(): LiveData<List<Nota>>

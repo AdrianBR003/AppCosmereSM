@@ -9,6 +9,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.ViewModel.NotaViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class EditarNotaActivity : AppCompatActivity() {
 
@@ -81,6 +84,7 @@ class EditarNotaActivity : AppCompatActivity() {
         // Actualizar los datos de la nota
         notaActual.titulo = nuevoTitulo
         notaActual.contenido = nuevoContenido
+        notaActual.fechaModificacion = obtenerFechaActual() // Actualiza la fecha de modificación
         Log.d("EditarNotaActivity", "Actualizando nota: $notaActual")
 
         // Actualizar la nota en la base de datos
@@ -94,4 +98,8 @@ class EditarNotaActivity : AppCompatActivity() {
         finish()
     }
 
+    private fun obtenerFechaActual(): String {
+        val formatoFecha = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        return formatoFecha.format(Date())
+    }
 }

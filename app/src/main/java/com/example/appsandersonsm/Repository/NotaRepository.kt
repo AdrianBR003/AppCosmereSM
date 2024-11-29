@@ -4,23 +4,21 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import com.example.appsandersonsm.Dao.NotaDao
 import com.example.appsandersonsm.Modelo.Nota
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 
 class NotaRepository(private val notaDao: NotaDao) {
 
     val notas: LiveData<List<Nota>> = notaDao.getAllNotas()
 
+    suspend fun actualizarFechaModificacion(notaId: Int, nuevaFecha: String) {
+        notaDao.actualizarFechaModificacion(notaId, nuevaFecha)
+    }
 
     suspend fun insertarNotasEstaticasSiTablaVacia(notasEstaticas: List<Nota>, libroId: Int) {
-        val numeroNotas = notaDao.contarNotasPorLibroSync(libroId)
-        if (numeroNotas == 0) {
-            notaDao.insertarNotas(notasEstaticas)
-            Log.d("NotaRepository", "Notas estáticas insertadas: $notasEstaticas")
-        } else {
-            Log.d(
-                "NotaRepository",
-                "La tabla ya contiene $numeroNotas notas. No se insertaron notas estáticas."
-            )
+        withContext(Dispatchers.IO) {
+            notaDao.insertarNotasSiTablaVaciaTransaccion(notasEstaticas, libroId)
         }
     }
 

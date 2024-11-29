@@ -2,7 +2,6 @@ package com.example.appsandersonsm.Dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.example.appsandersonsm.LibroyNotas
 import com.example.appsandersonsm.Modelo.Libro
 import kotlinx.coroutines.flow.Flow
 
