@@ -16,6 +16,9 @@ interface NotaDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(nota: Nota)
 
+    @Query("DELETE FROM notas WHERE id = :idNota")
+    suspend fun eliminarNotaPorId(idNota: Int)
+
     @Query("UPDATE notas SET fechaModificacion = :nuevaFecha WHERE id = :notaId")
     suspend fun actualizarFechaModificacion(notaId: Int, nuevaFecha: String)
 
@@ -32,7 +35,10 @@ interface NotaDao {
             insertarNotas(notasEstaticas)
             Log.d("NotaDao", "Notas estáticas insertadas: $notasEstaticas")
         } else {
-            Log.d("NotaDao", "La tabla ya contiene $numeroNotas notas. No se insertaron notas estáticas.")
+            Log.d(
+                "NotaDao",
+                "La tabla ya contiene $numeroNotas notas. No se insertaron notas estáticas."
+            )
         }
     }
 

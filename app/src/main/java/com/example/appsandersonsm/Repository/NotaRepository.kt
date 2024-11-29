@@ -2,10 +2,12 @@ package com.example.appsandersonsm.Repository
 
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewModelScope
 import com.example.appsandersonsm.Dao.NotaDao
 import com.example.appsandersonsm.Modelo.Nota
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class NotaRepository(private val notaDao: NotaDao) {
@@ -22,6 +24,9 @@ class NotaRepository(private val notaDao: NotaDao) {
         }
     }
 
+    suspend fun eliminarNotaPorId(idNota: Int) {
+           notaDao.eliminarNotaPorId(idNota)
+    }
 
     fun contarNotasPorLibro(libroId: Int): LiveData<Int> {
         return notaDao.contarNotasPorLibro(libroId)

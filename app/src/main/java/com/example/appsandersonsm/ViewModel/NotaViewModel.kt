@@ -21,6 +21,12 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
 
 
 
+    fun eliminarNotaPorId(idNota: Int) {
+        viewModelScope.launch {
+            repository.eliminarNotaPorId(idNota)
+        }
+    }
+
     fun insertarNotasEstaticasSiVacia(notasEstaticas: List<Nota>, idLibro: Int) {
         viewModelScope.launch {
             repository.insertarNotasEstaticasSiTablaVacia(notasEstaticas, idLibro)

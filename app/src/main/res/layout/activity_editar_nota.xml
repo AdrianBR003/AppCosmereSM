@@ -5,16 +5,38 @@
     android:padding="16dp">
 
     <!-- Campo para editar el título de la nota -->
-    <EditText
-        android:id="@+id/editTextTitulo"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColorHint="@color/gold_s"
-        android:hint="Título"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        android:padding="8dp"
-        android:inputType="textCapSentences" />
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/editTextTitulo"
+            android:layout_width="0dp"
+            android:layout_weight="3"
+            android:layout_height="wrap_content"
+            android:hint="Título"
+            android:inputType="textCapSentences"
+            android:padding="8dp"
+            android:textColorHint="@color/gold"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/imv_eliminarnota"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.4"
+            android:layout_marginTop="2dp"
+            android:clickable="true"
+            android:contentDescription="ic_addnota"
+            android:focusable="true"
+            android:paddingStart="4dp"
+            android:src="@drawable/ic_deleten" />
+
+
+    </LinearLayout>
+
 
     <!-- Campo para editar el contenido de la nota -->
     <EditText
@@ -22,22 +44,22 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:hint="Contenido"
-        android:textColorHint="@color/white"
-        android:textSize="25sp"
         android:gravity="top"
-        android:padding="8dp"
+        android:hint="Contenido"
         android:inputType="textMultiLine"
-        android:scrollbars="vertical" />
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        android:textColorHint="@color/white"
+        android:textSize="25sp" />
 
     <!-- Botón para guardar los cambios -->
     <Button
         android:id="@+id/botonGuardar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Guardar"
-        android:padding="12dp"
         android:backgroundTint="@color/menufondo"
+        android:padding="12dp"
+        android:text="Guardar"
         android:textColor="@color/gold_s"
         android:textStyle="bold" />
 

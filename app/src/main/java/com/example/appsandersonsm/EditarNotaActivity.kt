@@ -1,9 +1,11 @@
 package com.example.appsandersonsm
 
+import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +19,7 @@ class EditarNotaActivity : AppCompatActivity() {
 
     private lateinit var editTextTitulo: EditText
     private lateinit var editTextContenido: EditText
+    private lateinit var imageViewDelete: ImageView
     private lateinit var botonGuardar: Button
     private var notaId: Int = 0
     private lateinit var notaViewModel: NotaViewModel
@@ -55,6 +58,14 @@ class EditarNotaActivity : AppCompatActivity() {
         botonGuardar.setOnClickListener {
             guardarCambios()
         }
+
+        // Eliminar nota
+        imageViewDelete = findViewById(R.id.imv_eliminarnota)
+        imageViewDelete.setOnClickListener {
+            eliminarNotaPorId(notaId)
+        }
+
+
     }
 
     private fun guardarCambios() {
@@ -95,6 +106,14 @@ class EditarNotaActivity : AppCompatActivity() {
         Log.d("EditarNotaActivity", "Nota actualizada correctamente")
 
         // Finalizar la actividad
+        finish()
+    }
+
+    private fun eliminarNotaPorId(idNota: Int) {
+        notaViewModel.eliminarNotaPorId(idNota)
+
+        // Opcional: Mostrar un mensaje al usuario
+        Toast.makeText(this, "Nota eliminada", Toast.LENGTH_SHORT).show()
         finish()
     }
 
