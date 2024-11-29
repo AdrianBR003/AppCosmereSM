@@ -1,11 +1,13 @@
 package com.example.appsandersonsm.Adapter
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.RatingBar
 import android.widget.TextView
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -24,6 +26,7 @@ class LibroAdapter(
         val textViewNombreLibro: TextView = itemView.findViewById(R.id.textViewNombreLibro)
         val textViewNombreSaga: TextView = itemView.findViewById(R.id.textViewNombreSaga)
         val progressBar: ProgressBar = itemView.findViewById(R.id.progressBarLibro)
+        val ratingBar: RatingBar = itemView.findViewById(R.id.ratingBarlibro)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LibroViewHolder {
@@ -59,6 +62,8 @@ class LibroAdapter(
 
         holder.progressBar.max = 100
         holder.progressBar.progress = progresoPorcentaje.coerceIn(0, 100)
+        holder.ratingBar.rating = libro.valoracion
+
 
         // Configuración del evento de clic
         holder.itemView.setOnClickListener {

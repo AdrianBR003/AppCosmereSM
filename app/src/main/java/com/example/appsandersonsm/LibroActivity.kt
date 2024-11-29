@@ -6,7 +6,9 @@ import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.RatingBar
 import android.widget.Spinner
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,6 +27,9 @@ class LibroActivity : AppCompatActivity() {
     private lateinit var recyclerViewLibros: RecyclerView
     private lateinit var libroAdapter: LibroAdapter
     private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var ratingBar: RatingBar
+    private var idLibro: Int = 0
+
 
     // ViewModel para gestionar los datos de libros
     private val libroViewModel: LibroViewModel by viewModels {
@@ -36,6 +41,10 @@ class LibroActivity : AppCompatActivity() {
         setContentView(R.layout.activity_libros)
 
         supportActionBar?.hide() // Ocultar la barra superior
+
+        // Intent
+        idLibro = intent.getIntExtra("LIBRO_ID", 0)
+        Log.d("LibroActivity", "Libro ID: $idLibro")
 
         // Inicializar vistas
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
@@ -52,10 +61,12 @@ class LibroActivity : AppCompatActivity() {
                     startActivity(Intent(this, AjustesActivity::class.java))
                     true
                 }
+
                 R.id.nav_map -> {
                     startActivity(Intent(this, MapaInteractivoActivity::class.java))
                     true
                 }
+
                 R.id.nav_book -> true // Ya estamos aquí
                 else -> false
             }
@@ -68,7 +79,6 @@ class LibroActivity : AppCompatActivity() {
             startActivity(intent)
         }
         recyclerViewLibros.adapter = libroAdapter
-
         // Observar los datos del ViewModel
         observarDatos()
     }
@@ -87,7 +97,12 @@ class LibroActivity : AppCompatActivity() {
 
         // Observar cambios en los filtros del Spinner
         spinnerSagas.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
                 libroViewModel.allLibros.value?.let { filtrarLibros(it) }
             }
 
@@ -95,7 +110,12 @@ class LibroActivity : AppCompatActivity() {
         }
 
         spinnerLeido.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
                 libroViewModel.allLibros.value?.let { filtrarLibros(it) }
             }
 
@@ -115,7 +135,12 @@ class LibroActivity : AppCompatActivity() {
     }
 
     private fun configurarSpinnerSagas(sagas: List<String>) {
-        val opcionesSagas = mutableListOf("Todas las sagas").apply { addAll(sagas) }
+        // Crear una lista única eliminando duplicados
+        val opcionesSagas = mutableListOf("Todas las sagas").apply {
+            addAll(sagas.distinct()) // Usar `distinct` para eliminar duplicados
+        }
+
+        // Configurar el adaptador para el Spinner
         val spinnerAdapterSagas = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_item,
@@ -131,7 +156,8 @@ class LibroActivity : AppCompatActivity() {
 
         // Filtrar los libros según los criterios seleccionados
         val librosFiltrados = libros.filter { libro ->
-            val coincideSaga = sagaSeleccionada == "Todas las sagas" || libro.nombreSaga == sagaSeleccionada
+            val coincideSaga =
+                sagaSeleccionada == "Todas las sagas" || libro.nombreSaga == sagaSeleccionada
             val coincideEstado = when (estadoSeleccionado) {
                 "Leídos" -> libro.progreso >= libro.totalPaginas
                 "Empezados" -> libro.progreso in 1 until libro.totalPaginas

@@ -46,6 +46,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private lateinit var llNetScroll: LinearLayout
     private lateinit var nestedScrollViewSinopsis: NestedScrollView
 
+
     private var libro: Libro? = null
     private var idLibro: Int = 0
     private var isExpanded = false // Variable para gestionar el estado expandido/colapsado
@@ -114,6 +115,8 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             }
             false
         }
+
+
     }
 
     private fun inicializarViewModels() {
