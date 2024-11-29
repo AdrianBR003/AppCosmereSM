@@ -12,8 +12,8 @@ data class Libro(
     var progreso: Int,
     var totalPaginas: Int,
     var inicialSaga: Boolean,
-    var nNotas: Int = 0,
     var sinopsis: String? = "",
-    var valoracion: Float = 0.0f
+    var valoracion: Float = 0.0f,
+    var numeroNotas: Int = 0
 )
 

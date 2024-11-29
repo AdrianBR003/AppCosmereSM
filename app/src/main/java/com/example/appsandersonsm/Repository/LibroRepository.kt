@@ -34,14 +34,10 @@ class LibroRepository(private val libroDao: LibroDao) {
         libroDao.deleteLibro(libro)
     }
 
-
     suspend fun actualizarSinopsis(libroId: Int, sinopsis: String) {
         libroDao.actualizarSinopsis(libroId, sinopsis)
     }
 
-    suspend fun actualizarNumeroNotas(libroId: Int, nNotas: Int) {
-        libroDao.actualizarNumeroNotas(libroId, nNotas)
-    }
 
     suspend fun actualizarValoracion(libroId: Int, valoracion: Float) {
         libroDao.actualizarValoracion(libroId, valoracion)

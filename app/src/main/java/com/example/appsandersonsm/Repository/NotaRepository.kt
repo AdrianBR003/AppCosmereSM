@@ -11,16 +11,22 @@ class NotaRepository(private val notaDao: NotaDao) {
     val notas: LiveData<List<Nota>> = notaDao.getAllNotas()
 
 
-    suspend fun insertarNotasEstaticasSiTablaVacia(notasEstaticas: List<Nota>) {
-        val cantidad = notaDao.countNotas()
-        if (cantidad == 0) {
-            for (nota in notasEstaticas) {
-                notaDao.insert(nota)
-            }
+    suspend fun insertarNotasEstaticasSiTablaVacia(notasEstaticas: List<Nota>, libroId: Int) {
+        val numeroNotas = notaDao.contarNotasPorLibroSync(libroId)
+        if (numeroNotas == 0) {
+            notaDao.insertarNotas(notasEstaticas)
             Log.d("NotaRepository", "Notas estáticas insertadas: $notasEstaticas")
         } else {
-            Log.d("NotaRepository", "La tabla ya contiene $cantidad notas. No se insertaron notas estáticas.")
+            Log.d(
+                "NotaRepository",
+                "La tabla ya contiene $numeroNotas notas. No se insertaron notas estáticas."
+            )
         }
+    }
+
+
+    fun contarNotasPorLibro(libroId: Int): LiveData<Int> {
+        return notaDao.contarNotasPorLibro(libroId)
     }
 
     suspend fun insertOrUpdateNota(nota: Nota) {
@@ -37,10 +43,6 @@ class NotaRepository(private val notaDao: NotaDao) {
 
     fun getNotasPorLibro(libroId: Int): Flow<List<Nota>> {
         return notaDao.getNotasPorLibro(libroId)
-    }
-
-    suspend fun insertNota(nota: Nota) {
-        notaDao.insertNota(nota)
     }
 
     suspend fun updateNota(nota: Nota) {

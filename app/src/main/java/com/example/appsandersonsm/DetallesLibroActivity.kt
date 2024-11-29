@@ -20,19 +20,21 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.NestedScrollView
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Adapter.NotasAdapter
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Modelo.Nota
+import com.example.appsandersonsm.Repository.NotaRepository
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.example.appsandersonsm.ViewModel.NotaViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListener {
-
 
     private lateinit var notaViewModel: NotaViewModel
     private lateinit var progressBar: ProgressBar
@@ -44,6 +46,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private lateinit var textViewNumeroNotas: TextView
     private lateinit var ratingBarValoracion: RatingBar
     private var libro: Libro? = null
+    private var idLibro: Int = 0
     private val libroViewModel: LibroViewModel by viewModels {
         LibroViewModelFactory((application as InitApplication).libroRepository)
     }
@@ -51,6 +54,8 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        idLibro = intent?.getIntExtra("LIBRO_ID", 0) ?: 0
+        Log.d("DetallesLibroActivity", "Libro ID: $idLibro")
         supportActionBar?.hide()
         setContentView(R.layout.activity_detalles_libro)
 
@@ -71,7 +76,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             listOf(
                 Nota(
                     0,
-                    1,
+                    idLibro,
                     "Nota predeterminada 1",
                     "Contenido predeterminado 1",
                     "2024-01-01",
@@ -79,7 +84,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 ),
                 Nota(
                     1,
-                    1,
+                    idLibro,
                     "Nota predeterminada 2",
                     "Contenido predeterminado 2",
                     "2024-01-01",
@@ -87,7 +92,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 ),
                 Nota(
                     2,
-                    1,
+                    idLibro,
                     "Nota predeterminada 2",
                     "Contenido predeterminado 2",
                     "2024-01-01",
@@ -95,7 +100,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 ),
                 Nota(
                     3,
-                    1,
+                    idLibro,
                     "Nota predeterminada 2",
                     "Contenido predeterminado 2",
                     "2024-01-01",
@@ -103,13 +108,13 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 ),
                 Nota(
                     4,
-                    1,
+                    idLibro,
                     "Nota predeterminada 2",
                     "Contenido predeterminado 2",
                     "2024-01-01",
                     "2024-01-01"
                 )
-            )
+            ),idLibro
         )
 
         supportActionBar?.hide() // Ocultar la barra de acción predeterminada
@@ -270,6 +275,15 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+
+    private fun contarNotas(libroId: Int, callback: (Int) -> Unit) {
+        notaViewModel.contarNotasPorLibro(libroId).observe(this) { numeroNotas ->
+            callback(numeroNotas ?: 0)
+        }
+    }
+
+
+
     private fun cargarDatosLibro(libroId: Int) {
         libroViewModel.getLibroById(libroId).observe(this) { libroCargado ->
             if (libroCargado == null) {
@@ -287,15 +301,16 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 imagenPortada.setImageResource(resID)
                 editTextProgressCurrent.setText(it.progreso.toString())
                 Log.d("DetallesLibroActivity", "Sinopsis cargada: ${it.sinopsis}")
+
+                // Total Paginas
                 if (it.totalPaginas > 0) {
                     editTextProgressTotal.setText(it.totalPaginas.toString())
                 } else {
                     Log.w("DetallesLibroActivity", "El valor de totalPaginas es 0 o inválido.")
                 }
 
-                // Rellenar las nuevas propiedades
                 textViewSinopsis.text = it.sinopsis ?: "Sinopsis no disponible"
-                textViewNumeroNotas.text = ""
+                textViewNumeroNotas.text = it.numeroNotas.toString()
                 ratingBarValoracion.rating = it.valoracion
 
                 // Actualizar la barra de progreso
@@ -303,18 +318,23 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             }
         }
     }
-
     private fun guardarProgresoEnBaseDeDatos() {
         val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
         val total = editTextProgressTotal.text.toString().toIntOrNull() ?: 0
 
         if (total > 0) {
-            libro?.let {
-                it.progreso = current
-                it.totalPaginas = total
-                libroViewModel.updateLibro(it)
+            libro?.let { libroActualizado ->
+                libroActualizado.progreso = current
+                libroActualizado.totalPaginas = total
 
-                Log.d("DetallesLibroActivity", "Progreso actualizado: $current / $total")
+                contarNotas(intent.getIntExtra("LIBRO_ID", 0)) { numeroNotas ->
+                    libroActualizado.numeroNotas = numeroNotas
+                    Log.d("DetallesLibroActivity", "Número de notas: $numeroNotas")
+
+                    // Actualiza el libro después de modificar todos los valores
+                    libroViewModel.updateLibro(libroActualizado)
+                    Log.d("DetallesLibroActivity", "Progreso actualizado: $current / $total")
+                }
             }
         } else {
             Log.w(
@@ -323,6 +343,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             )
         }
     }
+
 
     private fun calcularProgreso(current: Int, total: Int): Int {
         return if (total > 0) (current * 100) / total else 0

@@ -42,11 +42,6 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
         repository.actualizarSinopsis(libroId, sinopsis)
     }
 
-    // Actualizar el número de notas de un libro
-    fun actualizarNumeroNotas(libroId: Int, nNotas: Int) = viewModelScope.launch {
-        repository.actualizarNumeroNotas(libroId, nNotas)
-    }
-
     // Actualizar la valoración de un libro
     fun actualizarValoracion(libroId: Int, valoracion: Float) = viewModelScope.launch {
         require(valoracion in 0.0..10.0) { "La valoración debe estar entre 0 y 10." }

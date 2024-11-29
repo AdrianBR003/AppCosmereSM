@@ -288,6 +288,8 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private fun abrirDetallesLibro(libroId: Int) {
         val intent = Intent(this, DetallesLibroActivity::class.java)
         intent.putExtra("LIBRO_ID", libroId)
+        Log.d("MapaInteractivo", "Intent: $intent")
+        Log.d("MapaInteractivo", "Extras: ${intent?.extras}")
         startActivity(intent)
     }
 }

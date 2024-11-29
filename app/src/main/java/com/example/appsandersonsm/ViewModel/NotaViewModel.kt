@@ -12,94 +12,16 @@ import kotlinx.coroutines.launch
 class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
 
 
+
     private val _notas = MutableLiveData<List<Nota>>()
     val notas: LiveData<List<Nota>> = repository.notas
 
-    private val notasEstaticas = listOf(
-        Nota(
-            1,
-            1,
-            "Nota predeterminada 1",
-            "Contenido predeterminado 1",
-            "2024-01-01",
-            "2024-01-01"
-        ),
-        Nota(
-            2,
-            1,
-            "Nota predeterminada 2",
-            "Contenido predeterminado 2",
-            "2024-01-01",
-            "2024-01-01"
-        ),
-        Nota(
-            3,
-            1,
-            "Nota predeterminada 3",
-            "Contenido predeterminado 3",
-            "2024-01-01",
-            "2024-01-01"
-        ),
-        Nota(
-            4,
-            1,
-            "Nota predeterminada 2",
-            "Contenido predeterminado 2",
-            "2024-01-01",
-            "2024-01-01"
-        ),
-        Nota(
-            5,
-            2,
-            "Nota predeterminada 3",
-            "Contenido predeterminado 3",
-            "2024-01-01",
-            "2024-01-01"
-        ),
-        Nota(
-            6,
-            1,
-            "Nota predeterminada 2",
-            "Contenido predeterminado 2",
-            "2024-01-01",
-            "2024-01-01"
-        ),
-        Nota(
-            7,
-            1,
-            "Nota predeterminada 3",
-            "Contenido predeterminado 3",
-            "2024-01-01",
-            "2024-01-01"
-        ),
-        Nota(
-            8,
-            1,
-            "Nota predeterminada 2",
-            "Contenido predeterminado 2",
-            "2024-01-01",
-            "2024-01-01"
-        ),
-        Nota(
-            9,
-            1,
-            "Nota predeterminada 3",
-            "Contenido predeterminado 3",
-            "2024-01-01",
-            "2024-01-01"
-        )
-    )
+    private val _numeroNotas = MutableLiveData<Int>()
 
-    fun verificarEInsertarNotasEstaticas() {
+
+    fun verificarEInsertarNotasEstaticas(notasEstaticas: List<Nota>, idLibro: Int) {
         viewModelScope.launch {
-            repository.insertarNotasEstaticasSiTablaVacia(notasEstaticas)
-        }
-    }
-
-
-    fun verificarEInsertarNotasEstaticas(notasEstaticas: List<Nota>) {
-        viewModelScope.launch {
-            repository.insertarNotasEstaticasSiTablaVacia(notasEstaticas)
+            repository.insertarNotasEstaticasSiTablaVacia(notasEstaticas, idLibro)
         }
     }
 
@@ -111,22 +33,9 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
         return repository.getNotasByLibroId(libroId).asLiveData()
     }
 
-    fun getNotasPorLibro(libroId: Int): LiveData<List<Nota>> {
-        return repository.getNotasByLibroId(libroId).asLiveData()
-    }
-
-    fun insertNota(nota: Nota) = viewModelScope.launch {
-        repository.insertNota(nota)
-    }
-
     fun updateNota(nota: Nota) = viewModelScope.launch {
         repository.updateNota(nota)
     }
-
-    fun deleteNota(nota: Nota) = viewModelScope.launch {
-        repository.deleteNota(nota)
-    }
-
 
     fun addNota(nota: Nota) {
         val currentNotas = _notas.value?.toMutableList() ?: mutableListOf()
@@ -135,6 +44,13 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
 
         Log.d("NotaViewModel", "Nueva nota añadida: $nota")
     }
+
+
+
+    fun contarNotasPorLibro(libroId: Int): LiveData<Int> {
+        return repository.contarNotasPorLibro(libroId)
+    }
+
 
     // Factory para el ViewModel
     class NotaViewModelFactory(private val repository: NotaRepository) :

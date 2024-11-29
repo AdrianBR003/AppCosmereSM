@@ -66,7 +66,8 @@ dependencies {
 
 
 
-    implementation (libs.glide.v4120)
+
+            implementation (libs.glide.v4120)
     implementation (libs.glide.transformations)
 
     // Firebase BOM (define versiones centralizadas para Firebase)
