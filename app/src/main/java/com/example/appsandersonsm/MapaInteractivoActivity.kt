@@ -238,6 +238,12 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 blue = 0
             }
 
+            if(libro.nombreSaga.equals("Libro Independiente")){
+                red = 106
+                green = 26
+                blue = 128
+            }
+
             val marker = ImageView(this).apply {
                 val scale = resources.displayMetrics.density
                 val sizeInPx = (sizeInDpID * scale + 0.5f).roundToInt()
