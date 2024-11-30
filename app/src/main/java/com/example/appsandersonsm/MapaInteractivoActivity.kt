@@ -244,6 +244,12 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 blue = 128
             }
 
+            if (libro.empezarLeer || libro.nombreLibro.equals("Nacidos de la Bruma (El imperio final)")) {
+                red = 26
+                green = 128
+                blue = 58
+            }
+
             val marker = ImageView(this).apply {
                 val scale = resources.displayMetrics.density
                 val sizeInPx = (sizeInDpID * scale + 0.5f).roundToInt()

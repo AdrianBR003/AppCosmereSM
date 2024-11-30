@@ -14,6 +14,7 @@ data class Libro(
     var inicialSaga: Boolean,
     var sinopsis: String? = "",
     var valoracion: Float = 0.0f,
-    var numeroNotas: Int = 0
+    var numeroNotas: Int = 0,
+    var empezarLeer: Boolean
 )
 
