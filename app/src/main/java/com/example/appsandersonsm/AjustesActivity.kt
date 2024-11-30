@@ -54,19 +54,28 @@ class AjustesActivity : AppCompatActivity() {
     }
 
     private fun observarDatos() {
+        // Observa los libros
         libroViewModel.allLibros.observe(this) { libros ->
-            val totalPaginasLeidas = libros.sumOf { it.progreso }
-            val totalLibrosLeidos = libros.count { it.progreso >= it.totalPaginas && it.totalPaginas > 0 }
+            // Filtra los libros terminados (progreso == totalPaginas y totalPaginas > 0)
+            val librosTerminados = libros.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
+            val totalPaginasLeidas = librosTerminados.sumOf { it.progreso }
+            val totalLibrosLeidos = librosTerminados.size
+
+            // Actualiza los TextView con las métricas
             textViewPaginasLeidas.text = "Páginas leídas: $totalPaginasLeidas"
             textViewLibrosLeidos.text = "Libros leídos: $totalLibrosLeidos"
-        }
 
-        libroViewModel.allSagas.observe(this) { sagas ->
-            val sagasLeidas = sagas.filter { saga ->
-                val librosDeLaSaga = libroViewModel.getLibrosBySaga(saga).value ?: emptyList()
-                librosDeLaSaga.all { libro -> libro.progreso >= libro.totalPaginas && libro.totalPaginas > 0 }
-            }
+            // Agrupa libros terminados por saga
+            val librosPorSaga = libros.groupBy { it.nombreSaga }
 
+            // Identifica las sagas leídas
+            val sagasLeidas = librosPorSaga.filter { (_, librosDeLaSaga) ->
+                librosDeLaSaga.isNotEmpty() && librosDeLaSaga.all { libro ->
+                    libro.progreso == libro.totalPaginas && libro.totalPaginas > 0
+                }
+            }.keys // Obtén los nombres de las sagas leídas
+
+            // Crea el texto para las sagas leídas
             val sagasLeidasTexto = if (sagasLeidas.isNotEmpty()) {
                 "Sagas leídas:\n\n" + sagasLeidas.joinToString(separator = "\n") { "    - $it" }
             } else {
@@ -75,4 +84,6 @@ class AjustesActivity : AppCompatActivity() {
             textViewSagasLeidas.text = sagasLeidasTexto
         }
     }
+
+
 }
