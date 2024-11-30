@@ -1,5 +1,8 @@
 package com.example.appsandersonsm
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.graphics.Color
@@ -9,8 +12,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.view.ViewTreeObserver
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -33,6 +41,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private val markers = mutableListOf<ImageView>()
     private lateinit var arrowOverlayView: ArrowOverlayView
 
+    private var isLeyendaVisible = false
 
     // Lista para guardar las animaciones y poder gestionarlas
     private val animators = mutableListOf<ValueAnimator>()
@@ -146,6 +155,51 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 Log.e("MapaInteractivo", "No se encontraron libros para inicializar marcadores.")
             }
         })
+
+        // Leyenda
+
+        val followButton: ImageButton = findViewById(R.id.followButton)
+        val leyendaView: View = findViewById(R.id.leyenda)
+        val closeButton: ImageButton = findViewById(R.id.closeButton)
+
+
+        followButton.setOnClickListener {
+            if (!isLeyendaVisible) {
+                leyendaView.visibility = View.VISIBLE
+                followButton.isEnabled = false
+
+                // Animar la leyenda hacia abajo hasta su posición original
+                val animator = ObjectAnimator.ofFloat(leyendaView, "translationY", -leyendaView.height.toFloat(), 0f)
+                animator.duration = 300
+                animator.interpolator = AccelerateDecelerateInterpolator()
+                animator.start()
+
+                isLeyendaVisible = true
+            }
+        }
+
+
+        // Botón para ocultar la leyenda
+        closeButton.setOnClickListener {
+            if (isLeyendaVisible) {
+                // Animar la leyenda hacia arriba
+                val animator = ObjectAnimator.ofFloat(leyendaView, "translationY", 0f, -leyendaView.height.toFloat())
+                animator.duration = 300
+                animator.interpolator = AccelerateDecelerateInterpolator()
+                animator.start()
+
+                // Listener para ocultar la leyenda al final de la animación
+                animator.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        leyendaView.visibility = View.GONE
+                        followButton.isEnabled = true
+                        leyendaView.translationY = 0f // Reinicia la posición para futuras animaciones
+                    }
+                })
+
+                isLeyendaVisible = false
+            }
+        }
     }
 
     override fun onPause() {

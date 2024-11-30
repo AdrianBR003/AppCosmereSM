@@ -7,13 +7,41 @@
     android:background="@drawable/image_border">
 
     <!-- Mapa interactivo con PhotoView ocupando toda la pantalla -->
-    <io.getstream.photoview.PhotoView
-        android:id="@+id/photoView"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@drawable/mapa_cosmere"
-        android:scaleType="centerCrop"
-        android:contentDescription="Mapa del Cosmere" />
+        android:layout_height="match_parent">
+
+        <io.getstream.photoview.PhotoView
+            android:id="@+id/photoView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="Mapa del Cosmere"
+            android:scaleType="centerCrop"
+            android:src="@drawable/mapa_cosmere" />
+
+        <ImageButton
+            android:id="@+id/followButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="16dp"
+            android:background="@drawable/image_border"
+            android:contentDescription="Seguir"
+            android:src="@drawable/ic_downdesc" />
+
+        <!-- Elemento estático que se moverá con el PhotoView -->
+        <include
+            android:id="@+id/leyenda"
+            layout="@layout/leyenda"
+            android:toYDelta="-100%"
+            android:fillAfter="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:visibility="gone"
+            />
+    </FrameLayout>
+
 
     <!-- Vista personalizada para dibujar flechas -->
     <com.example.appsandersonsm.ArrowOverlayView
@@ -33,9 +61,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:translationY="15dp"
         android:background="@drawable/rounded_bottom_nav"
-        app:menu="@menu/bottom_nav_menu"
+        android:translationY="15dp"
+        app:itemIconTint="@drawable/menu_iconos_color"
         app:labelVisibilityMode="labeled"
-        app:itemIconTint="@drawable/menu_iconos_color" />
+        app:menu="@menu/bottom_nav_menu" />
 </FrameLayout>
