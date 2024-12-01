@@ -1,0 +1,60 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    android:layout_margin="10dp"
+    android:background="@drawable/libros_border"
+    >
+
+    <!-- Imagen de la noticia -->
+    <ImageView
+        android:layout_margin="10dp"
+        android:id="@+id/imageViewNoticia"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginEnd="8dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Scroll horizontal para el contenido textual -->
+    <HorizontalScrollView
+        android:layout_marginStart="10dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/imageViewNoticia"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Contenedor de texto -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Título de la noticia -->
+            <TextView
+                android:id="@+id/textViewTituloNoticia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Título largo de ejemplo para la noticia"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_s" />
+
+            <!-- Descripción de la noticia -->
+            <TextView
+                android:id="@+id/textViewDescripcionNoticia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Descripción breve de la noticia."
+                android:textSize="14sp"
+                android:textColor="@color/white" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

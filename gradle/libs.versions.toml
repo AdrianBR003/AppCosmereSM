@@ -1,6 +1,8 @@
 [versions]
 agp = "8.6.0"
 appcompatVersion = "1.6.1"
+compiler = "4.15.1"
+converterGson = "2.9.0"
 fastscroll = "1.0.0"
 firebaseBom = "33.5.1" # Usar solo esta versión para firebaseBom
 glide = "4.15.1"
@@ -21,6 +23,7 @@ activity = "1.9.3"
 constraintlayout = "2.1.4"
 photoviewVersion = "1.0.2"
 playServicesAuth = "21.2.0"
+retrofit = "2.9.0"
 roomRuntime = "2.6.1"
 subsamplingScaleImageViewVersion = "3.10.0"
 coreSplashscreen = "1.0.0"
@@ -30,12 +33,15 @@ activityCompose = "1.9.3"
 composeBom = "2024.04.01"
 lifecycleLivedataKtx = "2.8.7"
 sqliteKtx = "2.4.0"
+firebaseCrashlyticsBuildtools = "3.0.2"
 
 [libraries]
 androidx-appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-lifecycle-livedata-ktx-v261 = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtxVersion" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 fastscroll = { module = "com.l4digital.fastscroll:fastscroll", version.ref = "fastscroll" }
@@ -70,6 +76,8 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 androidx-sqlite-ktx = { group = "androidx.sqlite", name = "sqlite-ktx", version.ref = "sqliteKtx" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
-    id ("kotlin-kapt")
+    id("kotlin-kapt")
 }
 
 android {
@@ -57,18 +57,27 @@ android {
 
 dependencies {
 
+    // NewAPI & RetroFit
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+    implementation (libs.glide)
+    implementation(libs.firebase.crashlytics.buildtools)
+    annotationProcessor (libs.compiler)
+
+
+
     // ROOM
     implementation(libs.androidx.room.runtime)
-    implementation (libs.androidx.lifecycle.viewmodel.ktx)
-    implementation (libs.androidx.lifecycle.livedata.ktx.v261)
-    kapt ("androidx.room:room-compiler:2.6.1")
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx.v261)
+    kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
 
 
 
-            implementation (libs.glide.v4120)
-    implementation (libs.glide.transformations)
+    implementation(libs.glide.v4120)
+    implementation(libs.glide.transformations)
 
     // Firebase BOM (define versiones centralizadas para Firebase)
     implementation(platform(libs.firebase.bom))
@@ -91,8 +100,8 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation (libs.androidx.appcompat.v161)
-    implementation (libs.materialratingbar.library)
+    implementation(libs.androidx.appcompat.v161)
+    implementation(libs.materialratingbar.library)
 
 
     // Compose dependencies

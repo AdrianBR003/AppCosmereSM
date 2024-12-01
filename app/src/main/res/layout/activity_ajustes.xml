@@ -3,8 +3,49 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/image_border"
-    android:paddingTop="16dp"
-    >
+    android:paddingTop="16dp">
+
+    <TextView
+        android:id="@+id/textViewTituloRv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Noticias Destacadas"
+        android:textColor="@color/gold"
+        android:textSize="24sp"
+        android:textStyle="bold|italic"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/vwnoticias"
+        />
+
+    <View
+        android:id="@+id/vwnoticias"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/gold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewTituloRv"
+        app:layout_constraintBottom_toTopOf="@id/recyclerViewNoticias"
+        />
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginHorizontal="20dp"
+
+        android:layout_marginTop="20dp"
+        android:id="@+id/recyclerViewNoticias"
+        android:layout_width="0dp"
+        android:layout_height="300dp"
+        app:layout_constraintBottom_toTopOf="@id/textViewTitulo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/vwnoticias"
+        android:scrollbars="vertical"
+      />
+
+
 
     <TextView
         android:id="@+id/textViewTitulo"
@@ -18,60 +59,80 @@
         android:textStyle="bold|italic"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewNoticias" />
+
+    <View
+        android:id="@+id/vwEstadisticas"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/gold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewTitulo"
+        app:layout_constraintBottom_toTopOf="@id/llEstadisticas"
+        />
 
     <!-- Número de páginas leídas -->
-    <TextView
-        android:paddingHorizontal="20dp"
-        android:id="@+id/textViewPaginasLeidas"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="16dp"
-        android:text="Páginas leídas: "
-        android:textStyle="bold"
-        android:textColor="@color/gold_s"
-        android:textSize="18sp"
+    <LinearLayout
+        android:id="@+id/llEstadisticas"
+        android:layout_marginVertical="20dp"
+        android:background="@drawable/libros_border"
+        android:layout_width="match_parent"
+        android:layout_marginHorizontal="20dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewTitulo" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewTitulo"
+        >
 
-    <!-- Número de libros leídos -->
-    <TextView
-        android:paddingHorizontal="20dp"
-        android:id="@+id/textViewLibrosLeidos"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="16dp"
-        android:text="Libros leídos: "
-        android:textStyle="bold"
-        android:textColor="@color/gold_s"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewPaginasLeidas" />
+        <TextView
+            android:id="@+id/textViewPaginasLeidas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="16dp"
+            android:paddingHorizontal="20dp"
+            android:text="Páginas leídas: "
+            android:textColor="@color/gold_s"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-    <!-- Número de sagas leídas -->
-    <TextView
-        android:paddingHorizontal="20dp"
-        android:id="@+id/textViewSagasLeidas"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="16dp"
-        android:text="Sagas leídas: "
-        android:textStyle="bold"
-        android:textColor="@color/gold_s"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewLibrosLeidos" />
+        <!-- Número de libros leídos -->
+        <TextView
+            android:id="@+id/textViewLibrosLeidos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="16dp"
+            android:paddingHorizontal="20dp"
+            android:text="Libros leídos: "
+            android:textColor="@color/gold_s"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Número de sagas leídas -->
+        <TextView
+            android:id="@+id/textViewSagasLeidas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="16dp"
+            android:paddingHorizontal="20dp"
+            android:text="Sagas leídas: "
+            android:textColor="@color/gold_s"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_bottom_nav"
-        app:itemIconTint="@drawable/menu_iconos_color"
         android:translationY="15dp"
+        app:itemIconTint="@drawable/menu_iconos_color"
         app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
