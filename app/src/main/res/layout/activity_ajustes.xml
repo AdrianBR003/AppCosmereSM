@@ -2,6 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@drawable/image_border"
     android:paddingTop="16dp">
 
@@ -27,39 +28,50 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textViewTituloRv"
-        app:layout_constraintBottom_toTopOf="@id/recyclerViewNoticias"
+        app:layout_constraintBottom_toTopOf="@id/flRecyclerViewContainer"
         />
 
+        <FrameLayout
+            android:id="@+id/flRecyclerViewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            app:layout_constraintTop_toBottomOf="@id/vwnoticias"
+            app:layout_constraintBottom_toTopOf="@id/textViewTitulo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="10dp"
+            android:layout_marginHorizontal="20dp"
+            >
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:layout_marginHorizontal="20dp"
+            <!-- RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewNoticias"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical"
+                android:visibility="visible" />
 
-        android:layout_marginTop="20dp"
-        android:id="@+id/recyclerViewNoticias"
-        android:layout_width="0dp"
-        android:layout_height="300dp"
-        app:layout_constraintBottom_toTopOf="@id/textViewTitulo"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/vwnoticias"
-        android:scrollbars="vertical"
-      />
-
-
+            <!-- Barra de carga -->
+            <ProgressBar
+                android:id="@+id/progressBarN"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                />
+        </FrameLayout>
 
     <TextView
         android:id="@+id/textViewTitulo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:layout_marginBottom="50dp"
         android:text="Estadísticas"
         android:textColor="@color/gold"
         android:textSize="24sp"
         android:textStyle="bold|italic"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recyclerViewNoticias" />
+        app:layout_constraintTop_toBottomOf="@id/flRecyclerViewContainer" />
 
     <View
         android:id="@+id/vwEstadisticas"

@@ -2,6 +2,8 @@ package com.example.appsandersonsm
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -33,8 +35,11 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var textViewSagasLeidas: TextView
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var recyclerViewNoticias: RecyclerView
+    private lateinit var progressBar: ProgressBar
+
 
     private lateinit var libroRepository: LibroRepository
+
 
     // Usar LibroViewModel existente
     private val libroViewModel: LibroViewModel by viewModels {
@@ -65,6 +70,8 @@ class AjustesActivity : AppCompatActivity() {
         textViewSagasLeidas = findViewById(R.id.textViewSagasLeidas)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         recyclerViewNoticias = findViewById(R.id.recyclerViewNoticias)
+        progressBar = findViewById(R.id.progressBarN)
+
 
         // Configurar navegación inferior
         bottomNavigationView.selectedItemId = R.id.nav_settings
@@ -86,12 +93,14 @@ class AjustesActivity : AppCompatActivity() {
         }
 
         // Configurar RecyclerView
-        recyclerViewNoticias.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        recyclerViewNoticias.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
         // Observar datos del ViewModel
         observarDatos()
 
         // Fetch de noticias reales
+
         fetchNoticias()
     }
 
@@ -131,13 +140,19 @@ class AjustesActivity : AppCompatActivity() {
     private fun fetchNoticias() {
         val apiKey = "6c1e1e7d1bdf4283867fd5d85fd2744e"
         val query = "Brandon Sanderson OR Cosmere"
-        val languages = listOf("en", "es") // Lista de idiomas a buscar
+        val languages = listOf("en", "es") // Idiomas: inglés y español
+
+        // Mostrar la barra de carga y ocultar el RecyclerView
+        progressBar.visibility = View.VISIBLE
+        recyclerViewNoticias.visibility = View.GONE
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Realizar las llamadas a la API para cada idioma
+                // Realizar llamadas concurrentes a la API para cada idioma
                 val responses = languages.map { language ->
-                    async { newsApi.getNews(query, apiKey, language) }
+                    async {
+                        newsApi.getNews(query, apiKey, language)
+                    }
                 }
 
                 // Esperar todas las respuestas
@@ -145,37 +160,48 @@ class AjustesActivity : AppCompatActivity() {
                     if (response.status == "ok") response.articles else emptyList()
                 }
 
-                // Filtrar y mapear resultados
-                val filteredArticles = articles
-                    .filter { article ->
-                        article.title.contains("Brandon Sanderson", ignoreCase = true) ||
-                                article.title.contains("Cosmere", ignoreCase = true)
-                    }
-                    .map { article ->
-                        Noticia(
-                            titulo = article.title,
-                            descripcion = article.description ?: "Sin descripción",
-                            enlace = article.url,
-                            imagenUrl = article.urlToImage ?: ""
-                        )
-                    }
+                // Filtrar las noticias estrictamente por "Brandon Sanderson" o "Cosmere"
+                val noticiasFiltradas = articles.filter { article ->
+                    val lowerCaseTitle = article.title.lowercase()
+                    val lowerCaseDescription = article.description?.lowercase() ?: ""
 
-                // Actualizar el RecyclerView en el hilo principal
+                    lowerCaseTitle.contains("brandon sanderson") ||
+                            lowerCaseTitle.contains("cosmere") ||
+                            lowerCaseDescription.contains("brandon sanderson") ||
+                            lowerCaseDescription.contains("cosmere")
+                }.map { article ->
+                    // Mapear a la clase Noticia
+                    Noticia(
+                        titulo = article.title,
+                        descripcion = article.description ?: "Sin descripción",
+                        enlace = article.url,
+                        imagenUrl = article.urlToImage ?: ""
+                    )
+                }
+
                 withContext(Dispatchers.Main) {
-                    if (filteredArticles.isNotEmpty()) {
-                        recyclerViewNoticias.adapter = NoticiasAdapter(filteredArticles)
+                    if (noticiasFiltradas.isNotEmpty()) {
+                        recyclerViewNoticias.adapter = NoticiasAdapter(noticiasFiltradas)
+                        recyclerViewNoticias.visibility = View.VISIBLE
                     } else {
                         Toast.makeText(
                             this@AjustesActivity,
-                            "No se encontraron resultados para Brandon Sanderson.",
+                            "No se encontraron noticias relacionadas con Brandon Sanderson o Cosmere.",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
+                    progressBar.visibility = View.GONE
                 }
             } catch (e: Exception) {
-                android.util.Log.d("API_ERROR", "Error al conectar con la API", e)
+                withContext(Dispatchers.Main) {
+                    progressBar.visibility = View.GONE
+                    Toast.makeText(
+                        this@AjustesActivity,
+                        "Error al cargar noticias: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
-
 }
