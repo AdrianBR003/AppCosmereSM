@@ -1,13 +1,17 @@
 package com.example.appsandersonsm
 
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,7 +22,6 @@ import com.example.appsandersonsm.Repository.LibroRepository
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.logging.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -102,6 +105,26 @@ class AjustesActivity : AppCompatActivity() {
         // Fetch de noticias reales
 
         fetchNoticias()
+
+        // Enlaces
+
+        // Configurar los enlaces
+        findViewById<TextView>(R.id.tvEnlace1).setOnClickListener { // Cosmere.es
+            openWebPage("https://cosmere.es/")
+        }
+
+        findViewById<TextView>(R.id.tvEnlace2).setOnClickListener {
+            openWebPage("https://es.coppermind.net/wiki/Coppermind:Bienvenidos")
+        }
+
+        findViewById<TextView>(R.id.tvEnlace3).setOnClickListener {
+            openWebPage("https://www.brandonsanderson.com/")
+        }
+
+        findViewById<TextView>(R.id.tvEnlace4).setOnClickListener {
+            openWebPage("https://x.com/brandsanderson")
+        }
+
     }
 
     private fun observarDatos() {
@@ -204,4 +227,15 @@ class AjustesActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun openWebPage(url: String) {
+        try {
+            val customTabsIntent = CustomTabsIntent.Builder().build()
+            customTabsIntent.launchUrl(this, Uri.parse(url))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al abrir el enlace.", Toast.LENGTH_SHORT).show()
+            Log.e("OpenWebPage", "Error: ${e.message}")
+        }
+    }
+
 }

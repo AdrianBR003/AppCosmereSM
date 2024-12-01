@@ -1,153 +1,261 @@
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nestedScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:fillViewport="true"
+    android:orientation="vertical"
     android:background="@drawable/image_border"
-    android:paddingTop="16dp">
+    tools:context=".AjustesActivity">
 
-    <TextView
-        android:id="@+id/textViewTituloRv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Noticias Destacadas"
-        android:textColor="@color/gold"
-        android:textSize="24sp"
-        android:textStyle="bold|italic"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/vwnoticias"
-        />
-
-    <View
-        android:id="@+id/vwnoticias"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/gold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewTituloRv"
-        app:layout_constraintBottom_toTopOf="@id/flRecyclerViewContainer"
-        />
-
-        <FrameLayout
-            android:id="@+id/flRecyclerViewContainer"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            app:layout_constraintTop_toBottomOf="@id/vwnoticias"
-            app:layout_constraintBottom_toTopOf="@id/textViewTitulo"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="10dp"
-            android:layout_marginHorizontal="20dp"
-            >
-
-            <!-- RecyclerView -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewNoticias"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scrollbars="vertical"
-                android:visibility="visible" />
-
-            <!-- Barra de carga -->
-            <ProgressBar
-                android:id="@+id/progressBarN"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone"
-                />
-        </FrameLayout>
-
-    <TextView
-        android:id="@+id/textViewTitulo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Estadísticas"
-        android:textColor="@color/gold"
-        android:textSize="24sp"
-        android:textStyle="bold|italic"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/flRecyclerViewContainer" />
-
-    <View
-        android:id="@+id/vwEstadisticas"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/gold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewTitulo"
-        app:layout_constraintBottom_toTopOf="@id/llEstadisticas"
-        />
-
-    <!-- Número de páginas leídas -->
-    <LinearLayout
-        android:id="@+id/llEstadisticas"
-        android:layout_marginVertical="20dp"
-        android:background="@drawable/libros_border"
-        android:layout_width="match_parent"
-        android:layout_marginHorizontal="20dp"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewTitulo"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        tools:context=".DetallesLibroActivity"
+        android:paddingBottom="50dp"
         >
 
-        <TextView
-            android:id="@+id/textViewPaginasLeidas"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="16dp"
-            android:paddingHorizontal="20dp"
-            android:text="Páginas leídas: "
-            android:textColor="@color/gold_s"
-            android:textSize="18sp"
-            android:textStyle="bold" />
 
-        <!-- Número de libros leídos -->
-        <TextView
-            android:id="@+id/textViewLibrosLeidos"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="16dp"
-            android:paddingHorizontal="20dp"
-            android:text="Libros leídos: "
-            android:textColor="@color/gold_s"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/image_border"
+            android:paddingTop="16dp">
 
-        <!-- Número de sagas leídas -->
-        <TextView
-            android:id="@+id/textViewSagasLeidas"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="16dp"
-            android:paddingHorizontal="20dp"
-            android:text="Sagas leídas: "
-            android:textColor="@color/gold_s"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/textViewTituloRv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Noticias Destacadas"
+                android:textColor="@color/gold"
+                android:textSize="24sp"
+                android:textStyle="bold|italic"
+                app:layout_constraintBottom_toTopOf="@id/vwnoticias"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-    </LinearLayout>
+            <View
+                android:id="@+id/vwnoticias"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/gold"
+                app:layout_constraintBottom_toTopOf="@id/flRecyclerViewContainer"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/textViewTituloRv" />
+
+            <FrameLayout
+                android:id="@+id/flRecyclerViewContainer"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_marginHorizontal="20dp"
+                app:layout_constraintBottom_toTopOf="@id/textViewTitulo"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/vwnoticias">
+
+                <!-- RecyclerView -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewNoticias"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scrollbars="vertical"
+                    android:visibility="visible" />
+
+                <!-- Barra de carga -->
+                <ProgressBar
+                    android:id="@+id/progressBarN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/textViewTitulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Estadísticas"
+                android:textColor="@color/gold"
+                android:textSize="24sp"
+                android:textStyle="bold|italic"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/flRecyclerViewContainer" />
+
+            <View
+                android:id="@+id/vwEstadisticas"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/gold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/textViewTitulo" />
+
+            <!-- Número de páginas leídas -->
+            <LinearLayout
+                android:id="@+id/llEstadisticas"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginVertical="20dp"
+                android:background="@drawable/libros_border"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/textViewTitulo">
+
+                <TextView
+                    android:id="@+id/textViewPaginasLeidas"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="16dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="Páginas leídas: "
+                    android:textColor="@color/gold_s"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Número de libros leídos -->
+                <TextView
+                    android:id="@+id/textViewLibrosLeidos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="16dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="Libros leídos: "
+                    android:textColor="@color/gold_s"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Número de sagas leídas -->
+                <TextView
+                    android:id="@+id/textViewSagasLeidas"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="16dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="Sagas leídas: "
+                    android:textColor="@color/gold_s"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textViewEnlaces"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Enlaces de Interes"
+                android:textColor="@color/gold"
+                android:textSize="24sp"
+                android:textStyle="bold|italic"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/llEstadisticas" />
+
+            <View
+                android:id="@+id/vwInteres"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/gold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/textViewEnlaces" />
+
+            <LinearLayout
+                android:layout_marginHorizontal="20dp"
+                android:id="@+id/llEnlaces"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:focusable="false"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/vwInteres"
+
+                >
+
+                <TextView
+                    android:layout_marginVertical="10dp"
+                    android:id="@+id/tvEnlace1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/enlace_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="Cosmere.es"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_marginVertical="10dp"
+                    android:id="@+id/tvEnlace2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/enlace_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="Coppermind"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_marginVertical="10dp"
+                    android:id="@+id/tvEnlace3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/enlace_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="Web Brandon Sanderson"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_marginVertical="10dp"
+                    android:id="@+id/tvEnlace4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/enlace_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text=" (X) Twitter Brandon Sanderson"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom"
         android:background="@drawable/rounded_bottom_nav"
-        android:translationY="15dp"
+        android:translationY="-41dp"
         app:itemIconTint="@drawable/menu_iconos_color"
         app:labelVisibilityMode="labeled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_nav_menu" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>
