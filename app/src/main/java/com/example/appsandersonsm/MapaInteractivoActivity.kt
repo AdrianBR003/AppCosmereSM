@@ -86,6 +86,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         arrowOverlayView = findViewById(R.id.arrowOverlayView)
 
+
         // Configuración de la imagen en el PhotoView
         photoView.minimumScale = 1.0f
         photoView.mediumScale = 1.5f
@@ -162,19 +163,25 @@ class MapaInteractivoActivity : AppCompatActivity() {
         val leyendaView: View = findViewById(R.id.leyenda)
         val closeButton: ImageButton = findViewById(R.id.closeButton)
 
+        leyendaView.visibility = View.INVISIBLE
+        leyendaView.post {
+            leyendaView.translationY = -leyendaView.height.toFloat()
+            leyendaView.visibility = View.GONE
+        }
 
         followButton.setOnClickListener {
-            if (!isLeyendaVisible) {
-                leyendaView.visibility = View.VISIBLE
-                followButton.isEnabled = false
+            leyendaView.post {
+                if (!isLeyendaVisible) {
+                    leyendaView.visibility = View.VISIBLE
+                    followButton.isEnabled = false
 
-                // Animar la leyenda hacia abajo hasta su posición original
-                val animator = ObjectAnimator.ofFloat(leyendaView, "translationY", -leyendaView.height.toFloat(), 0f)
-                animator.duration = 300
-                animator.interpolator = AccelerateDecelerateInterpolator()
-                animator.start()
+                    val animator = ObjectAnimator.ofFloat(leyendaView, "translationY", -leyendaView.height.toFloat(), 0f)
+                    animator.duration = 300
+                    animator.interpolator = AccelerateDecelerateInterpolator()
+                    animator.start()
 
-                isLeyendaVisible = true
+                    isLeyendaVisible = true
+                }
             }
         }
 
