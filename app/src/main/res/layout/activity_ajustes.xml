@@ -73,6 +73,20 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/errorInternet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/gold_s"
+                    android:textSize="25dp"
+                    android:layout_gravity="center"
+                    android:layout_margin="40dp"
+                    android:gravity="center_horizontal"
+                    android:text="No hay conexión a Internet"
+
+                    />
+                
             </FrameLayout>
 
             <TextView
@@ -131,6 +145,18 @@
                     android:layout_marginBottom="16dp"
                     android:paddingHorizontal="20dp"
                     android:text="Libros leídos: "
+                    android:textColor="@color/gold_s"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/textViewSagasEmpezadas"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="16dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="Sagas Empezadas: "
                     android:textColor="@color/gold_s"
                     android:textSize="18sp"
                     android:textStyle="bold" />

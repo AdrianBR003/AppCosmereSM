@@ -1,7 +1,10 @@
 package com.example.appsandersonsm
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -39,9 +42,10 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var recyclerViewNoticias: RecyclerView
     private lateinit var progressBar: ProgressBar
-
+    private lateinit var textViewSagasEmpezadas: TextView
 
     private lateinit var libroRepository: LibroRepository
+    private lateinit var textViewError: TextView
 
 
     // Usar LibroViewModel existente
@@ -74,6 +78,8 @@ class AjustesActivity : AppCompatActivity() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         recyclerViewNoticias = findViewById(R.id.recyclerViewNoticias)
         progressBar = findViewById(R.id.progressBarN)
+        textViewError = findViewById(R.id.errorInternet)
+        textViewSagasEmpezadas = findViewById(R.id.textViewSagasEmpezadas)
 
 
         // Configurar navegación inferior
@@ -143,16 +149,56 @@ class AjustesActivity : AppCompatActivity() {
             // Agrupa libros terminados por saga
             val librosPorSaga = libros.groupBy { it.nombreSaga }
 
-            // Identifica las sagas leídas
-            val sagasLeidas = librosPorSaga.filter { (_, librosDeLaSaga) ->
-                librosDeLaSaga.isNotEmpty() && librosDeLaSaga.all { libro ->
-                    libro.progreso == libro.totalPaginas && libro.totalPaginas > 0
+            val sagasEmpezadasTexto = if (librosPorSaga.isNotEmpty()) {
+                val textoSagas = librosPorSaga.entries.joinToString(separator = "\n") { (saga, librosDeLaSaga) ->
+                    val librosEmpezados = librosDeLaSaga.filter { it.progreso > 0 && it.progreso < it.totalPaginas }
+                    if (librosEmpezados.isNotEmpty()) {
+                        if (saga == "Libro Independiente") {
+                            // Mostrar libros independientes con [NI]
+                            librosEmpezados.joinToString(separator = "\n") { libro ->
+                                "    - ${libro.nombreLibro} [NI]"
+                            }
+                        } else {
+                            // Mostrar la saga como empezada
+                            "    - $saga"
+                        }
+                    } else {
+                        ""
+                    }
+                }.trim()
+                // Formatea el texto para las sagas empezadas
+                if (textoSagas.isNotEmpty()) {
+                    "Sagas empezadas:\n\n$textoSagas"
+                } else {
+                    "Sagas empezadas: \n"
                 }
-            }.keys // Obtén los nombres de las sagas leídas
+            } else {
+                "Sagas empezadas: \n "
+            }
 
-            // Crea el texto para las sagas leídas
-            val sagasLeidasTexto = if (sagasLeidas.isNotEmpty()) {
-                "Sagas leídas:\n\n" + sagasLeidas.joinToString(separator = "\n") { "    - $it" }
+            textViewSagasEmpezadas.text = sagasEmpezadasTexto
+
+            // Identifica las sagas leídas y construye el texto
+            // Identifica las sagas leídas y construye el texto
+            val sagasLeidasTexto = if (librosPorSaga.isNotEmpty()) {
+                val textoSagas = librosPorSaga.entries.joinToString(separator = "\n") { (saga, librosDeLaSaga) ->
+                    if (saga == "Libro Independiente") {
+                        // Para "Novela Independiente", listar los libros con "[NI]"
+                        librosDeLaSaga.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
+                            .joinToString(separator = "\n") { libro ->
+                                "    - ${libro.nombreLibro} [NI]"
+                            }
+                    } else {
+                        // Para otras sagas, solo mostrar el nombre de la saga si todos los libros están completos
+                        if (librosDeLaSaga.all { it.progreso == it.totalPaginas && it.totalPaginas > 0 }) {
+                            "    - $saga"
+                        } else {
+                            ""
+                        }
+                    }
+                }
+                // Formatea el texto resultante
+                "Sagas leídas:\n\n$textoSagas".trim()
             } else {
                 "Sagas leídas: Ninguna saga completada"
             }
@@ -164,6 +210,12 @@ class AjustesActivity : AppCompatActivity() {
         val apiKey = "6c1e1e7d1bdf4283867fd5d85fd2744e"
         val query = "Brandon Sanderson OR Cosmere"
         val languages = listOf("en", "es") // Idiomas: inglés y español
+
+        // Verificar si hay conexión a Internet
+        if (!isNetworkAvailable()) {
+            progressBar.visibility = View.GONE
+            return
+        }
 
         // Mostrar la barra de carga y ocultar el RecyclerView
         progressBar.visibility = View.VISIBLE
@@ -218,15 +270,18 @@ class AjustesActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
-                    Toast.makeText(
-                        this@AjustesActivity,
-                        "Error al cargar noticias: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    textViewError.visibility = View.VISIBLE
                 }
             }
         }
     }
+
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
+
 
     private fun openWebPage(url: String) {
         try {
