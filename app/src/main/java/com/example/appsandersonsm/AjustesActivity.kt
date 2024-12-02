@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -213,14 +214,16 @@ class AjustesActivity : AppCompatActivity() {
 
         // Verificar si hay conexión a Internet
         if (!isNetworkAvailable()) {
-            progressBar.visibility = View.GONE
+            runOnUiThread {
+                progressBar.visibility = View.GONE
+                textViewError.visibility = View.VISIBLE
+            }
             return
         }
-
         // Mostrar la barra de carga y ocultar el RecyclerView
         progressBar.visibility = View.VISIBLE
         recyclerViewNoticias.visibility = View.GONE
-
+        textViewError.visibility = View.GONE
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 // Realizar llamadas concurrentes a la API para cada idioma
@@ -278,9 +281,12 @@ class AjustesActivity : AppCompatActivity() {
 
     private fun isNetworkAvailable(): Boolean {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkInfo = connectivityManager.activeNetworkInfo
-        return networkInfo != null && networkInfo.isConnected
+        val network = connectivityManager.activeNetwork
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+        return capabilities != null &&
+                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
+
 
 
     private fun openWebPage(url: String) {
