@@ -12,7 +12,7 @@
 
 > [!NOTE]
 > <p>Aplicación de uso libre y totalmente gratuita, sin fines de lucro. Desarrollado para el proyecto de la asignatura de Servicios Móviles UJA</p>
-> <p>MIT License Copyright (C) 2024 Adrian Benítez Roldán</p>
+
 
 ## ✨ Características Principales 
 
