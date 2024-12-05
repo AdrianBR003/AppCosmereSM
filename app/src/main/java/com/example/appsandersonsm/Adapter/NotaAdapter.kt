@@ -1,7 +1,6 @@
 package com.example.appsandersonsm.Adapter
 
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.R
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 class NotasAdapter(private val onNotaClickListener: OnNotaClickListener) :
@@ -54,19 +52,20 @@ class NotasAdapter(private val onNotaClickListener: OnNotaClickListener) :
             } else {
                 try {
                     // Primero, intenta con el formato completo (fecha y hora)
-                    val formatoEntradaCompleto = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                    val formatoEntradaCompleto =
+                        SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                     val formatoSalida = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                     val fechaParseada = formatoEntradaCompleto.parse(fecha)
                     formatoSalida.format(fechaParseada)
                 } catch (e1: Exception) {
                     try {
                         // Si falla, intenta solo con la fecha (sin hora)
-                        val formatoEntradaSimple = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val formatoEntradaSimple =
+                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                         val formatoSalida = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                         val fechaParseada = formatoEntradaSimple.parse(fecha)
                         formatoSalida.format(fechaParseada)
                     } catch (e2: Exception) {
-                        Log.e("NotaViewHolder", "Error al formatear la fecha: ${e2.message}")
                         "Fecha inválida"
                     }
                 }

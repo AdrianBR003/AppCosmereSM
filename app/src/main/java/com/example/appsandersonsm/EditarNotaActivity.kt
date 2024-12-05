@@ -1,8 +1,6 @@
 package com.example.appsandersonsm
 
-import android.media.Image
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -72,7 +70,6 @@ class EditarNotaActivity : AppCompatActivity() {
         // Validar que la nota no sea nula
         val notaActual = nota ?: run {
             Toast.makeText(this, "No se encontró la nota", Toast.LENGTH_SHORT).show()
-            Log.e("EditarNotaActivity", "Intento de guardar cambios sin una nota válida")
             return
         }
 
@@ -82,13 +79,11 @@ class EditarNotaActivity : AppCompatActivity() {
 
         if (nuevoTitulo.isEmpty()) {
             editTextTitulo.error = "El título no puede estar vacío"
-            Log.e("EditarNotaActivity", "Título vacío")
             return
         }
 
         if (nuevoContenido.isEmpty()) {
             editTextContenido.error = "El contenido no puede estar vacío"
-            Log.e("EditarNotaActivity", "Contenido vacío")
             return
         }
 
@@ -96,14 +91,12 @@ class EditarNotaActivity : AppCompatActivity() {
         notaActual.titulo = nuevoTitulo
         notaActual.contenido = nuevoContenido
         notaActual.fechaModificacion = obtenerFechaActual() // Actualiza la fecha de modificación
-        Log.d("EditarNotaActivity", "Actualizando nota: $notaActual")
 
         // Actualizar la nota en la base de datos
         notaViewModel.updateNota(notaActual)
 
         // Opcional: Mostrar un mensaje de confirmación
         Toast.makeText(this, "Nota actualizada correctamente", Toast.LENGTH_SHORT).show()
-        Log.d("EditarNotaActivity", "Nota actualizada correctamente")
 
         // Finalizar la actividad
         finish()

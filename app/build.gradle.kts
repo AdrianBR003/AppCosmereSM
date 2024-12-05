@@ -13,8 +13,8 @@ android {
         applicationId = "com.example.appsandersonsm"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.0-beta"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -52,8 +52,12 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-}
 
+    lint {
+        abortOnError = false // Esto asegura que Lint no detenga el proceso de construcción
+        warningsAsErrors = false // Opcional, para no tratar advertencias como errores
+    }
+}
 
 dependencies {
 
@@ -104,14 +108,7 @@ dependencies {
     implementation(libs.materialratingbar.library)
 
 
-    // Compose dependencies
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
-    implementation(libs.androidx.sqlite.ktx)
 
     // Test dependencies
     testImplementation(libs.junit)

@@ -1,11 +1,7 @@
-// NotaViewModel.kt
 package com.example.appsandersonsm.ViewModel
 
-import android.database.sqlite.SQLiteConstraintException
-import android.util.Log
 import androidx.lifecycle.*
 import com.example.appsandersonsm.Modelo.Nota
-import com.example.appsandersonsm.Repository.LibroRepository
 import com.example.appsandersonsm.Repository.NotaRepository
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -13,13 +9,6 @@ import java.util.Date
 import java.util.Locale
 
 class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
-
-
-
-    private val _notas = MutableLiveData<List<Nota>>()
-    val notas: LiveData<List<Nota>> = repository.notas
-
-
 
     fun eliminarNotaPorId(idNota: Int) {
         viewModelScope.launch {
@@ -55,15 +44,6 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
     fun updateNota(nota: Nota) = viewModelScope.launch {
         repository.updateNota(nota)
     }
-
-    fun addNota(nota: Nota) {
-        val currentNotas = _notas.value?.toMutableList() ?: mutableListOf()
-        currentNotas.add(nota)
-        _notas.value = currentNotas
-
-        Log.d("NotaViewModel", "Nueva nota añadida: $nota")
-    }
-
 
 
     fun contarNotasPorLibro(libroId: Int): LiveData<Int> {

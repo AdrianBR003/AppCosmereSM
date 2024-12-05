@@ -1,14 +1,11 @@
 package com.example.appsandersonsm
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -16,7 +13,6 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.API.NewsApiService
@@ -295,7 +291,6 @@ class AjustesActivity : AppCompatActivity() {
             customTabsIntent.launchUrl(this, Uri.parse(url))
         } catch (e: Exception) {
             Toast.makeText(this, "Error al abrir el enlace.", Toast.LENGTH_SHORT).show()
-            Log.e("OpenWebPage", "Error: ${e.message}")
         }
     }
 

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -56,7 +55,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("DetallesLibroActivity", "Application context: $applicationContext")
         setContentView(R.layout.activity_detalles_libro)
 
         // Inicializar ViewModel después de que la actividad esté completamente creada
@@ -69,7 +67,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
         // Obtener el ID del libro del Intent
         idLibro = intent.getIntExtra("LIBRO_ID", 0)
-        Log.d("DetallesLibroActivity", "Libro ID: $idLibro")
 
         inicializarViewModels()
         inicializarVistas()
@@ -251,7 +248,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private fun inicializarDatosLibro() {
         // Primero, contar las notas y actualizar el libro en memoria
         contarNotas(idLibro) { numeroNotas ->
-            Log.d("DetallesLibroActivity", "Número de notas para libro $idLibro: $numeroNotas")
 
             // Inicializar notas estaticas
             insertarNotasEstaticasSiNecesario()
@@ -273,12 +269,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
     private fun cargarDatosLibro(libroId: Int, callback: (Libro?) -> Unit) {
         libroViewModel.getLibroById(libroId).observe(this) { libroCargado ->
-            if (libroCargado == null) {
-                Log.e(
-                    "DetallesLibroActivity",
-                    "Libro no encontrado en la base de datos para ID: $libroId"
-                )
-            }
             callback(libroCargado)
         }
     }
@@ -309,14 +299,8 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 contarNotas(idLibro) { numeroNotas ->
                     libroActualizado.numeroNotas = numeroNotas
                     libroViewModel.updateLibro(libroActualizado)
-                    Log.d("DetallesLibroActivity", "Progreso actualizado: $current / $total")
                 }
             }
-        } else {
-            Log.w(
-                "DetallesLibroActivity",
-                "Total de páginas inválido, no se actualiza el progreso."
-            )
         }
     }
 
@@ -351,10 +335,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
     private fun observarNotas() {
         notaViewModel.getNotasByLibroId(idLibro).observe(this) { notas ->
-            Log.d(
-                "DetallesLibroActivity",
-                "Notas cargadas desde ViewModel: $notas"
-            ) // Verifica que las notas llegan
             notasAdapter.submitList(notas) // Actualiza el RecyclerView con las notas
         }
     }

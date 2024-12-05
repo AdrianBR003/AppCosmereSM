@@ -1,6 +1,5 @@
 package com.example.appsandersonsm.Repository
 
-import androidx.lifecycle.LiveData
 import com.example.appsandersonsm.Dao.LibroDao
 import com.example.appsandersonsm.Modelo.Libro
 import kotlinx.coroutines.flow.Flow
@@ -16,10 +15,6 @@ class LibroRepository(private val libroDao: LibroDao) {
 
     suspend fun getLibroById(id: Int): Libro? {
         return libroDao.getLibroById(id)
-    }
-
-    class LibroRepository(private val libroDao: LibroDao) {
-        val allLibros: Flow<List<Libro>> = libroDao.getAllLibros()
     }
 
     suspend fun insertLibros(libros: List<Libro>) {

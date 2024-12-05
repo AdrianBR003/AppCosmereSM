@@ -2,7 +2,6 @@
 package com.example.appsandersonsm.Utils
 
 import android.content.Context
-import android.util.Log
 import com.example.appsandersonsm.Modelo.Libro
 import org.json.JSONArray
 import java.io.IOException
@@ -19,7 +18,6 @@ class JsonHandler(private val context: Context) {
         if (jsonString != null) {
             try {
                 val jsonArray = JSONArray(jsonString)
-                Log.d("JsonHandler", "Cantidad de libros en JSON: ${jsonArray.length()}")
                 for (i in 0 until jsonArray.length()) {
                     val jsonObject = jsonArray.getJSONObject(i)
                     val libro = Libro(
@@ -35,17 +33,13 @@ class JsonHandler(private val context: Context) {
                         numeroNotas = jsonObject.optInt("numeroNotas", 0),
                         empezarLeer = jsonObject.optBoolean("empezarLeer", false)
                     )
-                    Log.d("JsonHandler", "Libro cargado: $libro")
+
                     libros.add(libro)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Log.e("JsonHandler", "Error al parsear JSON: ${e.message}")
             }
-        } else {
-            Log.e("JsonHandler", "JSON no encontrado o vacío.")
         }
-
         return libros
     }
 

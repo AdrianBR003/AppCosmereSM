@@ -11,7 +11,6 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -98,8 +97,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 if (listaLibros.isNotEmpty()) {
                     inicializarMarcadores()
                     photoView.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                } else {
-                    Log.d("MapaInteractivo", "PhotoView listo, pero listaLibros aún no está inicializada.")
                 }
             }
         })
@@ -110,8 +107,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 if (photoView.viewTreeObserver.isAlive) {
                     inicializarMarcadores()
                 }
-            } else {
-                Log.e("MapaInteractivo", "No se encontraron libros en el ViewModel.")
             }
         })
 
@@ -149,11 +144,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 // Solo inicializar los marcadores si el ViewTreeObserver ya se ejecutó
                 if (photoView.viewTreeObserver.isAlive) {
                     inicializarMarcadores()
-                } else {
-                    Log.d("MapaInteractivo", "PhotoView aún no está listo. Esperando para inicializar marcadores.")
                 }
-            } else {
-                Log.e("MapaInteractivo", "No se encontraron libros para inicializar marcadores.")
             }
         })
 
@@ -223,7 +214,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
     private fun inicializarMarcadores() {
         if (listaLibros.isEmpty()) {
-            Log.e("MapaInteractivo", "Intentando inicializar marcadores sin datos.")
             return
         }
         markerContainer.removeAllViews()
@@ -361,8 +351,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private fun abrirDetallesLibro(libroId: Int) {
         val intent = Intent(this, DetallesLibroActivity::class.java)
         intent.putExtra("LIBRO_ID", libroId)
-        Log.d("MapaInteractivo", "Intent: $intent")
-        Log.d("MapaInteractivo", "Extras: ${intent?.extras}")
         startActivity(intent)
     }
 }

@@ -1,4 +1,3 @@
-// LibroViewModel.kt
 package com.example.appsandersonsm.ViewModel
 
 import androidx.lifecycle.*
@@ -11,11 +10,7 @@ import kotlinx.coroutines.launch
 class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
 
     val allLibros: LiveData<List<Libro>> = repository.allLibros.asLiveData()
-    val allSagas: LiveData<List<String>> = repository.allSagas.asLiveData()
 
-    fun getLibrosBySaga(nombreSaga: String): LiveData<List<Libro>> {
-        return repository.getLibrosBySaga(nombreSaga).asLiveData()
-    }
 
     fun getLibroById(id: Int): LiveData<Libro?> {
         val libro = MutableLiveData<Libro?>()
@@ -25,21 +20,9 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
         return libro
     }
 
-    fun insertLibros(libros: List<Libro>) = viewModelScope.launch {
-        repository.insertLibros(libros)
-    }
 
     fun updateLibro(libro: Libro) = viewModelScope.launch {
         repository.updateLibro(libro)
-    }
-
-    fun deleteLibro(libro: Libro) = viewModelScope.launch {
-        repository.deleteLibro(libro)
-    }
-
-    // Actualizar la sinopsis de un libro
-    fun actualizarSinopsis(libroId: Int, sinopsis: String) = viewModelScope.launch {
-        repository.actualizarSinopsis(libroId, sinopsis)
     }
 
     // Actualizar la valoración de un libro

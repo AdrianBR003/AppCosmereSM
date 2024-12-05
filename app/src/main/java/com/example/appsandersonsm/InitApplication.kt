@@ -9,12 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
 
-/**
- *  La clase InitApplication en Android es una clase base que se crea antes de cualquier actividad, servicio u otro componente de la aplicación.
- *  Se utiliza para mantener el estado global de la aplicación y para inicializar componentes que necesitan estar disponibles en to_do el
- *  ciclo de vida de la aplicación, como bases de datos, repositorios, dependencias de inyección, entre otros.
- */
-
 class InitApplication : Application() {
     override fun onCreate() {
         super.onCreate()

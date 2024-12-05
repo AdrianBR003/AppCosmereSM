@@ -1,7 +1,6 @@
 package com.example.appsandersonsm.DataBase
 
 import android.content.Context
-import android.util.Log
 import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.appsandersonsm.Dao.LibroDao
@@ -27,10 +26,8 @@ abstract class AppDatabase : RoomDatabase() {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext, // Usa applicationContext para evitar problemas
-                    AppDatabase::class.java,
-                    "app_database"
-                ).addCallback(AppDatabaseCallback(context.applicationContext, scope))
-                    .build()
+                    AppDatabase::class.java, "app_database"
+                ).addCallback(AppDatabaseCallback(context.applicationContext, scope)).build()
                 INSTANCE = instance
                 instance
             }
@@ -38,8 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
     }
 
     private class AppDatabaseCallback(
-        private val context: Context,
-        private val scope: CoroutineScope
+        private val context: Context, private val scope: CoroutineScope
     ) : RoomDatabase.Callback() {
 
         override fun onCreate(db: SupportSQLiteDatabase) {
@@ -55,7 +51,6 @@ abstract class AppDatabase : RoomDatabase() {
             // Simula cargar datos desde un archivo JSON o fuente externa
             val jsonHandler = JsonHandler(context)
             val libros = jsonHandler.cargarLibrosDesdeJson()
-            Log.d("AppDatabase", "Libros cargados desde JSON: $libros")
             libroDao.insertLibros(libros) // Asegúrate de que este método exista en el DAO
         }
     }

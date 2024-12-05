@@ -10,7 +10,7 @@ interface NewsApiService {
     suspend fun getNews(
         @Query("q") query: String,
         @Query("apiKey") apiKey: String,
-        @Query("language") language: String = "es", // Idioma por defecto inglés
-        @Query("sortBy") sortBy: String = "relevancy" // Ordenar por relevancia
+        @Query("language") language: String = "es",
+        @Query("sortBy") sortBy: String = "relevancy"
     ): NewsResponse
 }

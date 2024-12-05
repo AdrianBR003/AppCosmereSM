@@ -1,6 +1,5 @@
 package com.example.appsandersonsm.Dao
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.appsandersonsm.Modelo.Nota
@@ -33,12 +32,6 @@ interface NotaDao {
         val numeroNotas = contarNotasPorLibroSync(libroId)
         if (numeroNotas == 0) {
             insertarNotas(notasEstaticas)
-            Log.d("NotaDao", "Notas estáticas insertadas: $notasEstaticas")
-        } else {
-            Log.d(
-                "NotaDao",
-                "La tabla ya contiene $numeroNotas notas. No se insertaron notas estáticas."
-            )
         }
     }
 

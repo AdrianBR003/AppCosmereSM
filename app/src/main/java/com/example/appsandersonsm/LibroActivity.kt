@@ -2,13 +2,11 @@ package com.example.appsandersonsm
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.RatingBar
 import android.widget.Spinner
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,7 +16,6 @@ import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import org.json.JSONArray
 
 class LibroActivity : AppCompatActivity() {
 
@@ -44,8 +41,6 @@ class LibroActivity : AppCompatActivity() {
 
         // Intent
         idLibro = intent.getIntExtra("LIBRO_ID", 0)
-        Log.d("LibroActivity", "Libro ID: $idLibro")
-
         // Inicializar vistas
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         spinnerSagas = findViewById(R.id.spinnerSagas)
@@ -90,8 +85,6 @@ class LibroActivity : AppCompatActivity() {
                 configurarSpinnerSagas(libros.map { it.nombreSaga })
                 filtrarLibros(libros)
                 configurarSpinnerLeido()
-            } else {
-                Log.d("LibroActivity", "No se encontraron libros.")
             }
         }
 
