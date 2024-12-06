@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ajt_sesion">"Session "</string>
+    <string name="ajt_cerrarS">Log Out</string>
+    <string name="ajt_noticD">Featured News</string>
+    <string name="ajt_nConex">No Internet Connection</string>
+    <string name="ajt_stad">Statistics</string>
+    <string name="ajt_pagL">"Pages Read: "</string>
+    <string name="ajt_libL">Books Read:</string>
+    <string name="ajt_sagE">Sagas Started:</string>
+    <string name="ajt_sagL">Sagas Read:</string>
+    <string name="app_name">AppSandersonSM</string>
+    <string name="ly_contentD">Close Leyend</string>
+    <string name="ly_title">Legend</string>
+    <string name="ly_recomend">Recommended to \nStart</string>
+    <string name="ly_lI">Independent Book</string>
+    <string name="ly_iS">Saga Start</string>
+    <string name="ly_pS">Part of a Saga</string>
+    <string name="dl_sinp">Synopsis</string>
+    <string name="dl_descripcion">Six years ago, an assassin killed the Alethi king, and now he is murdering rulers all across Roshar; among his main targets is Dalinar. Kaladin commands the royal bodyguards, a controversial position due to his low status. He must protect the king and Dalinar while secretly mastering new, extraordinary powers linked to Syl. Shallan bears the burden of preventing the return of the Voidbringers and the end of the shattered civilization that remains. The Parshendi are persuaded by their leader to risk everything in a desperate gamble with the supernatural forces that once disappeared.</string>
+    <string name="dl_Isonpa">Synopsis icon below</string>
+    <string name="dl_tituloNotas">Notes</string>
+    <string name="dl_valor">Rating</string>
+    <string name="mensajeInicioSesionInvitado">Login as Guest</string>
+    <string name="bienvenidoInicio">Welcome</string>
+    <string name="en_guardarN">Save</string>
+    <string name="ajt_enlaces">Useful Links</string>
+</resources>

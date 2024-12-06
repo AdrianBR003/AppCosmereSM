@@ -39,7 +39,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="Sesion: "
+                    android:text="@string/ajt_sesion"
                     android:textColor="@color/gold"
                     android:textSize="24sp"
                     android:textStyle="bold|italic"
@@ -88,7 +88,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:backgroundTint="@color/gold_s"
-                    android:text="Cerrar Sesion"
+                    android:text="@string/ajt_cerrarS"
                     android:textColor="#271b27"
                     android:padding="16dp"
                     android:textStyle="bold"
@@ -101,7 +101,7 @@
                 android:id="@+id/textViewTituloRv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Noticias Destacadas"
+                android:text="@string/ajt_noticD"
                 android:textColor="@color/gold"
                 android:textSize="24sp"
                 android:textStyle="bold|italic"
@@ -155,8 +155,7 @@
                     android:layout_gravity="center"
                     android:layout_margin="40dp"
                     android:gravity="center_horizontal"
-                    android:text="No hay conexión a Internet"
-
+                    android:text="@string/ajt_nConex"
                     />
                 
             </FrameLayout>
@@ -166,7 +165,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Estadísticas"
+                android:text="@string/ajt_stad"
                 android:textColor="@color/gold"
                 android:textSize="24sp"
                 android:textStyle="bold|italic"
@@ -203,7 +202,7 @@
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="16dp"
                     android:paddingHorizontal="20dp"
-                    android:text="Páginas leídas: "
+                    android:text="@string/ajt_pagL"
                     android:textColor="@color/gold_s"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -216,7 +215,7 @@
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="16dp"
                     android:paddingHorizontal="20dp"
-                    android:text="Libros leídos: "
+                    android:text="@string/ajt_libL"
                     android:textColor="@color/gold_s"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -228,7 +227,7 @@
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="16dp"
                     android:paddingHorizontal="20dp"
-                    android:text="Sagas Empezadas: "
+                    android:text="@string/ajt_sagE"
                     android:textColor="@color/gold_s"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -241,7 +240,7 @@
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="16dp"
                     android:paddingHorizontal="20dp"
-                    android:text="Sagas leídas: "
+                    android:text="@string/ajt_sagL"
                     android:textColor="@color/gold_s"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -253,7 +252,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Enlaces de Interes"
+                android:text="@string/ajt_enlaces"
                 android:textColor="@color/gold"
                 android:textSize="24sp"
                 android:textStyle="bold|italic"

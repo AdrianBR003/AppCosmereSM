@@ -1,11 +1,13 @@
 package com.example.appsandersonsm.Adapter
 
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat.getString
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -38,6 +40,7 @@ class NotasAdapter(private val onNotaClickListener: OnNotaClickListener) :
         private val tituloTextView: TextView = itemView.findViewById(R.id.tvTituloitemNota)
         private val fechaTextView: TextView = itemView.findViewById(R.id.tvFechaNota)
 
+        @SuppressLint("SetTextI18n")
         fun bind(nota: Nota) {
             tituloTextView.text = nota.titulo
 
@@ -45,8 +48,13 @@ class NotasAdapter(private val onNotaClickListener: OnNotaClickListener) :
             val fecha = nota.fechaModificacion.takeIf { it.isNotBlank() } ?: nota.fechaCreacion
 
             // Formatear y mostrar la fecha
-            fechaTextView.text = "Última modificación: ${formatearFecha(fecha)}"
-        }
+            val mensajeUltimaModificacion = if (Locale.getDefault().language == "es") {
+                "Última Modificación:"
+            } else {
+                "Last Modified:"
+            }
+
+            fechaTextView.text = "$mensajeUltimaModificacion ${formatearFecha(fecha)}"        }
 
         private fun formatearFecha(fecha: String): String {
             return if (fecha.isBlank()) {

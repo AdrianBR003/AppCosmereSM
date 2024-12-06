@@ -22,6 +22,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import java.util.Locale
 import java.util.Random
 
 class LoginActivity : AppCompatActivity() {
@@ -36,11 +37,21 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Recuperar la preferencia de idioma guardada
+        val prefs = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        val language = prefs.getString("language", "en") ?: "en" // Idioma por defecto: español
+
+        // Configurar el idioma
+        setLocale(language)
+
+        // Establecer el contenido de la vista después de configurar el idioma
+        setContentView(R.layout.activity_login)
+
         val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
         val isLoginSkipped = sharedPreferences.getBoolean("isLoginSkipped", false)
 
         if (isLoginSkipped) {
-            Toast.makeText(this, "Has iniciado sesión como Invitado", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.mensajeInicioSesionInvitado), Toast.LENGTH_SHORT).show()
             val intent = Intent(this, MapaInteractivoActivity::class.java) // Cambia esta actividad si es necesario
             startActivity(intent)
             finish() // Finaliza LoginActivity
@@ -229,11 +240,19 @@ class LoginActivity : AppCompatActivity() {
 
     private fun handleSignInResult(account: GoogleSignInAccount?) {
         if (account != null) {
-            val welcomeMessage = "Bienvenido, ${account.displayName}"
+            val welcomeMessage = "@string/bienvenidoInicio, ${account.displayName}"
             Toast.makeText(this, welcomeMessage, Toast.LENGTH_SHORT).show()
             val intent = Intent(this, MapaInteractivoActivity::class.java)
             startActivity(intent)
             finish()
         }
+    }
+
+    private fun setLocale(language: String) {
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }

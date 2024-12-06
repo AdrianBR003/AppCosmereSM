@@ -28,7 +28,7 @@
                 android:layout_height="35dp"
                 android:layout_marginTop="5dp"
                 android:background="@drawable/ic_updesc"
-                android:contentDescription="Cerrar leyenda" />
+                android:contentDescription="@string/ly_contentD" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -36,7 +36,7 @@
                 android:layout_gravity="center"
                 android:layout_marginHorizontal="20dp"
                 android:paddingVertical="10dp"
-                android:text="Leyenda"
+                android:text="@string/ly_title"
                 android:textColor="@color/white"
                 android:textSize="15sp" />
 
@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="10dp"
                 android:paddingTop="7dp"
-                android:text="Recomendado para\nEmpezar"
+                android:text="@string/ly_recomend"
                 android:textColor="@color/gold_s"
                 android:textSize="12sp"
                 android:textStyle="italic" />
@@ -86,7 +86,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="10dp"
                 android:paddingTop="10dp"
-                android:text="Libro Independiente"
+                android:text="@string/ly_lI"
                 android:textColor="@color/gold_s"
                 android:textSize="12sp"
                 android:textStyle="italic" />
@@ -110,7 +110,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="10dp"
                 android:paddingTop="10dp"
-                android:text="Inicio Saga"
+                android:text="@string/ly_iS"
                 android:textColor="@color/gold_s"
                 android:textSize="12sp"
                 android:textStyle="italic" />
@@ -134,7 +134,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="10dp"
                 android:paddingTop="10dp"
-                android:text="Perteneciente a Saga"
+                android:text="@string/ly_pS"
                 android:textColor="@color/gold_s"
                 android:textSize="12sp"
                 android:textStyle="italic" />

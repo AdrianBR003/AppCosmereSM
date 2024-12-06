@@ -1,12 +1,49 @@
 <resources>
-    <string name="app_name">AppSandersonSM</string>
-    <string name="title_activity_login">LoginActivity</string>
-    <string name="default_web_client_id">592736434825-bin143j9qbmp16u1pjd4gentqstckl03.apps.googleusercontent.com</string>
-    <string name="Titulonotas">Notas</string>
-    <string name="descripcion">Hace seis años, un asesino mató al rey Alethi, y ahora está asesinando a los gobernantes de todo Roshar; entre sus principales objetivos es Dalinar.
+
+    <!-- LoginActivity -->
+    <string name="bienvenidoInicio">Bienvenido</string>
+    <string name="mensajeInicioSesionInvitado">Inicio de Sesion como Invitado</string>
+
+    <!-- MapaInteractivoActivity_Leyenda -->
+    <string name="ly_contentD">Cerrar Leyenda</string>
+    <string name="ly_title">Leyenda</string>
+    <string name="ly_recomend">Recomendado para\nEmpezar</string>
+    <string name="ly_lI">Libro Independiente</string>
+    <string name="ly_iS">Inicio Saga</string>
+    <string name="ly_pS">Perteneciente a Saga</string>
+
+    <!-- DetallesLibroActivity -->
+    <string name="dl_sinp">Sinopsis</string>
+    <string name="dl_descripcion">Hace seis años, un asesino mató al rey Alethi, y ahora está asesinando a los gobernantes de todo Roshar; entre sus principales objetivos es Dalinar.
         Kaladin está al mando de los guardaespaldas reales, un puesto controvertido por su baja condición, y debe proteger al rey y a Dalinar, mientras que en secreto domina nuevos
         poderes extraordinarios vinculados a Syl. Shallan tiene la carga de impedir el regreso de Voidbringers y el fin de la desolada civilización que queda. Los Parshendi están convencidos
         por su líder a arriesgarlo todo en una apuesta desesperada con las fuerzas sobrenaturales que una vez desaparecieron.
     </string>
-    <string name="noticia_image"></string>
+    <string name="dl_Isonpa">Icono sinopsis abajo</string>
+    <string name="dl_tituloNotas">Notas</string>
+    <string name="dl_valor">Valoracion</string>
+
+    <!-- EditarNotaActivity -->
+    <string name="en_guardarN">Guardar</string>
+
+    <!-- AjustesActivity -->
+    <string name="ajt_sesion">Sesion</string>
+    <string name="ajt_cerrarS">Cerrar Sesion</string>
+    <string name="ajt_noticD">Noticias Destacadas</string>
+    <string name="ajt_nConex">No hay Conexion a Internet</string>
+    <string name="ajt_stad">Estadisticas</string>
+    <string name="ajt_pagL">Páginas leídas:</string>
+    <string name="ajt_libL">Libros leídos:</string>
+    <string name="ajt_sagE">Sagas Empezadas:</string>
+    <string name="ajt_sagL">Sagas Leídas:</string>
+    <string name="ajt_enlaces">Enlaces de Interes</string>
+
+
+    <string name="app_name">AppSandersonSM</string>
+    <string name="title_activity_login" translatable="false">LoginActivity</string>
+    <string name="default_web_client_id" translatable="false">592736434825-bin143j9qbmp16u1pjd4gentqstckl03.apps.googleusercontent.com</string>
+
+    <string name="noticia_image" translatable="false"></string>
+
+
 </resources>

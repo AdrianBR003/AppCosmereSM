@@ -144,7 +144,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
-                    android:text="Sinopsis"
+                    android:text="@string/dl_sinp"
                     android:textColor="@color/gold_s"
                     android:textSize="20sp" />
 
@@ -156,7 +156,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:clickable="true"
-                    android:contentDescription="icono sinopsis abajo"
+                    android:contentDescription="@string/dl_Isonpa"
                     android:focusable="true"
                     android:paddingLeft="4dp"
                     android:src="@drawable/ic_downdesc" />
@@ -212,7 +212,7 @@
                         android:layout_marginVertical="5dp"
                         android:gravity="center"
                         android:paddingHorizontal="10dp"
-                        android:text="@string/Titulonotas"
+                        android:text="@string/dl_tituloNotas"
                         android:textColor="@color/gold_s"
                         android:textSize="20dp" />
 
@@ -294,7 +294,7 @@
                     android:layout_height="match_parent"
                     android:paddingHorizontal="10dp"
                     android:paddingTop="10dp"
-                    android:text="Valoracion"
+                    android:text="@string/dl_valor"
                     android:textColor="@color/gold_s"
                     android:textSize="20dp" />
 

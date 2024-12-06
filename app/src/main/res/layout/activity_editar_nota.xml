@@ -15,7 +15,6 @@
             android:layout_width="0dp"
             android:layout_weight="3"
             android:layout_height="wrap_content"
-            android:hint="Título"
             android:inputType="textCapSentences"
             android:padding="8dp"
             android:textColorHint="@color/gold"
@@ -45,7 +44,6 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="top"
-        android:hint="Contenido"
         android:inputType="textMultiLine"
         android:padding="8dp"
         android:scrollbars="vertical"
@@ -59,7 +57,7 @@
         android:layout_height="wrap_content"
         android:backgroundTint="@color/menufondo"
         android:padding="12dp"
-        android:text="Guardar"
+        android:text="@string/en_guardarN"
         android:textColor="@color/gold_s"
         android:textStyle="bold" />
 

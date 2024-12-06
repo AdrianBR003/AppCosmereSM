@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.Locale
 
 class AjustesActivity : AppCompatActivity() {
 
@@ -54,6 +55,9 @@ class AjustesActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var textSCNombre: TextView
+
+    val defaultLanguage =
+        Locale.getDefault().language ?: "es" // Si el idioma es nulo, por defecto "es" (español)
 
     // Usar LibroViewModel existente
     private val libroViewModel: LibroViewModel by viewModels {
@@ -88,6 +92,9 @@ class AjustesActivity : AppCompatActivity() {
         textViewError = findViewById(R.id.errorInternet)
         textViewSagasEmpezadas = findViewById(R.id.textViewSagasEmpezadas)
         textSCNombre = findViewById(R.id.textCSNombre)
+
+        // Idioma Localmente
+
 
         // Configurar navegación inferior
         bottomNavigationView.selectedItemId = R.id.nav_settings
@@ -156,8 +163,8 @@ class AjustesActivity : AppCompatActivity() {
         val account = GoogleSignIn.getLastSignedInAccount(this)
         if (account != null) {
             textSCNombre.text = account.displayName
-        }else{
-            textSCNombre.text = "Invitado"
+        } else {
+            textSCNombre.text = if (defaultLanguage == "es") "Invitado" else "Guest"
         }
     }
 
@@ -184,70 +191,104 @@ class AjustesActivity : AppCompatActivity() {
         // Observa los libros
         libroViewModel.allLibros.observe(this) { libros ->
             // Filtra los libros terminados (progreso == totalPaginas y totalPaginas > 0)
-            val librosTerminados =
-                libros.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
+            val librosTerminados = libros.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
             val totalPaginasLeidas = librosTerminados.sumOf { it.progreso }
             val totalLibrosLeidos = librosTerminados.size
 
-            // Actualiza los TextView con las métricas
-            textViewPaginasLeidas.text = "Páginas leídas: $totalPaginasLeidas"
-            textViewLibrosLeidos.text = "Libros leídos: $totalLibrosLeidos"
+            // Idioma por defecto del sistema
+            val defaultLanguage = Locale.getDefault().language ?: "es"
 
-            // Agrupa libros terminados por saga
+            // Actualiza los TextView con las métricas
+            textViewPaginasLeidas.text = if (defaultLanguage == "es") {
+                "Páginas leídas: $totalPaginasLeidas"
+            } else {
+                "Pages Read: $totalPaginasLeidas"
+            }
+
+            textViewLibrosLeidos.text = if (defaultLanguage == "es") {
+                "Libros leídos: $totalLibrosLeidos"
+            } else {
+                "Books Read: $totalLibrosLeidos"
+            }
+
+            // Agrupa libros por saga
             val librosPorSaga = libros.groupBy { it.nombreSaga }
 
+            // Sagas empezadas
             val sagasEmpezadasTexto = if (librosPorSaga.isNotEmpty()) {
-                val textoSagas = librosPorSaga.entries.joinToString(separator = "\n") { (saga, librosDeLaSaga) ->
+                val textoSagas = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
                     val librosEmpezados = librosDeLaSaga.filter { it.progreso > 0 && it.progreso < it.totalPaginas }
                     if (librosEmpezados.isNotEmpty()) {
                         if (saga == "Libro Independiente") {
-                            // Mostrar libros independientes con [NI]
-                            librosEmpezados.joinToString(separator = "\n") { libro ->
-                                "    - ${libro.nombreLibro} [NI]"
-                            }
+                            librosEmpezados.joinToString(separator = "\n") { libro -> "    - ${libro.nombreLibro} [NI]" }
                         } else {
-                            // Mostrar la saga como empezada
                             "    - $saga"
                         }
                     } else {
-                        ""
+                        null
                     }
-                }.trim()
-                // Formatea el texto para las sagas empezadas
+                }.joinToString(separator = "\n").trim()
+
                 if (textoSagas.isNotEmpty()) {
-                    "Sagas empezadas:\n\n$textoSagas"
+                    if (defaultLanguage == "es") {
+                        "Sagas empezadas:\n\n$textoSagas"
+                    } else {
+                        "Sagas Started:\n\n$textoSagas"
+                    }
                 } else {
-                    "Sagas empezadas: \n"
+                    if (defaultLanguage == "es") {
+                        "Sagas empezadas: 0"
+                    } else {
+                        "Sagas Started: 0"
+                    }
                 }
             } else {
-                "Sagas empezadas: \n "
+                if (defaultLanguage == "es") {
+                    "Sagas empezadas: 0"
+                } else {
+                    "Sagas Started: 0"
+                }
             }
-
             textViewSagasEmpezadas.text = sagasEmpezadasTexto
 
-            // Identifica las sagas leídas y construye el texto
-            // Identifica las sagas leídas y construye el texto
+            // Sagas leídas
             val sagasLeidasTexto = if (librosPorSaga.isNotEmpty()) {
-                val textoSagas = librosPorSaga.entries.joinToString(separator = "\n") { (saga, librosDeLaSaga) ->
+                val textoSagas = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
                     if (saga == "Libro Independiente") {
-                        // Para "Novela Independiente", listar los libros con "[NI]"
-                        librosDeLaSaga.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
-                            .joinToString(separator = "\n") { libro ->
-                                "    - ${libro.nombreLibro} [NI]"
-                            }
+                        val librosIndependientes = librosDeLaSaga.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
+                        if (librosIndependientes.isNotEmpty()) {
+                            librosIndependientes.joinToString(separator = "\n") { libro -> "    - ${libro.nombreLibro} [NI]" }
+                        } else {
+                            null
+                        }
                     } else {
-                        // Para otras sagas, solo mostrar el nombre de la saga si todos los libros están completos
                         if (librosDeLaSaga.all { it.progreso == it.totalPaginas && it.totalPaginas > 0 }) {
                             "    - $saga"
                         } else {
-                            ""
+                            null
                         }
                     }
+                }.joinToString(separator = "\n").trim()
+
+                if (textoSagas.isNotEmpty()) {
+                    if (defaultLanguage == "es") {
+                        "Sagas leídas:\n\n$textoSagas"
+                    } else {
+                        "Sagas Read:\n\n$textoSagas"
+                    }
+                } else {
+                    if (defaultLanguage == "es") {
+                        "Sagas leídas: Ninguna saga completada"
+                    } else {
+                        "Sagas Read: No sagas completed"
+                    }
                 }
-                // Formatea el texto resultante
-                "Sagas leídas:\n\n$textoSagas".trim()
             } else {
-                "Sagas leídas: Ninguna saga completada"
+                if (defaultLanguage == "es") {
+                    "Sagas leídas: Ninguna saga completada"
+                } else {
+                    "Sagas Read: No sagas completed"
+                }
             }
             textViewSagasLeidas.text = sagasLeidasTexto
         }
@@ -326,13 +367,13 @@ class AjustesActivity : AppCompatActivity() {
     }
 
     private fun isNetworkAvailable(): Boolean {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork
         val capabilities = connectivityManager.getNetworkCapabilities(network)
         return capabilities != null &&
                 capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
-
 
 
     private fun openWebPage(url: String) {
