@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="ajt_sesion">"Session "</string>
+    <string name="ajt_sesion">Session: </string>
     <string name="ajt_cerrarS">Log Out</string>
     <string name="ajt_noticD">Featured News</string>
     <string name="ajt_nConex">No Internet Connection</string>
@@ -25,4 +25,12 @@
     <string name="bienvenidoInicio">Welcome</string>
     <string name="en_guardarN">Save</string>
     <string name="ajt_enlaces">Useful Links</string>
+
+    <string name="espanol">Spanish</string>
+    <string name="ingles">English</string>
+    <string name="idioma_desconocido">Unknown language</string>
+    <string name="error_iniciar_sesion">Sign-in error: %1$s</string>
+    <string name="bienvenido_inicio">Welcome, %1$s</string>
+
+
 </resources>

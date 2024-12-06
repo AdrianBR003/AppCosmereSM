@@ -14,10 +14,10 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="@android:color/transparent"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 
     <androidx.constraintlayout.widget.Guideline
@@ -58,39 +58,68 @@
         app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
         app:layout_constraintTop_toBottomOf="@id/guideline_horizontal_imageViewU" />
 
-    <FrameLayout
-        android:id="@+id/btn_google_sign_in_container"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/llgoogle"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/pulsating_border"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
         app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
         app:layout_constraintTop_toBottomOf="@id/imageViewPortada">
 
-        <!-- Botón de Google Sign-In -->
-        <com.google.android.gms.common.SignInButton
-            android:id="@+id/btn_google_sign_in"
+        <FrameLayout
+            android:id="@+id/btn_google_sign_in_container"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </FrameLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="32dp"
+            android:background="@drawable/pulsating_border">
 
+            <!-- Botón de Google Sign-In -->
+            <com.google.android.gms.common.SignInButton
+                android:id="@+id/btn_google_sign_in"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </FrameLayout>
+
+        <RelativeLayout
+            android:id="@+id/rlToggleLanguage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_es"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/tvLanguageState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:text="ES"
+                android:textColor="@color/gold_s"
+                android:textSize="18sp" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/btn_skip_login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="10dp"
-        android:text="Iniciar Sesion"
-        android:textColor="@color/gold_s"
         android:background="@android:color/transparent"
-        android:textSize="10dp"
+        android:text="Iniciar Sesion Invitado"
+        android:textColor="@color/gold_s"
+        android:textSize="12dp"
         android:textStyle="italic"
         app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
         app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
-        app:layout_constraintTop_toBottomOf="@id/btn_google_sign_in_container"
-        />
+        app:layout_constraintTop_toBottomOf="@id/llgoogle" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

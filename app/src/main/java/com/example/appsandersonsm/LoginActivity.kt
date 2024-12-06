@@ -6,6 +6,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
@@ -14,41 +15,75 @@ import android.view.ViewTreeObserver
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.RelativeLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.appsandersonsm.DataBase.JsonHandler
+import com.example.appsandersonsm.MapaInteractivoActivity
+import com.example.appsandersonsm.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import java.util.Locale
-import java.util.Random
+import kotlin.random.Random
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var bookContainer: FrameLayout
     private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var rlToggleLanguage: RelativeLayout
+    private lateinit var tvLanguageState: TextView
+    private var isEnglish: Boolean = false // Estado inicial del idioma
 
     companion object {
         private const val RC_SIGN_IN = 9001
+        private const val PREFS_NAME = "AppPreferences"
+        private const val KEY_LANGUAGE = "language"
+        private const val KEY_IS_LOGIN_SKIPPED = "isLoginSkipped"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Recuperar la preferencia de idioma guardada
-        val prefs = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        val language = prefs.getString("language", "en") ?: "en" // Idioma por defecto: español
+        // Recuperar SharedPreferences
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        var language = prefs.getString(KEY_LANGUAGE, null)
+
+        if (language == null) {
+            // Obtener el idioma del sistema si no está guardado
+            language = Locale.getDefault().language
+            // Guardar el idioma del sistema en SharedPreferences
+            prefs.edit().putString(KEY_LANGUAGE, language).apply()
+        }
 
         // Configurar el idioma
-        setLocale(language)
+        if (language != null) {
+            setLocale(language)
+        }
 
         // Establecer el contenido de la vista después de configurar el idioma
         setContentView(R.layout.activity_login)
 
-        val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        val isLoginSkipped = sharedPreferences.getBoolean("isLoginSkipped", false)
+        // Inicializar vistas relacionadas con el cambio de idioma
+        rlToggleLanguage = findViewById(R.id.rlToggleLanguage)
+        tvLanguageState = findViewById(R.id.tvLanguageState)
+
+        // Configurar el fondo según el idioma
+        setBackgroundBasedOnLanguage(language)
+
+        // Actualizar el estado del TextView
+        updateLanguageState(language)
+
+        // Configurar el listener para cambiar el idioma
+        rlToggleLanguage.setOnClickListener {
+            toggleLanguage()
+        }
+
+        val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val isLoginSkipped = sharedPreferences.getBoolean(KEY_IS_LOGIN_SKIPPED, false)
 
         if (isLoginSkipped) {
             Toast.makeText(this, getString(R.string.mensajeInicioSesionInvitado), Toast.LENGTH_SHORT).show()
@@ -57,8 +92,6 @@ class LoginActivity : AppCompatActivity() {
             finish() // Finaliza LoginActivity
             return
         }
-
-        setContentView(R.layout.activity_login)
 
         // Referencia al contenedor de libros
         bookContainer = findViewById(R.id.bookContainer)
@@ -82,10 +115,64 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Configura el fondo del RelativeLayout según el idioma.
+     */
+    private fun setBackgroundBasedOnLanguage(language: String?) {
+        when (language?.lowercase()) {
+            "es", "spanish" -> {
+                rlToggleLanguage.setBackgroundResource(R.drawable.rounded_es) // Reemplaza con tu drawable para español
+                isEnglish = false
+            }
+            "en", "english" -> {
+                rlToggleLanguage.setBackgroundResource(R.drawable.rounded_en) // Reemplaza con tu drawable para inglés
+                isEnglish = true
+            }
+            else -> {
+                // Fondo por defecto si el idioma no es reconocido
+                rlToggleLanguage.setBackgroundResource(R.drawable.rounded_es)
+            }
+        }
+    }
+
+    /**
+     * Actualiza el estado del TextView que muestra el idioma actual.
+     */
+    private fun updateLanguageState(language: String?) {
+        tvLanguageState.text = when (language?.lowercase()) {
+            "es", "spanish" -> getString(R.string.espanol)
+            "en", "english" -> getString(R.string.ingles)
+            else -> getString(R.string.idioma_desconocido)
+        }
+    }
+
+    /**
+     * Cambia el idioma entre inglés y español.
+     */
+    private fun toggleLanguage() {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val currentLanguage = prefs.getString(KEY_LANGUAGE, "en") ?: "en"
+        val newLanguage = if (currentLanguage.startsWith("es")) "en" else "es"
+
+        // Guardar el nuevo idioma en SharedPreferences
+        prefs.edit().putString(KEY_LANGUAGE, newLanguage).apply()
+
+        // Reiniciar la actividad para aplicar los cambios
+        recreate()
+    }
+
+    /**
+     * Reinicia la actividad con la nueva configuración de idioma.
+     */
+    override fun recreate() {
+        super.recreate()
+        // Opcional: Puedes añadir animaciones de transición si lo deseas
+    }
+
     private fun skipLogin() {
         // Guardar en SharedPreferences que el usuario ha omitido el inicio de sesión
-        val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        sharedPreferences.edit().putBoolean("isLoginSkipped", true).apply()
+        val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        sharedPreferences.edit().putBoolean(KEY_IS_LOGIN_SKIPPED, true).apply()
 
         // Navegar a la siguiente actividad
         val intent = Intent(this, MapaInteractivoActivity::class.java) // Cambia esta actividad si es necesario
@@ -138,17 +225,15 @@ class LoginActivity : AppCompatActivity() {
                     for ((index, libro) in libros.withIndex()) {
                         val bookCover = ImageView(this@LoginActivity)
                         val drawableId = libro.nombrePortada?.let { obtenerDrawablePorNombre(it) }
-                            ?:null
+                            ?: 0
 
                         if (drawableId != 0) {
-                            if (drawableId != null) {
-                                bookCover.setImageResource(drawableId)
-                            }
+                            bookCover.setImageResource(drawableId)
                             val params = FrameLayout.LayoutParams(200, 300)
                             bookCover.layoutParams = params
                             bookCover.visibility = View.INVISIBLE
                             bookCover.setBackgroundResource(R.drawable.book_init_border)
-                            bookCover.setPadding(2, 2, 2,2) // Ajusta los valores para dar espacio al marco
+                            bookCover.setPadding(2, 2, 2, 2) // Ajusta los valores para dar espacio al marco
                             bookContainer.addView(bookCover)
 
                             // Configura la animación de cada libro
@@ -164,7 +249,6 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
-
     private fun animateBookCover(
         bookCover: ImageView,
         containerWidth: Float,
@@ -173,11 +257,11 @@ class LoginActivity : AppCompatActivity() {
     ) {
         // Posiciones iniciales y finales
 
-        val valorA = (Random().nextFloat() * 0.5f) + 0.2f
+        val valorA = (Random.nextFloat() * 0.5f) + 0.2f
         val startY = containerHeight
         val endY = containerHeight * valorA
         val bound = (containerWidth - 200).toInt()
-        val startX = if (bound > 0) Random().nextInt(bound).toFloat() else 0f
+        val startX = if (bound > 0) Random.nextInt(bound).toFloat() else 0f
 
         // Configuración inicial
         bookCover.x = startX
@@ -198,7 +282,7 @@ class LoginActivity : AppCompatActivity() {
         // Combinar animaciones
         val animatorSet = AnimatorSet()
         animatorSet.playTogether(translateY, fadeOut)
-        animatorSet.startDelay = (Random().nextInt(3500) + 2000).toLong() // Inicio de las animaciones - Retraso aleatorio entre 1 y 3 segundos
+        animatorSet.startDelay = (Random.nextInt(3500) + 2000).toLong() // Inicio de las animaciones - Retraso aleatorio entre 2 y 5.5 segundos
         animatorSet.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator) {
                 bookCover.visibility = View.VISIBLE
@@ -207,8 +291,8 @@ class LoginActivity : AppCompatActivity() {
             override fun onAnimationEnd(animation: Animator) {
                 // Reinicia la posición y la alpha
                 val validBound = (containerWidth - 200).coerceAtLeast(0f).toInt()
-                val startX = if (validBound > 0) Random().nextInt(validBound).toFloat() else 0f
-                bookCover.x = startX
+                val newStartX = if (validBound > 0) Random.nextInt(validBound).toFloat() else 0f
+                bookCover.x = newStartX
                 bookCover.y = startY
                 bookCover.alpha = 1f
                 animatorSet.start() // Reinicia la animación
@@ -233,14 +317,14 @@ class LoginActivity : AppCompatActivity() {
                 handleSignInResult(account)
             } catch (e: ApiException) {
                 Log.e("LoginActivity", "SignInResult: failed code=" + e.statusCode)
-                Toast.makeText(this, "Error al iniciar sesión: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_iniciar_sesion, e.localizedMessage), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun handleSignInResult(account: GoogleSignInAccount?) {
         if (account != null) {
-            val welcomeMessage = "@string/bienvenidoInicio, ${account.displayName}"
+            val welcomeMessage = getString(R.string.bienvenido_inicio, account.displayName)
             Toast.makeText(this, welcomeMessage, Toast.LENGTH_SHORT).show()
             val intent = Intent(this, MapaInteractivoActivity::class.java)
             startActivity(intent)
@@ -248,6 +332,9 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Configura la localización de la aplicación.
+     */
     private fun setLocale(language: String) {
         val locale = Locale(language)
         Locale.setDefault(locale)

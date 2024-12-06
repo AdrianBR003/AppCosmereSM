@@ -27,7 +27,7 @@
     <string name="en_guardarN">Guardar</string>
 
     <!-- AjustesActivity -->
-    <string name="ajt_sesion">Sesion</string>
+    <string name="ajt_sesion">Sesion: </string>
     <string name="ajt_cerrarS">Cerrar Sesion</string>
     <string name="ajt_noticD">Noticias Destacadas</string>
     <string name="ajt_nConex">No hay Conexion a Internet</string>
@@ -45,5 +45,10 @@
 
     <string name="noticia_image" translatable="false"></string>
 
+    <string name="espanol">Español</string>
+    <string name="ingles">Inglés</string>
+    <string name="idioma_desconocido">Idioma desconocido</string>
+    <string name="error_iniciar_sesion">Error al iniciar sesión: %1$s</string>
+    <string name="bienvenido_inicio">Bienvenido, %1$s</string>
 
 </resources>

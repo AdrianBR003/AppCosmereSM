@@ -49,6 +49,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text=""
+                    android:layout_marginStart="10dp"
                     android:textColor="@color/gold_s"
                     android:textSize="24sp"
                     android:textStyle="bold|italic" />
@@ -101,7 +102,6 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <!-- Texto del Botón -->
                     <TextView
                         android:id="@+id/toggleButtonText"
                         android:layout_width="wrap_content"

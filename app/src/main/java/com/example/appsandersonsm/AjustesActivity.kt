@@ -1,12 +1,14 @@
 package com.example.appsandersonsm
 
 import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.TransitionDrawable
 import android.net.ConnectivityManager
@@ -68,8 +70,7 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var toggleButtonText: TextView
     private var isEN: Boolean = false // Estado inicial: ES
 
-    val defaultLanguage =
-        Locale.getDefault().language ?: "es" // Si el idioma es nulo, por defecto "es" (español)
+    val defaultLanguage = Locale.getDefault().language.takeIf { it == "es" || it == "en" } ?: "es"
 
     // Usar LibroViewModel existente
     private val libroViewModel: LibroViewModel by viewModels {
@@ -86,15 +87,48 @@ class AjustesActivity : AppCompatActivity() {
 
     val newsApi = retrofit.create(NewsApiService::class.java)
 
+    override fun attachBaseContext(newBase: Context?) {
+        val sharedPref = newBase?.getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        var savedLanguage = sharedPref?.getString("language", null)
+
+        if (savedLanguage == null) {
+            // Si no hay idioma guardado, utiliza el predeterminado del sistema
+            savedLanguage = Locale.getDefault().language.takeIf { it == "es" || it == "en" } ?: "es"
+
+            // Guarda el idioma predeterminado en las preferencias
+            sharedPref?.edit()?.putString("language", savedLanguage)?.apply()
+        }
+
+        val locale = Locale(savedLanguage)
+        Locale.setDefault(locale)
+
+        val config = Configuration(newBase?.resources?.configuration)
+        config.setLocale(locale)
+        config.setLayoutDirection(locale)
+
+        val context = newBase?.createConfigurationContext(config)
+        super.attachBaseContext(context)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        super.onCreate(savedInstanceState) // Llamada a super.onCreate()
         setContentView(R.layout.activity_ajustes)
 
-        libroRepository = (application as InitApplication).libroRepository
+        // Inicializar vistas y componentes
+        initViews()
 
-        supportActionBar?.hide() // Ocultar la barra superior
+        // Configurar la navegación, RecyclerView, observadores, etc.
+        setupNavigation()
+        setupRecyclerView()
+        observarDatos()
+        fetchNoticias()
+        setupEnlaces()
+        configureGoogleSignIn()
+        setupLogoutButton()
+        setupToggleButton()
+    }
 
-        // Inicializar vistas
+    private fun initViews() {
         textViewPaginasLeidas = findViewById(R.id.textViewPaginasLeidas)
         textViewLibrosLeidos = findViewById(R.id.textViewLibrosLeidos)
         textViewSagasLeidas = findViewById(R.id.textViewSagasLeidas)
@@ -106,7 +140,9 @@ class AjustesActivity : AppCompatActivity() {
         textSCNombre = findViewById(R.id.textCSNombre)
         toggleButton = findViewById(R.id.toggleButton)
         toggleButtonText = findViewById(R.id.toggleButtonText)
+    }
 
+    private fun setupNavigation() {
         // Configurar navegación inferior
         bottomNavigationView.selectedItemId = R.id.nav_settings
         bottomNavigationView.setOnItemSelectedListener { item ->
@@ -116,63 +152,41 @@ class AjustesActivity : AppCompatActivity() {
                     startActivity(Intent(this, MapaInteractivoActivity::class.java))
                     true
                 }
-
                 R.id.nav_book -> {
                     startActivity(Intent(this, LibroActivity::class.java))
                     true
                 }
-
                 else -> false
             }
         }
+    }
 
-        // Configurar RecyclerView
-        recyclerViewNoticias.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+    private fun setupRecyclerView() {
+        recyclerViewNoticias.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+    }
 
-        // Observar datos del ViewModel
-        observarDatos()
+    private fun setupEnlaces() {
+        findViewById<TextView>(R.id.tvEnlace1).setOnClickListener { openWebPage("https://cosmere.es/") }
+        findViewById<TextView>(R.id.tvEnlace2).setOnClickListener { openWebPage("https://es.coppermind.net/wiki/Coppermind:Bienvenidos") }
+        findViewById<TextView>(R.id.tvEnlace3).setOnClickListener { openWebPage("https://www.brandonsanderson.com/") }
+        findViewById<TextView>(R.id.tvEnlace4).setOnClickListener { openWebPage("https://x.com/brandsanderson") }
+    }
 
-        // Fetch de noticias reales
-
-        fetchNoticias()
-
-        // Enlaces
-
-        // Configurar los enlaces
-        findViewById<TextView>(R.id.tvEnlace1).setOnClickListener { // Cosmere.es
-            openWebPage("https://cosmere.es/")
-        }
-
-        findViewById<TextView>(R.id.tvEnlace2).setOnClickListener {
-            openWebPage("https://es.coppermind.net/wiki/Coppermind:Bienvenidos")
-        }
-
-        findViewById<TextView>(R.id.tvEnlace3).setOnClickListener {
-            openWebPage("https://www.brandonsanderson.com/")
-        }
-
-        findViewById<TextView>(R.id.tvEnlace4).setOnClickListener {
-            openWebPage("https://x.com/brandsanderson")
-        }
-
-        // Referencia al botón de cerrar sesión
+    private fun setupLogoutButton() {
         val btnLogout = findViewById<Button>(R.id.btn_logout)
-        btnLogout.setOnClickListener {
-            signOut()
-        }
+        btnLogout.setOnClickListener { signOut() }
+    }
 
-        // Cerrar Sesion
-        configureGoogleSignIn()
-
-        // Boton Idiomas
-        toggleButtonText.text = "ES"
+    private fun setupToggleButton() {
+        // Inicializar el estado basado en el idioma guardado
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        Log.d("AjustesActivity", "Language: ${sharedPref.getString("language", "No language saved")}")
+        val savedLanguage = sharedPref.getString("language", "es") ?: "es"
+        isEN = savedLanguage == "en"
+        updateToggleButtonState()
 
         // Configurar el listener de clic
-        toggleButton.setOnClickListener {
-            toggleState()
-        }
-
+        toggleButton.setOnClickListener { toggleState() }
     }
 
     private fun configureGoogleSignIn() {
@@ -206,27 +220,26 @@ class AjustesActivity : AppCompatActivity() {
         }
     }
 
-
     private fun observarDatos() {
         // Observa los libros
         libroViewModel.allLibros.observe(this) { libros ->
             // Filtra los libros terminados (progreso == totalPaginas y totalPaginas > 0)
-            val librosTerminados =
-                libros.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
+            val librosTerminados = libros.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
             val totalPaginasLeidas = librosTerminados.sumOf { it.progreso }
             val totalLibrosLeidos = librosTerminados.size
 
-            // Idioma por defecto del sistema
-            val defaultLanguage = Locale.getDefault().language ?: "es"
+            // Recuperar el idioma guardado
+            val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+            val savedLanguage = sharedPref.getString("language", "es") ?: "es"
 
             // Actualiza los TextView con las métricas
-            textViewPaginasLeidas.text = if (defaultLanguage == "es") {
+            textViewPaginasLeidas.text = if (savedLanguage == "es") {
                 "Páginas leídas: $totalPaginasLeidas"
             } else {
                 "Pages Read: $totalPaginasLeidas"
             }
 
-            textViewLibrosLeidos.text = if (defaultLanguage == "es") {
+            textViewLibrosLeidos.text = if (savedLanguage == "es") {
                 "Libros leídos: $totalLibrosLeidos"
             } else {
                 "Books Read: $totalLibrosLeidos"
@@ -238,8 +251,7 @@ class AjustesActivity : AppCompatActivity() {
             // Sagas empezadas
             val sagasEmpezadasTexto = if (librosPorSaga.isNotEmpty()) {
                 val textoSagas = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
-                    val librosEmpezados =
-                        librosDeLaSaga.filter { it.progreso > 0 && it.progreso < it.totalPaginas }
+                    val librosEmpezados = librosDeLaSaga.filter { it.progreso > 0 && it.progreso < it.totalPaginas }
                     if (librosEmpezados.isNotEmpty()) {
                         if (saga == "Libro Independiente") {
                             librosEmpezados.joinToString(separator = "\n") { libro -> "    - ${libro.nombreLibro} [NI]" }
@@ -252,20 +264,20 @@ class AjustesActivity : AppCompatActivity() {
                 }.joinToString(separator = "\n").trim()
 
                 if (textoSagas.isNotEmpty()) {
-                    if (defaultLanguage == "es") {
+                    if (savedLanguage == "es") {
                         "Sagas empezadas:\n\n$textoSagas"
                     } else {
                         "Sagas Started:\n\n$textoSagas"
                     }
                 } else {
-                    if (defaultLanguage == "es") {
+                    if (savedLanguage == "es") {
                         "Sagas empezadas: 0"
                     } else {
                         "Sagas Started: 0"
                     }
                 }
             } else {
-                if (defaultLanguage == "es") {
+                if (savedLanguage == "es") {
                     "Sagas empezadas: 0"
                 } else {
                     "Sagas Started: 0"
@@ -277,8 +289,7 @@ class AjustesActivity : AppCompatActivity() {
             val sagasLeidasTexto = if (librosPorSaga.isNotEmpty()) {
                 val textoSagas = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
                     if (saga == "Libro Independiente") {
-                        val librosIndependientes =
-                            librosDeLaSaga.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
+                        val librosIndependientes = librosDeLaSaga.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
                         if (librosIndependientes.isNotEmpty()) {
                             librosIndependientes.joinToString(separator = "\n") { libro -> "    - ${libro.nombreLibro} [NI]" }
                         } else {
@@ -294,20 +305,20 @@ class AjustesActivity : AppCompatActivity() {
                 }.joinToString(separator = "\n").trim()
 
                 if (textoSagas.isNotEmpty()) {
-                    if (defaultLanguage == "es") {
+                    if (savedLanguage == "es") {
                         "Sagas leídas:\n\n$textoSagas"
                     } else {
                         "Sagas Read:\n\n$textoSagas"
                     }
                 } else {
-                    if (defaultLanguage == "es") {
+                    if (savedLanguage == "es") {
                         "Sagas leídas: Ninguna saga completada"
                     } else {
                         "Sagas Read: No sagas completed"
                     }
                 }
             } else {
-                if (defaultLanguage == "es") {
+                if (savedLanguage == "es") {
                     "Sagas leídas: Ninguna saga completada"
                 } else {
                     "Sagas Read: No sagas completed"
@@ -398,7 +409,6 @@ class AjustesActivity : AppCompatActivity() {
                 capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-
     private fun openWebPage(url: String) {
         try {
             val customTabsIntent = CustomTabsIntent.Builder().build()
@@ -410,53 +420,97 @@ class AjustesActivity : AppCompatActivity() {
     }
 
     private fun toggleState() {
-        isEN = !isEN // Alternar el estado
+        // Alternar el estado lógico del idioma
+        isEN = !isEN
 
-        val newText = if (isEN) "EN" else "ES"
+        // Determinar el nuevo código de idioma basado en el estado
+        val newLanguage = if (isEN) "en" else "es"
+
+        // Obtener los recursos correspondientes al nuevo idioma
         val newDrawableRes = if (isEN) R.drawable.rounded_en else R.drawable.rounded_es
         val newTextColor = if (isEN) ContextCompat.getColor(this, R.color.white) else ContextCompat.getColor(this, R.color.gold_s)
 
-        // Cambiar dinámicamente el fondo con una transición
-        val currentBackground = toggleButton.background
-        val newBackground = ContextCompat.getDrawable(this, newDrawableRes)
+        // Obtener el fondo actual y el nuevo fondo para la transición
+        val currentBackground = toggleButton.background ?: ContextCompat.getDrawable(this, R.drawable.rounded_es)
+        val newBackground = ContextCompat.getDrawable(this, newDrawableRes) ?: currentBackground
 
-        // Configurar la transición entre drawables
+        // Crear y aplicar el TransitionDrawable para animar el cambio de fondo
         val transitionDrawable = TransitionDrawable(arrayOf(currentBackground, newBackground))
         toggleButton.background = transitionDrawable
-        transitionDrawable.startTransition(300) // Duración de la transición
+        transitionDrawable.startTransition(300) // Duración de la transición en milisegundos
 
-        // Calcular el desplazamiento vertical
+        // Ejecutar el siguiente bloque una vez que el layout haya sido medido y posicionado
         toggleButton.post {
+            // Calcular la traducción vertical máxima para el texto
             val maxTranslationY = toggleButton.height - toggleButtonText.height - toggleButton.paddingTop - toggleButton.paddingBottom
             val translationY = if (isEN) maxTranslationY.toFloat() else 0f
 
-            // Animar el movimiento vertical del texto
-            val animTextTranslation = ObjectAnimator.ofFloat(toggleButtonText, "translationY", translationY)
+            // Crear el ObjectAnimator para animar la traducción Y del texto
+            val animTextTranslation = ObjectAnimator.ofFloat(toggleButtonText, "translationY", translationY).apply {
+                duration = 300
+                interpolator = AccelerateDecelerateInterpolator()
+            }
 
-            // Animar el cambio de color del texto
+            // Crear el ObjectAnimator para animar el cambio de color del texto
             val currentTextColor = toggleButtonText.currentTextColor
-            val animTextColor = ObjectAnimator.ofArgb(toggleButtonText, "textColor", currentTextColor, newTextColor)
+            val animTextColor = ObjectAnimator.ofArgb(toggleButtonText, "textColor", currentTextColor, newTextColor).apply {
+                duration = 300
+                interpolator = AccelerateDecelerateInterpolator()
+            }
 
-            // Configurar las duraciones y el interpolador
-            animTextTranslation.duration = 300
-            animTextColor.duration = 300
-
-            animTextTranslation.interpolator = AccelerateDecelerateInterpolator()
-            animTextColor.interpolator = AccelerateDecelerateInterpolator()
-
-            // Actualizar el texto al final de la animación
-            animTextTranslation.addListener(object : android.animation.AnimatorListenerAdapter() {
+            // Listener para ejecutar acciones al finalizar la animación de traducción
+            animTextTranslation.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
-                    toggleButtonText.text = newText
+                    // Actualizar el texto del botón después de la animación
+                    toggleButtonText.text = if (isEN) "EN" else "ES"
+
+                    // Guardar el nuevo idioma en las preferencias
+                    saveLanguage(newLanguage)
+
+                    // Aplicar el nuevo idioma y recrear la actividad
+                    setLocale(newLanguage)
                 }
             })
 
-            // Ejecutar las animaciones juntas
-            val set = AnimatorSet()
-            set.playTogether(animTextTranslation, animTextColor)
-            set.start()
+            // Crear un conjunto de animaciones para ejecutarlas simultáneamente
+            AnimatorSet().apply {
+                playTogether(animTextTranslation, animTextColor)
+                start()
+            }
         }
     }
 
+    private fun setLocale(languageCode: String) {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
 
+
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        config.setLayoutDirection(locale)
+
+        // Crea un nuevo contexto con la configuración actualizada
+        val context = createConfigurationContext(config)
+        resources.updateConfiguration(config, context.resources.displayMetrics)
+
+        // Reinicia la actividad para aplicar los cambios
+        recreate()
+    }
+
+    private fun saveLanguage(languageCode: String) {
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        sharedPref.edit().putString("language", languageCode).apply()
+        Log.d("Language", "Saved language: $languageCode")
+    }
+
+    private fun updateToggleButtonState() {
+        val currentText = if (isEN) "EN" else "ES"
+        val currentDrawableRes = if (isEN) R.drawable.rounded_en else R.drawable.rounded_es
+        val currentTextColor = if (isEN) ContextCompat.getColor(this, R.color.white) else ContextCompat.getColor(this, R.color.gold_s)
+
+        // Actualizar texto, fondo y color del texto
+        toggleButtonText.text = currentText
+        toggleButtonText.setTextColor(currentTextColor)
+        toggleButton.background = ContextCompat.getDrawable(this, currentDrawableRes)
+    }
 }
