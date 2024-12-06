@@ -2,8 +2,8 @@
 
     <item>
         <shape>
-            <solid android:color="@color/menuIconos" />
-            <corners android:radius="20dp" />
+            <solid android:color="@color/gold" />
+            <corners android:radius="5dp" />
         </shape>
     </item>
 
@@ -13,8 +13,8 @@
         android:right="2dp"
         android:bottom="2dp">
         <shape>
-            <solid android:color="@color/menufondo" />
-            <corners android:radius="16dp" />
+            <solid android:color="@color/menuIconos" />
+            <corners android:radius="5dp" />
         </shape>
     </item>
 

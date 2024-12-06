@@ -1,22 +1,30 @@
 package com.example.appsandersonsm
 
+import android.animation.Animator
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.TransitionDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Button
 import android.widget.ProgressBar
+import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -56,6 +64,10 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var textSCNombre: TextView
 
+    private lateinit var toggleButton: RelativeLayout
+    private lateinit var toggleButtonText: TextView
+    private var isEN: Boolean = false // Estado inicial: ES
+
     val defaultLanguage =
         Locale.getDefault().language ?: "es" // Si el idioma es nulo, por defecto "es" (español)
 
@@ -92,9 +104,8 @@ class AjustesActivity : AppCompatActivity() {
         textViewError = findViewById(R.id.errorInternet)
         textViewSagasEmpezadas = findViewById(R.id.textViewSagasEmpezadas)
         textSCNombre = findViewById(R.id.textCSNombre)
-
-        // Idioma Localmente
-
+        toggleButton = findViewById(R.id.toggleButton)
+        toggleButtonText = findViewById(R.id.toggleButtonText)
 
         // Configurar navegación inferior
         bottomNavigationView.selectedItemId = R.id.nav_settings
@@ -153,6 +164,15 @@ class AjustesActivity : AppCompatActivity() {
 
         // Cerrar Sesion
         configureGoogleSignIn()
+
+        // Boton Idiomas
+        toggleButtonText.text = "ES"
+
+        // Configurar el listener de clic
+        toggleButton.setOnClickListener {
+            toggleState()
+        }
+
     }
 
     private fun configureGoogleSignIn() {
@@ -191,7 +211,8 @@ class AjustesActivity : AppCompatActivity() {
         // Observa los libros
         libroViewModel.allLibros.observe(this) { libros ->
             // Filtra los libros terminados (progreso == totalPaginas y totalPaginas > 0)
-            val librosTerminados = libros.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
+            val librosTerminados =
+                libros.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
             val totalPaginasLeidas = librosTerminados.sumOf { it.progreso }
             val totalLibrosLeidos = librosTerminados.size
 
@@ -217,7 +238,8 @@ class AjustesActivity : AppCompatActivity() {
             // Sagas empezadas
             val sagasEmpezadasTexto = if (librosPorSaga.isNotEmpty()) {
                 val textoSagas = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
-                    val librosEmpezados = librosDeLaSaga.filter { it.progreso > 0 && it.progreso < it.totalPaginas }
+                    val librosEmpezados =
+                        librosDeLaSaga.filter { it.progreso > 0 && it.progreso < it.totalPaginas }
                     if (librosEmpezados.isNotEmpty()) {
                         if (saga == "Libro Independiente") {
                             librosEmpezados.joinToString(separator = "\n") { libro -> "    - ${libro.nombreLibro} [NI]" }
@@ -255,7 +277,8 @@ class AjustesActivity : AppCompatActivity() {
             val sagasLeidasTexto = if (librosPorSaga.isNotEmpty()) {
                 val textoSagas = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
                     if (saga == "Libro Independiente") {
-                        val librosIndependientes = librosDeLaSaga.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
+                        val librosIndependientes =
+                            librosDeLaSaga.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
                         if (librosIndependientes.isNotEmpty()) {
                             librosIndependientes.joinToString(separator = "\n") { libro -> "    - ${libro.nombreLibro} [NI]" }
                         } else {
@@ -385,5 +408,55 @@ class AjustesActivity : AppCompatActivity() {
             Log.e("OpenWebPage", "Error: ${e.message}")
         }
     }
+
+    private fun toggleState() {
+        isEN = !isEN // Alternar el estado
+
+        val newText = if (isEN) "EN" else "ES"
+        val newDrawableRes = if (isEN) R.drawable.rounded_en else R.drawable.rounded_es
+        val newTextColor = if (isEN) ContextCompat.getColor(this, R.color.white) else ContextCompat.getColor(this, R.color.gold_s)
+
+        // Cambiar dinámicamente el fondo con una transición
+        val currentBackground = toggleButton.background
+        val newBackground = ContextCompat.getDrawable(this, newDrawableRes)
+
+        // Configurar la transición entre drawables
+        val transitionDrawable = TransitionDrawable(arrayOf(currentBackground, newBackground))
+        toggleButton.background = transitionDrawable
+        transitionDrawable.startTransition(300) // Duración de la transición
+
+        // Calcular el desplazamiento vertical
+        toggleButton.post {
+            val maxTranslationY = toggleButton.height - toggleButtonText.height - toggleButton.paddingTop - toggleButton.paddingBottom
+            val translationY = if (isEN) maxTranslationY.toFloat() else 0f
+
+            // Animar el movimiento vertical del texto
+            val animTextTranslation = ObjectAnimator.ofFloat(toggleButtonText, "translationY", translationY)
+
+            // Animar el cambio de color del texto
+            val currentTextColor = toggleButtonText.currentTextColor
+            val animTextColor = ObjectAnimator.ofArgb(toggleButtonText, "textColor", currentTextColor, newTextColor)
+
+            // Configurar las duraciones y el interpolador
+            animTextTranslation.duration = 300
+            animTextColor.duration = 300
+
+            animTextTranslation.interpolator = AccelerateDecelerateInterpolator()
+            animTextColor.interpolator = AccelerateDecelerateInterpolator()
+
+            // Actualizar el texto al final de la animación
+            animTextTranslation.addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    toggleButtonText.text = newText
+                }
+            })
+
+            // Ejecutar las animaciones juntas
+            val set = AnimatorSet()
+            set.playTogether(animTextTranslation, animTextColor)
+            set.start()
+        }
+    }
+
 
 }
