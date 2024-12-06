@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -25,6 +26,9 @@ import com.example.appsandersonsm.Modelo.Noticia
 import com.example.appsandersonsm.Repository.LibroRepository
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +52,8 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var libroRepository: LibroRepository
     private lateinit var textViewError: TextView
 
+    private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var textSCNombre: TextView
 
     // Usar LibroViewModel existente
     private val libroViewModel: LibroViewModel by viewModels {
@@ -81,7 +87,7 @@ class AjustesActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.progressBarN)
         textViewError = findViewById(R.id.errorInternet)
         textViewSagasEmpezadas = findViewById(R.id.textViewSagasEmpezadas)
-
+        textSCNombre = findViewById(R.id.textCSNombre)
 
         // Configurar navegación inferior
         bottomNavigationView.selectedItemId = R.id.nav_settings
@@ -132,7 +138,47 @@ class AjustesActivity : AppCompatActivity() {
             openWebPage("https://x.com/brandsanderson")
         }
 
+        // Referencia al botón de cerrar sesión
+        val btnLogout = findViewById<Button>(R.id.btn_logout)
+        btnLogout.setOnClickListener {
+            signOut()
+        }
+
+        // Cerrar Sesion
+        configureGoogleSignIn()
     }
+
+    private fun configureGoogleSignIn() {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+        val account = GoogleSignIn.getLastSignedInAccount(this)
+        if (account != null) {
+            textSCNombre.text = account.displayName
+        }else{
+            textSCNombre.text = "Invitado"
+        }
+    }
+
+    private fun signOut() {
+        // Cerrar sesión en Google
+        googleSignInClient.signOut().addOnCompleteListener(this) {
+            // Restablecer el valor de isLoginSkipped en SharedPreferences
+            val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+            sharedPreferences.edit().putBoolean("isLoginSkipped", false).apply()
+
+            // Mostrar mensaje de confirmación
+            Toast.makeText(this, "Has cerrado sesión", Toast.LENGTH_SHORT).show()
+
+            // Redirigir al usuario a la pantalla de inicio de sesión
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            finish()
+        }
+    }
+
 
     private fun observarDatos() {
         // Observa los libros

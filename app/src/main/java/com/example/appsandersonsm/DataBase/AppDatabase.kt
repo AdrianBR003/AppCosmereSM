@@ -8,7 +8,6 @@ import com.example.appsandersonsm.Dao.LibroDao
 import com.example.appsandersonsm.Dao.NotaDao
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Modelo.Nota
-import com.example.appsandersonsm.Utils.JsonHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
