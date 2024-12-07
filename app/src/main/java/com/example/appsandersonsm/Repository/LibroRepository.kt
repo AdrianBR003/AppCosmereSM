@@ -19,21 +19,21 @@ class LibroRepository(private val libroDao: LibroDao) {
         return libroDao.getLibroById(id)
     }
 
-    class LibroRepository(private val libroDao: LibroDao) {
-        val allLibros: Flow<List<Libro>> = libroDao.getAllLibros()
-    }
-
     suspend fun updateLocalization(languageCode: String, jsonHandler: JsonHandler) {
+        // Cargar los libros localizados desde el JSON correspondiente
         val librosLocalizados = jsonHandler.cargarLibrosDesdeJson(languageCode)
+        // Actualizar los datos en la base de datos con la información localizada
         librosLocalizados.forEach { libro ->
             libro.sinopsis?.let {
-                libroDao.updateLibroLocalization(libro.id, libro.nombreLibro, libro.nombreSaga,
+                libroDao.updateLibroLocalization(
+                    libro.id,
+                    libro.nombreLibro,
+                    libro.nombreSaga,
                     it
                 )
             }
         }
     }
-
 
     suspend fun insertLibros(libros: List<Libro>) {
         libroDao.insertLibros(libros)
@@ -50,7 +50,6 @@ class LibroRepository(private val libroDao: LibroDao) {
     suspend fun actualizarSinopsis(libroId: Int, sinopsis: String) {
         libroDao.actualizarSinopsis(libroId, sinopsis)
     }
-
 
     suspend fun actualizarValoracion(libroId: Int, valoracion: Float) {
         libroDao.actualizarValoracion(libroId, valoracion)

@@ -1,5 +1,6 @@
 package com.example.appsandersonsm
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -14,11 +15,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Adapter.LibroAdapter
+import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import org.json.JSONArray
+import java.util.Locale
 
 class LibroActivity : AppCompatActivity() {
 
@@ -29,7 +32,6 @@ class LibroActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var ratingBar: RatingBar
     private var idLibro: Int = 0
-
 
     // ViewModel para gestionar los datos de libros
     private val libroViewModel: LibroViewModel by viewModels {
@@ -79,8 +81,24 @@ class LibroActivity : AppCompatActivity() {
             startActivity(intent)
         }
         recyclerViewLibros.adapter = libroAdapter
+
+        // Actualizar localización de los datos según el idioma seleccionado
+        aplicarLocalizacionDatos()
+
         // Observar los datos del ViewModel
         observarDatos()
+    }
+
+    private fun aplicarLocalizacionDatos() {
+        // Leer el idioma guardado en SharedPreferences
+        val prefs = getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
+        val languageCode = prefs.getString("language", Locale.getDefault().language) ?: "es"
+
+        // Crear JsonHandler con el dao, sin modificar la clase
+        val jsonHandler = JsonHandler(this, (application as InitApplication).database.libroDao())
+
+        // Llamar a la función del ViewModel para actualizar la localización
+        libroViewModel.updateLocalizacion(languageCode, jsonHandler)
     }
 
     private fun observarDatos() {
@@ -159,7 +177,6 @@ class LibroActivity : AppCompatActivity() {
         spinnerSagas.adapter = spinnerAdapterSagas
     }
 
-
     private fun filtrarLibros(libros: List<Libro>) {
         // Obtener las selecciones actuales de los spinners
         val sagaSeleccionada = spinnerSagas.selectedItem?.toString() ?: getString(R.string.spinner_sagas_all_sagas)
@@ -173,7 +190,7 @@ class LibroActivity : AppCompatActivity() {
                 getString(R.string.spinner_leido_read) -> libro.progreso >= libro.totalPaginas
                 getString(R.string.spinner_leido_started) -> libro.progreso in 1 until libro.totalPaginas
                 getString(R.string.spinner_leido_not_started) -> libro.progreso == 0
-                else -> true // "Todos" o cualquier otra opción
+                else -> true
             }
             coincideSaga && coincideEstado
         }
@@ -181,5 +198,4 @@ class LibroActivity : AppCompatActivity() {
         // Actualizar la lista en el adaptador
         libroAdapter.submitList(librosFiltrados)
     }
-
 }
