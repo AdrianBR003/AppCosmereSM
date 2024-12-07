@@ -15,6 +15,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -32,6 +34,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.API.NewsApiService
 import com.example.appsandersonsm.Adapter.NoticiasAdapter
+import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.Modelo.Noticia
 import com.example.appsandersonsm.Repository.LibroRepository
 import com.example.appsandersonsm.ViewModel.LibroViewModel
@@ -69,6 +72,7 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var toggleButton: RelativeLayout
     private lateinit var toggleButtonText: TextView
     private var isEN: Boolean = false // Estado inicial: ES
+    private var isChangingLanguage: Boolean = false
 
     val defaultLanguage = Locale.getDefault().language.takeIf { it == "es" || it == "en" } ?: "es"
 
@@ -88,26 +92,7 @@ class AjustesActivity : AppCompatActivity() {
     val newsApi = retrofit.create(NewsApiService::class.java)
 
     override fun attachBaseContext(newBase: Context?) {
-        val sharedPref = newBase?.getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        var savedLanguage = sharedPref?.getString("language", null)
-
-        if (savedLanguage == null) {
-            // Si no hay idioma guardado, utiliza el predeterminado del sistema
-            savedLanguage = Locale.getDefault().language.takeIf { it == "es" || it == "en" } ?: "es"
-
-            // Guarda el idioma predeterminado en las preferencias
-            sharedPref?.edit()?.putString("language", savedLanguage)?.apply()
-        }
-
-        val locale = Locale(savedLanguage)
-        Locale.setDefault(locale)
-
-        val config = Configuration(newBase?.resources?.configuration)
-        config.setLocale(locale)
-        config.setLayoutDirection(locale)
-
-        val context = newBase?.createConfigurationContext(config)
-        super.attachBaseContext(context)
+        super.attachBaseContext(LocaleHelper.setLocale(newBase!!))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -126,6 +111,14 @@ class AjustesActivity : AppCompatActivity() {
         configureGoogleSignIn()
         setupLogoutButton()
         setupToggleButton()
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        // Rehabilitar el botón cuando la actividad se haya recreado
+        isChangingLanguage = false
+        toggleButton.isEnabled = true
     }
 
     private fun initViews() {
@@ -186,8 +179,13 @@ class AjustesActivity : AppCompatActivity() {
         updateToggleButtonState()
 
         // Configurar el listener de clic
-        toggleButton.setOnClickListener { toggleState() }
+        toggleButton.setOnClickListener {
+            if (!isChangingLanguage) {
+                toggleState()
+            }
+        }
     }
+
 
     private fun configureGoogleSignIn() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -420,6 +418,9 @@ class AjustesActivity : AppCompatActivity() {
     }
 
     private fun toggleState() {
+        isChangingLanguage = true
+        toggleButton.isEnabled = false // Deshabilitar el botón para evitar múltiples clics
+
         // Alternar el estado lógico del idioma
         isEN = !isEN
 
@@ -481,21 +482,14 @@ class AjustesActivity : AppCompatActivity() {
     }
 
     private fun setLocale(languageCode: String) {
-        val locale = Locale(languageCode)
-        Locale.setDefault(locale)
-
-
-        val config = Configuration(resources.configuration)
-        config.setLocale(locale)
-        config.setLayoutDirection(locale)
-
-        // Crea un nuevo contexto con la configuración actualizada
-        val context = createConfigurationContext(config)
-        resources.updateConfiguration(config, context.resources.displayMetrics)
-
+        LocaleHelper.setLocale(this)
         // Reinicia la actividad para aplicar los cambios
-        recreate()
+        // Utilizamos Handler para asegurar que el cambio de configuración se complete antes de recrear
+        Handler(Looper.getMainLooper()).postDelayed({
+            recreate()
+        }, 300) // Retraso de 300 milisegundos
     }
+
 
     private fun saveLanguage(languageCode: String) {
         val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)

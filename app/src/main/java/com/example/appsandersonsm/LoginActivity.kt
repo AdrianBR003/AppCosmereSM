@@ -5,10 +5,13 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver
@@ -20,6 +23,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.appsandersonsm.DataBase.JsonHandler
+import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.MapaInteractivoActivity
 import com.example.appsandersonsm.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -36,7 +40,8 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var rlToggleLanguage: RelativeLayout
     private lateinit var tvLanguageState: TextView
-    private var isEnglish: Boolean = false // Estado inicial del idioma
+    private var isChangingLanguage: Boolean = false // Nueva variable de control
+
 
     companion object {
         private const val RC_SIGN_IN = 9001
@@ -45,41 +50,32 @@ class LoginActivity : AppCompatActivity() {
         private const val KEY_IS_LOGIN_SKIPPED = "isLoginSkipped"
     }
 
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LocaleHelper.setLocale(newBase!!))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Recuperar SharedPreferences
-        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        var language = prefs.getString(KEY_LANGUAGE, null)
-
-        if (language == null) {
-            // Obtener el idioma del sistema si no está guardado
-            language = Locale.getDefault().language
-            // Guardar el idioma del sistema en SharedPreferences
-            prefs.edit().putString(KEY_LANGUAGE, language).apply()
-        }
-
-        // Configurar el idioma
-        if (language != null) {
-            setLocale(language)
-        }
-
-        // Establecer el contenido de la vista después de configurar el idioma
         setContentView(R.layout.activity_login)
 
         // Inicializar vistas relacionadas con el cambio de idioma
         rlToggleLanguage = findViewById(R.id.rlToggleLanguage)
         tvLanguageState = findViewById(R.id.tvLanguageState)
 
-        // Configurar el fondo según el idioma
-        setBackgroundBasedOnLanguage(language)
 
-        // Actualizar el estado del TextView
+        // Recuperar SharedPreferences
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        var language = prefs.getString(KEY_LANGUAGE, null)
+
+        // Configurar el fondo y el estado del idioma
+        setBackgroundBasedOnLanguage(language)
         updateLanguageState(language)
 
         // Configurar el listener para cambiar el idioma
         rlToggleLanguage.setOnClickListener {
-            toggleLanguage()
+            if (!isChangingLanguage) {
+                toggleLanguage()
+            }
         }
 
         val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
@@ -115,6 +111,33 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Rehabilitar el botón cuando la actividad se haya recreado
+        isChangingLanguage = false
+        rlToggleLanguage.isEnabled = true
+    }
+
+    /**
+     * Cambia el idioma entre inglés y español.
+     */
+    private fun toggleLanguage() {
+        isChangingLanguage = true
+        rlToggleLanguage.isEnabled = false // Deshabilitar el botón para evitar múltiples clics
+
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val currentLanguage = prefs.getString(KEY_LANGUAGE, "es") ?: "es"
+        val newLanguage = if (currentLanguage.startsWith("es")) "en" else "es"
+
+        // Guardar el nuevo idioma en SharedPreferences
+        prefs.edit().putString(KEY_LANGUAGE, newLanguage).apply()
+
+        // Reiniciar la actividad para aplicar los cambios
+        Handler(Looper.getMainLooper()).postDelayed({
+            recreate()
+        }, 300) // Retraso de 300 milisegundos
+    }
+
     /**
      * Configura el fondo del RelativeLayout según el idioma.
      */
@@ -122,11 +145,9 @@ class LoginActivity : AppCompatActivity() {
         when (language?.lowercase()) {
             "es", "spanish" -> {
                 rlToggleLanguage.setBackgroundResource(R.drawable.rounded_es) // Reemplaza con tu drawable para español
-                isEnglish = false
             }
             "en", "english" -> {
                 rlToggleLanguage.setBackgroundResource(R.drawable.rounded_en) // Reemplaza con tu drawable para inglés
-                isEnglish = true
             }
             else -> {
                 // Fondo por defecto si el idioma no es reconocido
@@ -144,29 +165,6 @@ class LoginActivity : AppCompatActivity() {
             "en", "english" -> getString(R.string.ingles)
             else -> getString(R.string.idioma_desconocido)
         }
-    }
-
-    /**
-     * Cambia el idioma entre inglés y español.
-     */
-    private fun toggleLanguage() {
-        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        val currentLanguage = prefs.getString(KEY_LANGUAGE, "en") ?: "en"
-        val newLanguage = if (currentLanguage.startsWith("es")) "en" else "es"
-
-        // Guardar el nuevo idioma en SharedPreferences
-        prefs.edit().putString(KEY_LANGUAGE, newLanguage).apply()
-
-        // Reiniciar la actividad para aplicar los cambios
-        recreate()
-    }
-
-    /**
-     * Reinicia la actividad con la nueva configuración de idioma.
-     */
-    override fun recreate() {
-        super.recreate()
-        // Opcional: Puedes añadir animaciones de transición si lo deseas
     }
 
     private fun skipLogin() {
