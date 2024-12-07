@@ -44,7 +44,23 @@
     <string name="ajt_sagL">Sagas Leídas:</string>
     <string name="ajt_enlaces">Enlaces de Interes</string>
 
+    <!-- LibroActivity -->
+    <!-- Spinner Leído -->
+    <string name="spinner_leido_all">Todos</string>
+    <string name="spinner_leido_read">Leídos</string>
+    <string name="spinner_leido_started">Empezados</string>
+    <string name="spinner_leido_not_started">No empezados</string>
+    <!-- Spinner Sagas -->
+    <string name="spinner_sagas_all_sagas">Todas las sagas</string>
+    <!-- Otros strings necesarios -->
+    <string name="error_cargar_libros">Error al cargar libros</string>
+    <string name="all_sagas_default">Todas las sagas</string>
+    <string name="all_default">Todos</string>
+    <string name="read_default">Leídos</string>
+    <string name="started_default">Empezados</string>
+    <string name="not_started_default">No empezados</string>
 
+    <!-- Otros -->
     <string name="app_name">AppSandersonSM</string>
     <string name="title_activity_login" translatable="false">LoginActivity</string>
     <string name="default_web_client_id" translatable="false">592736434825-bin143j9qbmp16u1pjd4gentqstckl03.apps.googleusercontent.com</string>

@@ -124,7 +124,14 @@ class LibroActivity : AppCompatActivity() {
     }
 
     private fun configurarSpinnerLeido() {
-        val opcionesLeido = listOf("Todos", "Leídos", "Empezados", "No empezados")
+        // Obtener las opciones desde los recursos de strings
+        val opcionesLeido = listOf(
+            getString(R.string.spinner_leido_all),
+            getString(R.string.spinner_leido_read),
+            getString(R.string.spinner_leido_started),
+            getString(R.string.spinner_leido_not_started)
+        )
+
         val spinnerAdapterLeido = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_item,
@@ -135,12 +142,14 @@ class LibroActivity : AppCompatActivity() {
     }
 
     private fun configurarSpinnerSagas(sagas: List<String>) {
-        // Crear una lista única eliminando duplicados
-        val opcionesSagas = mutableListOf("Todas las sagas").apply {
-            addAll(sagas.distinct()) // Usar `distinct` para eliminar duplicados
+        // Obtener el texto "Todas las sagas" desde los recursos de strings
+        val todasLasSagas = getString(R.string.spinner_sagas_all_sagas)
+
+        // Crear una lista única eliminando duplicados y agregando la opción "Todas las sagas"
+        val opcionesSagas = mutableListOf(todasLasSagas).apply {
+            addAll(sagas.distinct())
         }
 
-        // Configurar el adaptador para el Spinner
         val spinnerAdapterSagas = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_item,
@@ -150,19 +159,21 @@ class LibroActivity : AppCompatActivity() {
         spinnerSagas.adapter = spinnerAdapterSagas
     }
 
+
     private fun filtrarLibros(libros: List<Libro>) {
-        val sagaSeleccionada = spinnerSagas.selectedItem?.toString() ?: "Todas las sagas"
-        val estadoSeleccionado = spinnerLeido.selectedItem?.toString() ?: "Todos"
+        // Obtener las selecciones actuales de los spinners
+        val sagaSeleccionada = spinnerSagas.selectedItem?.toString() ?: getString(R.string.spinner_sagas_all_sagas)
+        val estadoSeleccionado = spinnerLeido.selectedItem?.toString() ?: getString(R.string.spinner_leido_all)
 
         // Filtrar los libros según los criterios seleccionados
         val librosFiltrados = libros.filter { libro ->
             val coincideSaga =
-                sagaSeleccionada == "Todas las sagas" || libro.nombreSaga == sagaSeleccionada
+                sagaSeleccionada == getString(R.string.spinner_sagas_all_sagas) || libro.nombreSaga == sagaSeleccionada
             val coincideEstado = when (estadoSeleccionado) {
-                "Leídos" -> libro.progreso >= libro.totalPaginas
-                "Empezados" -> libro.progreso in 1 until libro.totalPaginas
-                "No empezados" -> libro.progreso == 0
-                else -> true
+                getString(R.string.spinner_leido_read) -> libro.progreso >= libro.totalPaginas
+                getString(R.string.spinner_leido_started) -> libro.progreso in 1 until libro.totalPaginas
+                getString(R.string.spinner_leido_not_started) -> libro.progreso == 0
+                else -> true // "Todos" o cualquier otra opción
             }
             coincideSaga && coincideEstado
         }
@@ -170,4 +181,5 @@ class LibroActivity : AppCompatActivity() {
         // Actualizar la lista en el adaptador
         libroAdapter.submitList(librosFiltrados)
     }
+
 }

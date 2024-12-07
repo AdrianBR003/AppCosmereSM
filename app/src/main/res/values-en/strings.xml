@@ -32,5 +32,17 @@
     <string name="error_iniciar_sesion">Sign-in error: %1$s</string>
     <string name="bienvenido_inicio">Welcome, %1$s</string>
 
+    <string name="spinner_leido_all">All</string>
+    <string name="spinner_leido_read">Read</string>
+    <string name="spinner_leido_started">Started</string>
+    <string name="spinner_leido_not_started">Not Started</string>
+    <string name="spinner_sagas_all_sagas">All sagas</string>
+    <string name="error_cargar_libros">Error loading books</string>
+    <string name="all_sagas_default">All sagas</string>
+    <string name="all_default">All</string>
+    <string name="read_default">Read</string>
+    <string name="started_default">Started</string>
+    <string name="not_started_default">Not Started</string>
+
 
 </resources>

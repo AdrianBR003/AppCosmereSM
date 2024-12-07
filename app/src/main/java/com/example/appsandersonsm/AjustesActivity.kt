@@ -188,7 +188,7 @@ class AjustesActivity : AppCompatActivity() {
         Log.d("AjustesActivity", "Language: ${sharedPref.getString("language", "No language saved")}")
         val savedLanguage = sharedPref.getString("language", "es") ?: "es"
         isEN = savedLanguage == "en"
-        updateToggleButtonState()
+        updateToggleButtonState(isEN)
 
         // Configurar el listener de clic
         toggleButton.setOnClickListener {
@@ -413,13 +413,28 @@ class AjustesActivity : AppCompatActivity() {
         isChangingLanguage = true
         toggleButton.isEnabled = false // Deshabilitar el botón para evitar múltiples clics
 
-        // Alternar el estado lógico del idioma
-        isEN = !isEN
+        // Determinar el nuevo código de idioma basado en el estado actual
+        val prefs = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        val currentLanguage = prefs.getString("language", "es") ?: "es"
+        val newLanguage = if (currentLanguage.startsWith("es")) "en" else "es"
 
-        // Determinar el nuevo código de idioma basado en el estado
-        val newLanguage = if (isEN) "en" else "es"
+        // Guardar el nuevo idioma en SharedPreferences
+        prefs.edit().putString("language", newLanguage).apply()
 
-        // Obtener los recursos correspondientes al nuevo idioma
+        // Enviar una broadcast para notificar el cambio de idioma
+        val intent = Intent("LANGUAGE_CHANGED")
+        sendBroadcast(intent)
+
+        // Actualizar el estado interno de isEN sin redeclararlo localmente
+        isEN = newLanguage == "en"
+
+        // Actualizar el estado visual del toggleButton
+        updateToggleButtonState(isEN)
+
+        // Actualizar la localización de la aplicación
+        setLocale(newLanguage)
+
+        // Obtener los recursos correspondientes al nuevo idioma para animación del toggleButton
         val newDrawableRes = if (isEN) R.drawable.rounded_en else R.drawable.rounded_es
         val newTextColor = if (isEN) ContextCompat.getColor(this, R.color.white) else ContextCompat.getColor(this, R.color.gold_s)
 
@@ -462,7 +477,7 @@ class AjustesActivity : AppCompatActivity() {
 
                     // Actualizar los datos localizados de los libros
                     lifecycleScope.launch(Dispatchers.IO) {
-                        val database = AppDatabase.getDatabase(applicationContext, this)
+                        val database = AppDatabase.getDatabase(applicationContext, CoroutineScope(Dispatchers.IO))
                         val jsonHandler = JsonHandler(applicationContext, database.libroDao())
 
                         libroViewModel.updateLocalizacion(newLanguage, jsonHandler)
@@ -486,6 +501,8 @@ class AjustesActivity : AppCompatActivity() {
 
 
 
+
+
     private fun setLocale(languageCode: String) {
         LocaleHelper.setLocale(this)
         // Reinicia la actividad para aplicar los cambios
@@ -502,7 +519,7 @@ class AjustesActivity : AppCompatActivity() {
         Log.d("Language", "Saved language: $languageCode")
     }
 
-    private fun updateToggleButtonState() {
+    private fun updateToggleButtonState(isEN: Boolean){
         val currentText = if (isEN) "EN" else "ES"
         val currentDrawableRes = if (isEN) R.drawable.rounded_en else R.drawable.rounded_es
         val currentTextColor = if (isEN) ContextCompat.getColor(this, R.color.white) else ContextCompat.getColor(this, R.color.gold_s)

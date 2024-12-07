@@ -220,7 +220,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun obtenerDrawablePorNombre(nombre: String): Int {
-        return resources.getIdentifier(nombre, "drawable", packageName)
+        val drawableId = resources.getIdentifier(nombre, "drawable", packageName)
+        if (drawableId == 0) {
+            Log.e("DrawableVerification", "Drawable no encontrado para: $nombre. Usando default_cover.")
+            return R.drawable.portada_elcamino
+        }
+        return drawableId
     }
 
     /**

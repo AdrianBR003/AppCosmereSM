@@ -12,6 +12,7 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
     private val fileNameEs = "libros.json"
     private val fileNameEn = "libros_en.json"
 
+
     fun cargarLibrosDesdeJson(languageCode: String): List<Libro> {
         val fileName = if (languageCode == "en") fileNameEn else fileNameEs
         val libros = mutableListOf<Libro>()

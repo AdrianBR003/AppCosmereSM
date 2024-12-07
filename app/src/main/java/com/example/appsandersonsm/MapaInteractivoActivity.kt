@@ -4,10 +4,14 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.PointF
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -21,6 +25,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
@@ -33,6 +38,14 @@ import io.getstream.photoview.PhotoView
 import kotlin.math.roundToInt
 
 class MapaInteractivoActivity : AppCompatActivity() {
+
+    private val languageChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "LANGUAGE_CHANGED") {
+                recreate()
+            }
+        }
+    }
 
     private lateinit var photoView: PhotoView
     private lateinit var markerContainer: FrameLayout
@@ -80,6 +93,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_mapa_interactivo)
         supportActionBar?.hide() // Ocultar la barra de acción predeterminada
 
+
         // Inicializar vistas
         photoView = findViewById(R.id.photoView)
         markerContainer = findViewById(R.id.mapContainerMarkers)
@@ -114,6 +128,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 Log.e("MapaInteractivo", "No se encontraron libros en el ViewModel.")
             }
         })
+
 
         // Listener para actualizar la posición de los marcadores y las flechas
         photoView.setOnMatrixChangeListener { actualizarMarcadoresYFlechas() }
@@ -221,6 +236,11 @@ class MapaInteractivoActivity : AppCompatActivity() {
         animators.forEach { it.start() }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(languageChangeReceiver)
+    }
+
     private fun inicializarMarcadores() {
         if (listaLibros.isEmpty()) {
             Log.e("MapaInteractivo", "Intentando inicializar marcadores sin datos.")
@@ -311,8 +331,19 @@ class MapaInteractivoActivity : AppCompatActivity() {
         // Llamar a actualizarMarcadoresYFlechas con un pequeño retraso para asegurar que PhotoView está listo
         Handler(Looper.getMainLooper()).postDelayed({
             actualizarMarcadoresYFlechas()
-        }, 50) // Ajusta el tiempo de retraso si es necesario
+        }, 100) // Ajusta el tiempo de retraso si es necesario
     }
+
+    private fun obtenerDrawablePorNombre(nombre: String): Int {
+        val drawableId = resources.getIdentifier(nombre, "drawable", packageName)
+        Log.d("DrawableVerification", "Nombre: $nombre, Drawable ID: $drawableId")
+        if (drawableId == 0) {
+            Log.e("DrawableVerification", "Drawable no encontrado para: $nombre. Usando default_cover.")
+            return R.drawable.portada_elcamino // Asegúrate de tener esta imagen en drawable/
+        }
+        return drawableId
+    }
+
 
     private fun actualizarMarcadoresYFlechas() {
         val matrix = FloatArray(9)
