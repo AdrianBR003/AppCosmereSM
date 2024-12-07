@@ -29,11 +29,15 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.API.NewsApiService
 import com.example.appsandersonsm.Adapter.NoticiasAdapter
+import com.example.appsandersonsm.Dao.LibroDao
+import com.example.appsandersonsm.DataBase.AppDatabase
+import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.Modelo.Noticia
 import com.example.appsandersonsm.Repository.LibroRepository
@@ -63,7 +67,9 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var textViewSagasEmpezadas: TextView
 
+    private lateinit var libroDao: LibroDao
     private lateinit var libroRepository: LibroRepository
+    private lateinit var jsonHandler: JsonHandler
     private lateinit var textViewError: TextView
 
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -101,6 +107,12 @@ class AjustesActivity : AppCompatActivity() {
 
         // Inicializar vistas y componentes
         initViews()
+
+        // Inicializar la base de datos y el DAO
+        val database = AppDatabase.getDatabase(this, CoroutineScope(Dispatchers.IO))
+        libroDao = database.libroDao()
+        libroRepository = LibroRepository(libroDao)
+        jsonHandler = JsonHandler(this, libroDao)
 
         // Configurar la navegación, RecyclerView, observadores, etc.
         setupNavigation()
@@ -219,7 +231,7 @@ class AjustesActivity : AppCompatActivity() {
     }
 
     private fun observarDatos() {
-        // Observa los libros
+        // Observa los libros desde el ViewModel
         libroViewModel.allLibros.observe(this) { libros ->
             // Filtra los libros terminados (progreso == totalPaginas y totalPaginas > 0)
             val librosTerminados = libros.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
@@ -230,101 +242,81 @@ class AjustesActivity : AppCompatActivity() {
             val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
             val savedLanguage = sharedPref.getString("language", "es") ?: "es"
 
-            // Actualiza los TextView con las métricas
-            textViewPaginasLeidas.text = if (savedLanguage == "es") {
-                "Páginas leídas: $totalPaginasLeidas"
-            } else {
-                "Pages Read: $totalPaginasLeidas"
+            // Función auxiliar para traducción
+            fun getLocalizedString(esText: String, enText: String): String {
+                return if (savedLanguage == "es") esText else enText
             }
 
-            textViewLibrosLeidos.text = if (savedLanguage == "es") {
-                "Libros leídos: $totalLibrosLeidos"
-            } else {
+            // Actualiza los TextView con las métricas
+            textViewPaginasLeidas.text = getLocalizedString(
+                "Páginas leídas: $totalPaginasLeidas",
+                "Pages Read: $totalPaginasLeidas"
+            )
+            textViewLibrosLeidos.text = getLocalizedString(
+                "Libros leídos: $totalLibrosLeidos",
                 "Books Read: $totalLibrosLeidos"
-            }
+            )
 
             // Agrupa libros por saga
             val librosPorSaga = libros.groupBy { it.nombreSaga }
 
-            // Sagas empezadas
-            val sagasEmpezadasTexto = if (librosPorSaga.isNotEmpty()) {
-                val textoSagas = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
-                    val librosEmpezados = librosDeLaSaga.filter { it.progreso > 0 && it.progreso < it.totalPaginas }
-                    if (librosEmpezados.isNotEmpty()) {
-                        if (saga == "Libro Independiente") {
-                            librosEmpezados.joinToString(separator = "\n") { libro -> "    - ${libro.nombreLibro} [NI]" }
-                        } else {
-                            "    - $saga"
+            // Genera el texto para sagas empezadas
+            val sagasEmpezadasTexto = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
+                val librosEmpezados = librosDeLaSaga.filter { it.progreso > 0 && it.progreso < it.totalPaginas }
+                if (librosEmpezados.isNotEmpty()) {
+                    if (saga == getLocalizedString("Libro Independiente", "Standalone Book")) {
+                        librosEmpezados.joinToString(separator = "\n") { libro ->
+                            "    - ${libro.nombreLibro} [NI]"
+                        }
+                    } else {
+                        "    - $saga"
+                    }
+                } else {
+                    null
+                }
+            }.joinToString(separator = "\n").ifEmpty {
+                getLocalizedString("Sagas empezadas: 0", "Sagas Started: 0")
+            }
+
+            // Actualiza el texto de sagas empezadas
+            textViewSagasEmpezadas.text = getLocalizedString(
+                "Sagas empezadas:\n\n$sagasEmpezadasTexto",
+                "Sagas Started:\n\n$sagasEmpezadasTexto"
+            )
+
+            // Genera el texto para sagas leídas
+            val sagasLeidasTexto = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
+                if (saga == getLocalizedString("Libro Independiente", "Standalone Book")) {
+                    val librosIndependientes = librosDeLaSaga.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
+                    if (librosIndependientes.isNotEmpty()) {
+                        librosIndependientes.joinToString(separator = "\n") { libro ->
+                            "    - ${libro.nombreLibro} [NI]"
                         }
                     } else {
                         null
                     }
-                }.joinToString(separator = "\n").trim()
-
-                if (textoSagas.isNotEmpty()) {
-                    if (savedLanguage == "es") {
-                        "Sagas empezadas:\n\n$textoSagas"
-                    } else {
-                        "Sagas Started:\n\n$textoSagas"
-                    }
                 } else {
-                    if (savedLanguage == "es") {
-                        "Sagas empezadas: 0"
+                    if (librosDeLaSaga.all { it.progreso == it.totalPaginas && it.totalPaginas > 0 }) {
+                        "    - $saga"
                     } else {
-                        "Sagas Started: 0"
+                        null
                     }
                 }
-            } else {
-                if (savedLanguage == "es") {
-                    "Sagas empezadas: 0"
-                } else {
-                    "Sagas Started: 0"
-                }
-            }
-            textViewSagasEmpezadas.text = sagasEmpezadasTexto
-
-            // Sagas leídas
-            val sagasLeidasTexto = if (librosPorSaga.isNotEmpty()) {
-                val textoSagas = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
-                    if (saga == "Libro Independiente") {
-                        val librosIndependientes = librosDeLaSaga.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
-                        if (librosIndependientes.isNotEmpty()) {
-                            librosIndependientes.joinToString(separator = "\n") { libro -> "    - ${libro.nombreLibro} [NI]" }
-                        } else {
-                            null
-                        }
-                    } else {
-                        if (librosDeLaSaga.all { it.progreso == it.totalPaginas && it.totalPaginas > 0 }) {
-                            "    - $saga"
-                        } else {
-                            null
-                        }
-                    }
-                }.joinToString(separator = "\n").trim()
-
-                if (textoSagas.isNotEmpty()) {
-                    if (savedLanguage == "es") {
-                        "Sagas leídas:\n\n$textoSagas"
-                    } else {
-                        "Sagas Read:\n\n$textoSagas"
-                    }
-                } else {
-                    if (savedLanguage == "es") {
-                        "Sagas leídas: Ninguna saga completada"
-                    } else {
-                        "Sagas Read: No sagas completed"
-                    }
-                }
-            } else {
-                if (savedLanguage == "es") {
-                    "Sagas leídas: Ninguna saga completada"
-                } else {
+            }.joinToString(separator = "\n").ifEmpty {
+                getLocalizedString(
+                    "Sagas leídas: Ninguna saga completada",
                     "Sagas Read: No sagas completed"
-                }
+                )
             }
-            textViewSagasLeidas.text = sagasLeidasTexto
+
+            // Actualiza el texto de sagas leídas
+            textViewSagasLeidas.text = getLocalizedString(
+                "Sagas leídas:\n\n$sagasLeidasTexto",
+                "Sagas Read:\n\n$sagasLeidasTexto"
+            )
         }
     }
+
 
     private fun fetchNoticias() {
         val apiKey = "6c1e1e7d1bdf4283867fd5d85fd2744e"
@@ -468,8 +460,19 @@ class AjustesActivity : AppCompatActivity() {
                     // Guardar el nuevo idioma en las preferencias
                     saveLanguage(newLanguage)
 
-                    // Aplicar el nuevo idioma y recrear la actividad
-                    setLocale(newLanguage)
+                    // Actualizar los datos localizados de los libros
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val database = AppDatabase.getDatabase(applicationContext, this)
+                        val jsonHandler = JsonHandler(applicationContext, database.libroDao())
+
+                        libroViewModel.updateLocalizacion(newLanguage, jsonHandler)
+
+                        withContext(Dispatchers.Main) {
+                            // Aplicar el nuevo idioma y recrear la actividad
+                            setLocale(newLanguage)
+                            recreate()
+                        }
+                    }
                 }
             })
 
@@ -480,6 +483,8 @@ class AjustesActivity : AppCompatActivity() {
             }
         }
     }
+
+
 
     private fun setLocale(languageCode: String) {
         LocaleHelper.setLocale(this)

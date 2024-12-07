@@ -4,6 +4,7 @@ package com.example.appsandersonsm.ViewModel
 import androidx.lifecycle.*
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Repository.LibroRepository
 import kotlinx.coroutines.launch
@@ -15,6 +16,10 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
 
     fun getLibrosBySaga(nombreSaga: String): LiveData<List<Libro>> {
         return repository.getLibrosBySaga(nombreSaga).asLiveData()
+    }
+
+    fun updateLocalizacion(languageCode: String, jsonHandler: JsonHandler) = viewModelScope.launch {
+        repository.updateLocalization(languageCode, jsonHandler)
     }
 
     fun getLibroById(id: Int): LiveData<Libro?> {

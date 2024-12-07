@@ -3,6 +3,12 @@
     <!-- LoginActivity -->
     <string name="bienvenidoInicio">Bienvenido</string>
     <string name="mensajeInicioSesionInvitado">Inicio de Sesion como Invitado</string>
+    <string name="espanol">ES</string>
+    <string name="ingles">EN</string>
+    <string name="error_iniciar_sesion">Error al iniciar sesión: %1$s</string>
+    <string name="bienvenido_inicio">Bienvenido, %1$s</string>
+    <string name="iniciarS">Iniciar Sesion como Invitado</string>
+
 
     <!-- MapaInteractivoActivity_Leyenda -->
     <string name="ly_contentD">Cerrar Leyenda</string>
@@ -43,12 +49,5 @@
     <string name="title_activity_login" translatable="false">LoginActivity</string>
     <string name="default_web_client_id" translatable="false">592736434825-bin143j9qbmp16u1pjd4gentqstckl03.apps.googleusercontent.com</string>
 
-    <string name="noticia_image" translatable="false"></string>
-
-    <string name="espanol">Español</string>
-    <string name="ingles">Inglés</string>
-    <string name="idioma_desconocido">Idioma desconocido</string>
-    <string name="error_iniciar_sesion">Error al iniciar sesión: %1$s</string>
-    <string name="bienvenido_inicio">Bienvenido, %1$s</string>
 
 </resources>

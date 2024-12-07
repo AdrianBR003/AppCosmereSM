@@ -8,6 +8,21 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LibroDao {
 
+
+    @Query("""
+        UPDATE libros 
+        SET nombreLibro = :nombreLibro, 
+            nombreSaga = :nombreSaga, 
+            sinopsis = :sinopsis 
+        WHERE id = :libroId
+    """)
+    suspend fun updateLibroLocalization(
+        libroId: Int,
+        nombreLibro: String,
+        nombreSaga: String,
+        sinopsis: String
+    )
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLibros(libros: List<Libro>)
 

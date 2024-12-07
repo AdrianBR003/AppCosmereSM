@@ -101,7 +101,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
                 android:text="ES"
-                android:textColor="@color/gold_s"
+                android:textColor="@color/white"
                 android:textSize="18sp" />
 
         </RelativeLayout>
@@ -114,7 +114,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:background="@android:color/transparent"
-        android:text="Iniciar Sesion Invitado"
+        android:text="@string/iniciarS"
         android:textColor="@color/gold_s"
         android:textSize="12dp"
         android:textStyle="italic"

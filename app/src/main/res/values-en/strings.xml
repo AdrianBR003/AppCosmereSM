@@ -10,6 +10,7 @@
     <string name="ajt_sagE">Sagas Started:</string>
     <string name="ajt_sagL">Sagas Read:</string>
     <string name="app_name">AppSandersonSM</string>
+    <string name="iniciarS">Sign in as a Guest</string>
     <string name="ly_contentD">Close Leyend</string>
     <string name="ly_title">Legend</string>
     <string name="ly_recomend">Recommended to \nStart</string>
@@ -26,9 +27,8 @@
     <string name="en_guardarN">Save</string>
     <string name="ajt_enlaces">Useful Links</string>
 
-    <string name="espanol">Spanish</string>
-    <string name="ingles">English</string>
-    <string name="idioma_desconocido">Unknown language</string>
+    <string name="espanol">ES</string>
+    <string name="ingles">EN</string>
     <string name="error_iniciar_sesion">Sign-in error: %1$s</string>
     <string name="bienvenido_inicio">Welcome, %1$s</string>
 

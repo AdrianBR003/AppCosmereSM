@@ -22,13 +22,17 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+
+
         fun getDatabase(context: Context, scope: CoroutineScope): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext, // Usa applicationContext para evitar problemas
                     AppDatabase::class.java,
                     "app_database"
-                ).addCallback(AppDatabaseCallback(context.applicationContext, scope))
+                )
+                    .addCallback(AppDatabaseCallback(context.applicationContext, scope))
+                    .fallbackToDestructiveMigration() // Solo para desarrollo
                     .build()
                 INSTANCE = instance
                 instance
@@ -51,11 +55,9 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private suspend fun populateDatabase(libroDao: LibroDao, context: Context) {
-            // Simula cargar datos desde un archivo JSON o fuente externa
-            val jsonHandler = JsonHandler(context)
-            val libros = jsonHandler.cargarLibrosDesdeJson()
-            Log.d("AppDatabase", "Libros cargados desde JSON: $libros")
-            libroDao.insertLibros(libros) // Asegúrate de que este método exista en el DAO
+            // Carga datos desde un archivo JSON en el idioma predeterminado (español)
+            val jsonHandler = JsonHandler(context, libroDao)
+            jsonHandler.cargarDatosIniciales()
         }
     }
 }

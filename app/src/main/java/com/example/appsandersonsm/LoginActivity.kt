@@ -22,15 +22,23 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.appsandersonsm.Dao.LibroDao
+import com.example.appsandersonsm.DataBase.AppDatabase
 import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.MapaInteractivoActivity
+import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.random.Random
 
@@ -41,7 +49,8 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var rlToggleLanguage: RelativeLayout
     private lateinit var tvLanguageState: TextView
     private var isChangingLanguage: Boolean = false // Nueva variable de control
-
+    private lateinit var libroDao: LibroDao
+    private lateinit var jsonHandler: JsonHandler
 
     companion object {
         private const val RC_SIGN_IN = 9001
@@ -62,10 +71,16 @@ class LoginActivity : AppCompatActivity() {
         rlToggleLanguage = findViewById(R.id.rlToggleLanguage)
         tvLanguageState = findViewById(R.id.tvLanguageState)
 
+        // Inicializar libroDao desde la base de datos Room
+        val db = AppDatabase.getDatabase(applicationContext, lifecycleScope)
+        libroDao = db.libroDao()
+
+        // Inicializar JsonHandler
+        jsonHandler = JsonHandler(applicationContext, libroDao)
 
         // Recuperar SharedPreferences
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        var language = prefs.getString(KEY_LANGUAGE, null)
+        val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es" // Valor por defecto "es"
 
         // Configurar el fondo y el estado del idioma
         setBackgroundBasedOnLanguage(language)
@@ -96,7 +111,8 @@ class LoginActivity : AppCompatActivity() {
         addPulsatingEffectToBorder()
 
         // Configurar animaciones de portadas de libros
-        setupBookAnimations()
+        // Cargar libros desde JSON según el idioma
+        cargarLibrosYConfigurarAnimaciones(language)
 
         findViewById<View>(R.id.btn_skip_login).setOnClickListener {
             skipLogin()
@@ -163,7 +179,7 @@ class LoginActivity : AppCompatActivity() {
         tvLanguageState.text = when (language?.lowercase()) {
             "es", "spanish" -> getString(R.string.espanol)
             "en", "english" -> getString(R.string.ingles)
-            else -> getString(R.string.idioma_desconocido)
+            else -> getString(R.string.espanol)
         }
     }
 
@@ -207,10 +223,31 @@ class LoginActivity : AppCompatActivity() {
         return resources.getIdentifier(nombre, "drawable", packageName)
     }
 
-    private fun setupBookAnimations() {
-        val jsonHandler = JsonHandler(this)
-        val libros = jsonHandler.cargarLibrosDesdeJson() // Carga los datos del JSON
+    /**
+     * Carga los libros desde el JSON correspondiente y configura las animaciones.
+     * @param languageCode El código del idioma actual ("en" o "es").
+     */
+    private fun cargarLibrosYConfigurarAnimaciones(languageCode: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val libros = jsonHandler.cargarLibrosDesdeJson(languageCode)
+            if (libros.isNotEmpty()) {
+                withContext(Dispatchers.Main) {
+                    setupBookAnimations(libros)
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    Log.e("LoginActivity", "No se cargaron libros desde el JSON para el idioma: $languageCode")
+                }
+            }
+        }
+    }
 
+
+    /**
+     * Configura las animaciones de las portadas de libros.
+     * @param libros La lista de libros a animar.
+     */
+    private fun setupBookAnimations(libros: List<Libro>) {
         bookContainer.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 // Remueve el listener para evitar múltiples llamadas
@@ -222,8 +259,7 @@ class LoginActivity : AppCompatActivity() {
                 if (containerHeight > 0 && containerWidth > 0) {
                     for ((index, libro) in libros.withIndex()) {
                         val bookCover = ImageView(this@LoginActivity)
-                        val drawableId = libro.nombrePortada?.let { obtenerDrawablePorNombre(it) }
-                            ?: 0
+                        val drawableId = libro.nombrePortada?.let { obtenerDrawablePorNombre(it) } ?: 0
 
                         if (drawableId != 0) {
                             bookCover.setImageResource(drawableId)
