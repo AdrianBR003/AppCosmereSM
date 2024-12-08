@@ -27,13 +27,10 @@ abstract class AppDatabase : RoomDatabase() {
         fun getDatabase(context: Context, scope: CoroutineScope): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
-                    context.applicationContext, // Usa applicationContext para evitar problemas
+                    context.applicationContext,
                     AppDatabase::class.java,
                     "app_database"
-                )
-                    .addCallback(AppDatabaseCallback(context.applicationContext, scope))
-                    .fallbackToDestructiveMigration() // Solo para desarrollo
-                    .build()
+                ).build()
                 INSTANCE = instance
                 instance
             }

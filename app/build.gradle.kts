@@ -62,6 +62,7 @@ dependencies {
     implementation (libs.converter.gson)
     implementation (libs.glide)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.firebase.firestore)
     annotationProcessor (libs.compiler)
 
 

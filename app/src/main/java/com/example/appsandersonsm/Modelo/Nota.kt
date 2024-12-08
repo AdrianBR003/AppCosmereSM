@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.appsandersonsm.Firestore.NotaFirestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,7 +43,17 @@ data class Nota(
     var contenido: String,
     val fechaCreacion: String = obtenerFechaActual(),
     var fechaModificacion: String = ""
-)
+) {
+    fun toFirestore(): NotaFirestore {
+        return NotaFirestore(
+            titulo = titulo,
+            contenido = contenido,
+            fechaCreacion = fechaCreacion,
+            fechaModificacion = fechaModificacion,
+            libroId = libroId
+        )
+    }
+}
 
 fun obtenerFechaActual(): String {
     val formatoFecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())

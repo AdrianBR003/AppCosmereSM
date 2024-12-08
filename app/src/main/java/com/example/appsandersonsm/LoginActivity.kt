@@ -24,8 +24,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.appsandersonsm.Dao.LibroDao
+import com.example.appsandersonsm.Dao.NotaDao
 import com.example.appsandersonsm.DataBase.AppDatabase
 import com.example.appsandersonsm.DataBase.JsonHandler
+import com.example.appsandersonsm.Firestore.DataRepository
 import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.MapaInteractivoActivity
 import com.example.appsandersonsm.Modelo.Libro
@@ -35,6 +37,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,8 +53,11 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var rlToggleLanguage: RelativeLayout
     private lateinit var tvLanguageState: TextView
     private var isChangingLanguage: Boolean = false // Nueva variable de control
-    private lateinit var libroDao: LibroDao
     private lateinit var jsonHandler: JsonHandler
+    private lateinit var auth: FirebaseAuth
+    private lateinit var libroDao: LibroDao
+    private lateinit var notaDao: NotaDao
+    private lateinit var repository: DataRepository
 
     companion object {
         private const val RC_SIGN_IN = 9001
@@ -67,16 +74,32 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
+        // Inicializar FirebaseAuth
+        auth = FirebaseAuth.getInstance()
+        configureGoogleSignIn()
+
+        // Inicializar libroDao y notaDao primero
+        val db = AppDatabase.getDatabase(applicationContext, lifecycleScope)
+        libroDao = db.libroDao()
+        Log.d("LoginActivity", "libroDao inicializado correctamente.")
+        notaDao = db.notaDao()
+
+        // Inicializar el Repository después
+        repository = DataRepository(libroDao, notaDao)
+
         // Inicializar vistas relacionadas con el cambio de idioma
         rlToggleLanguage = findViewById(R.id.rlToggleLanguage)
         tvLanguageState = findViewById(R.id.tvLanguageState)
 
-        // Inicializar libroDao desde la base de datos Room
-        val db = AppDatabase.getDatabase(applicationContext, lifecycleScope)
-        libroDao = db.libroDao()
-
         // Inicializar JsonHandler
         jsonHandler = JsonHandler(applicationContext, libroDao)
+
+        // Inicializar FirebaseAuth
+        auth = FirebaseAuth.getInstance()
+
+        // Inicializar Repository
+        repository = DataRepository(libroDao, notaDao)
+
 
         // Recuperar SharedPreferences
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
@@ -118,14 +141,16 @@ class LoginActivity : AppCompatActivity() {
             skipLogin()
         }
 
-        // Configuración de inicio de sesión con Google
         configureGoogleSignIn()
+
 
         // Configurar el botón de inicio de sesión de Google
         findViewById<View>(R.id.btn_google_sign_in).setOnClickListener {
             signInWithGoogle()
         }
     }
+
+
 
     override fun onResume() {
         super.onResume()
@@ -189,16 +214,22 @@ class LoginActivity : AppCompatActivity() {
         sharedPreferences.edit().putBoolean(KEY_IS_LOGIN_SKIPPED, true).apply()
 
         // Navegar a la siguiente actividad
-        val intent = Intent(this, MapaInteractivoActivity::class.java) // Cambia esta actividad si es necesario
+        val intent = Intent(this, MapaInteractivoActivity::class.java)
         startActivity(intent)
-        finish() // Finaliza la actividad actual
+        finish()
     }
 
     private fun configureGoogleSignIn() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id)) // Asegúrate de tener este string en tus recursos
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
+    }
+
+    private fun signInWithGoogle() {
+        val signInIntent = googleSignInClient.signInIntent
+        startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
     private fun addPulsatingEffectToBorder() {
@@ -341,10 +372,6 @@ class LoginActivity : AppCompatActivity() {
         animatorSet.start()
     }
 
-    private fun signInWithGoogle() {
-        val signInIntent = googleSignInClient.signInIntent
-        startActivityForResult(signInIntent, RC_SIGN_IN)
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -363,22 +390,34 @@ class LoginActivity : AppCompatActivity() {
 
     private fun handleSignInResult(account: GoogleSignInAccount?) {
         if (account != null) {
-            val welcomeMessage = getString(R.string.bienvenido_inicio, account.displayName)
-            Toast.makeText(this, welcomeMessage, Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, MapaInteractivoActivity::class.java)
-            startActivity(intent)
-            finish()
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+            auth.signInWithCredential(credential)
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        val user = auth.currentUser
+                        if (user != null) {
+                            val userId = user.uid
+                            // Sincronizar datos con Firestore
+                            lifecycleScope.launch {
+                                repository.synchronizeData(userId)
+                                Log.d("LoginActivity", "Sincronización de datos completada exitosamente.")
+                            }
+                            // Escuchar actualizaciones en tiempo real (opcional)
+                            repository.listenForFirestoreUpdates(userId)
+                            Log.d("LoginActivity", "Listeners para Firestore establecidos correctamente.")
+                        }
+                        val welcomeMessage = getString(R.string.bienvenido_inicio, account.displayName)
+                        Toast.makeText(this, welcomeMessage, Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this, MapaInteractivoActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        // Manejar fallos en el inicio de sesión
+                        Log.e("LoginActivity", "signInWithCredential:failure", task.exception)
+                        Toast.makeText(this, getString(R.string.error_iniciar_sesion), Toast.LENGTH_SHORT).show()
+                    }
+                }
         }
     }
 
-    /**
-     * Configura la localización de la aplicación.
-     */
-    private fun setLocale(language: String) {
-        val locale = Locale(language)
-        Locale.setDefault(locale)
-        val config = resources.configuration
-        config.setLocale(locale)
-        resources.updateConfiguration(config, resources.displayMetrics)
-    }
 }
