@@ -264,7 +264,7 @@ class LoginActivity : AppCompatActivity() {
      * @param languageCode El código del idioma actual ("en" o "es").
      */
     private fun cargarLibrosYConfigurarAnimaciones(languageCode: String) {
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val libros = jsonHandler.cargarLibrosDesdeJson(languageCode)
             if (libros.isNotEmpty()) {
                 withContext(Dispatchers.Main) {
@@ -279,45 +279,44 @@ class LoginActivity : AppCompatActivity() {
     }
 
 
+
+
     /**
      * Configura las animaciones de las portadas de libros.
      * @param libros La lista de libros a animar.
      */
     private fun setupBookAnimations(libros: List<Libro>) {
-        bookContainer.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                // Remueve el listener para evitar múltiples llamadas
-                bookContainer.viewTreeObserver.removeOnGlobalLayoutListener(this)
+        Log.d("LoginActivity", "setupBookAnimations llamado con ${libros.size} libros.")
+        bookContainer.post {
+            val containerHeight = bookContainer.height.toFloat()
+            val containerWidth = bookContainer.width.toFloat()
 
-                val containerHeight = bookContainer.height.toFloat()
-                val containerWidth = bookContainer.width.toFloat()
+            if (containerHeight > 0 && containerWidth > 0) {
+                for ((index, libro) in libros.withIndex()) {
+                    val bookCover = ImageView(this@LoginActivity)
+                    val drawableId = libro.nombrePortada?.let { obtenerDrawablePorNombre(it) } ?: 0
 
-                if (containerHeight > 0 && containerWidth > 0) {
-                    for ((index, libro) in libros.withIndex()) {
-                        val bookCover = ImageView(this@LoginActivity)
-                        val drawableId = libro.nombrePortada?.let { obtenerDrawablePorNombre(it) } ?: 0
+                    if (drawableId != 0) {
+                        bookCover.setImageResource(drawableId)
+                        val params = FrameLayout.LayoutParams(200, 300)
+                        bookCover.layoutParams = params
+                        bookCover.visibility = View.INVISIBLE
+                        bookCover.setBackgroundResource(R.drawable.book_init_border)
+                        bookCover.setPadding(2, 2, 2, 2) // Ajusta los valores para dar espacio al marco
+                        bookContainer.addView(bookCover)
 
-                        if (drawableId != 0) {
-                            bookCover.setImageResource(drawableId)
-                            val params = FrameLayout.LayoutParams(200, 300)
-                            bookCover.layoutParams = params
-                            bookCover.visibility = View.INVISIBLE
-                            bookCover.setBackgroundResource(R.drawable.book_init_border)
-                            bookCover.setPadding(2, 2, 2, 2) // Ajusta los valores para dar espacio al marco
-                            bookContainer.addView(bookCover)
-
-                            // Configura la animación de cada libro
-                            animateBookCover(bookCover, containerWidth, containerHeight, index)
-                        } else {
-                            Log.e("LoginActivity", "No se encontró la portada: ${libro.nombrePortada}")
-                        }
+                        // Configura la animación de cada libro
+                        animateBookCover(bookCover, containerWidth, containerHeight, index)
+                    } else {
+                        Log.e("LoginActivity", "No se encontró la portada: ${libro.nombrePortada}")
                     }
-                } else {
-                    Log.e("LoginActivity", "Dimensiones del contenedor no válidas")
                 }
+            } else {
+                Log.e("LoginActivity", "Dimensiones del contenedor no válidas")
             }
-        })
+        }
     }
+
 
     private fun animateBookCover(
         bookCover: ImageView,
