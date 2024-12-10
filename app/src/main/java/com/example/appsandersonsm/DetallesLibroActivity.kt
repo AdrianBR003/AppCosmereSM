@@ -1,7 +1,10 @@
 package com.example.appsandersonsm
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -19,6 +22,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.ViewModelProvider
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.Adapter.NotasAdapter
@@ -52,6 +56,13 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private var isExpanded = false // Variable para gestionar el estado expandido/colapsado
     private var contadorNotas: Int = 3 // Empezamos con 3 notas estáticas
 
+    private val languageChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "LANGUAGE_CHANGED") {
+                recreate() // Recrear la actividad para aplicar cambios de idioma
+            }
+        }
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -117,6 +128,19 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
 
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+            languageChangeReceiver,
+            IntentFilter("LANGUAGE_CHANGED")
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(languageChangeReceiver)
     }
 
     private fun inicializarViewModels() {
