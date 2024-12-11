@@ -74,6 +74,19 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+
+        // Verificar si el usuario ya está autenticado
+        val isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false)
+        val userId = prefs.getString("USER_ID", null)
+
+        if (isLoggedIn && userId != null) {
+            // Redirigir a la siguiente actividad
+            val intent = Intent(this, MapaInteractivoActivity::class.java)
+            startActivity(intent)
+            finish()
+            return
+        }
+        
         val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es" // Valor por defecto "es"
         LocaleHelper.setLocale(this, language)
 
@@ -226,7 +239,8 @@ class LoginActivity : AppCompatActivity() {
         val idiomaActual = LocaleHelper.getLanguage(this) // Devuelve el idioma, e.g., "es" o "en"
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
+            .requestEmail() // Solicitar el correo electrónico
+            .requestIdToken(getString(R.string.default_web_client_id)) // Solicitar el idToken
             .build()
 
         // Configurar el cliente de Google Sign-In
