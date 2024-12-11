@@ -36,6 +36,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
@@ -67,10 +68,16 @@ class LoginActivity : AppCompatActivity() {
     }
 
     override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(LocaleHelper.setLocale(newBase!!))
+        super.attachBaseContext(LocaleHelper.setLocale(newBase!!,""))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es" // Valor por defecto "es"
+        LocaleHelper.setLocale(this, language)
+
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
@@ -99,11 +106,6 @@ class LoginActivity : AppCompatActivity() {
 
         // Inicializar Repository
         repository = DataRepository(libroDao, notaDao)
-
-
-        // Recuperar SharedPreferences
-        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es" // Valor por defecto "es"
 
         // Configurar el fondo y el estado del idioma
         setBackgroundBasedOnLanguage(language)
@@ -143,6 +145,8 @@ class LoginActivity : AppCompatActivity() {
 
         configureGoogleSignIn()
 
+        val googleSignInButton = findViewById<View>(R.id.btn_google_sign_in)
+        verificarTextoGoogleSignIn(googleSignInButton)
 
         // Configurar el botón de inicio de sesión de Google
         findViewById<View>(R.id.btn_google_sign_in).setOnClickListener {
@@ -174,9 +178,8 @@ class LoginActivity : AppCompatActivity() {
         prefs.edit().putString(KEY_LANGUAGE, newLanguage).apply()
 
         // Reiniciar la actividad para aplicar los cambios
-        Handler(Looper.getMainLooper()).postDelayed({
-            recreate()
-        }, 300) // Retraso de 300 milisegundos
+        LocaleHelper.setLocale(this, newLanguage)
+        recreate() // Reinicia la actividad
     }
 
     /**
@@ -220,17 +223,29 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun configureGoogleSignIn() {
+        val idiomaActual = LocaleHelper.getLanguage(this) // Devuelve el idioma, e.g., "es" o "en"
+
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id)) // Asegúrate de tener este string en tus recursos
             .requestEmail()
             .build()
+
+        // Configurar el cliente de Google Sign-In
         googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        // Configurar el idioma global para que afecte al botón
+        LocaleHelper.setLocale(this, idiomaActual)
     }
 
     private fun signInWithGoogle() {
+        if (!::googleSignInClient.isInitialized) {
+            Log.e("LoginActivity", "GoogleSignInClient no está inicializado.")
+            return
+        }
+
         val signInIntent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
+
 
     private fun addPulsatingEffectToBorder() {
         val container = findViewById<FrameLayout>(R.id.btn_google_sign_in_container)
@@ -418,5 +433,29 @@ class LoginActivity : AppCompatActivity() {
                 }
         }
     }
+
+    private fun verificarTextoGoogleSignIn(googleSignInButton: View) {
+        if (googleSignInButton is SignInButton) {
+            for (i in 0 until googleSignInButton.childCount) {
+                val child = googleSignInButton.getChildAt(i)
+                if (child is TextView) {
+                    val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                    val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es"
+
+                    val customText = when (language) {
+                        "en" -> "  Sign in          "
+                        "es" -> "Iniciar sesión"
+                        else -> "  Sign in          "
+                    }
+
+                    child.text = customText // Cambiar manualmente el texto
+                    Log.d("LoginActivity", "Texto forzado del botón Google Sign-In: $customText")
+                }
+            }
+        } else {
+            Log.e("LoginActivity", "El botón de Google Sign-In no es del tipo esperado.")
+        }
+    }
+
 
 }

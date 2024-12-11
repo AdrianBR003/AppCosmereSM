@@ -28,13 +28,19 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.gson.Gson
 import io.getstream.photoview.PhotoView
+import kotlinx.coroutines.launch
+import java.io.IOException
+import java.util.Locale
 import kotlin.math.roundToInt
 
 class MapaInteractivoActivity : AppCompatActivity() {
@@ -93,6 +99,24 @@ class MapaInteractivoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_mapa_interactivo)
         supportActionBar?.hide() // Ocultar la barra de acción predeterminada
 
+        // Antes de observar los libros, cargar el JSON adecuado
+        val idiomaActual = Locale.getDefault().language // Devuelve "es", "en", etc.
+        val nombreArchivoJson = when (idiomaActual) {
+            "en" -> "libros_en.json"
+            else -> "libros.json" // Por defecto, español
+        }
+
+        cargarLibrosSiEsNecesario(nombreArchivoJson)
+
+        // Ahora inicializa el ViewModel y observa los datos como de costumbre
+        libroViewModel.allLibros.observe(this, Observer { libros ->
+            if (libros != null) {
+                listaLibros = libros
+                inicializarMarcadores()
+            } else {
+                Log.e("MapaInteractivo", "No se encontraron libros en el ViewModel.")
+            }
+        })
 
         // Inicializar vistas
         photoView = findViewById(R.id.photoView)
@@ -107,13 +131,17 @@ class MapaInteractivoActivity : AppCompatActivity() {
         photoView.maximumScale = 3.0f
 
         // Listener para inicializar los marcadores una vez que la vista está lista
-        photoView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        photoView.viewTreeObserver.addOnGlobalLayoutListener(object :
+            ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 if (listaLibros.isNotEmpty()) {
                     inicializarMarcadores()
                     photoView.viewTreeObserver.removeOnGlobalLayoutListener(this)
                 } else {
-                    Log.d("MapaInteractivo", "PhotoView listo, pero listaLibros aún no está inicializada.")
+                    Log.d(
+                        "MapaInteractivo",
+                        "PhotoView listo, pero listaLibros aún no está inicializada."
+                    )
                 }
             }
         })
@@ -142,14 +170,17 @@ class MapaInteractivoActivity : AppCompatActivity() {
                     startActivity(Intent(this, AjustesActivity::class.java))
                     true
                 }
+
                 R.id.nav_map -> {
                     // Ya estamos en MapaInteractivoActivity, no hacemos nada
                     true
                 }
+
                 R.id.nav_book -> {
                     startActivity(Intent(this, LibroActivity::class.java))
                     true
                 }
+
                 else -> false
             }
         }
@@ -165,7 +196,10 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 if (photoView.viewTreeObserver.isAlive) {
                     inicializarMarcadores()
                 } else {
-                    Log.d("MapaInteractivo", "PhotoView aún no está listo. Esperando para inicializar marcadores.")
+                    Log.d(
+                        "MapaInteractivo",
+                        "PhotoView aún no está listo. Esperando para inicializar marcadores."
+                    )
                 }
             } else {
                 Log.e("MapaInteractivo", "No se encontraron libros para inicializar marcadores.")
@@ -190,7 +224,12 @@ class MapaInteractivoActivity : AppCompatActivity() {
                     leyendaView.visibility = View.VISIBLE
                     followButton.isEnabled = false
 
-                    val animator = ObjectAnimator.ofFloat(leyendaView, "translationY", -leyendaView.height.toFloat(), 0f)
+                    val animator = ObjectAnimator.ofFloat(
+                        leyendaView,
+                        "translationY",
+                        -leyendaView.height.toFloat(),
+                        0f
+                    )
                     animator.duration = 300
                     animator.interpolator = AccelerateDecelerateInterpolator()
                     animator.start()
@@ -205,7 +244,12 @@ class MapaInteractivoActivity : AppCompatActivity() {
         closeButton.setOnClickListener {
             if (isLeyendaVisible) {
                 // Animar la leyenda hacia arriba
-                val animator = ObjectAnimator.ofFloat(leyendaView, "translationY", 0f, -leyendaView.height.toFloat())
+                val animator = ObjectAnimator.ofFloat(
+                    leyendaView,
+                    "translationY",
+                    0f,
+                    -leyendaView.height.toFloat()
+                )
                 animator.duration = 300
                 animator.interpolator = AccelerateDecelerateInterpolator()
                 animator.start()
@@ -215,7 +259,8 @@ class MapaInteractivoActivity : AppCompatActivity() {
                     override fun onAnimationEnd(animation: Animator) {
                         leyendaView.visibility = View.GONE
                         followButton.isEnabled = true
-                        leyendaView.translationY = 0f // Reinicia la posición para futuras animaciones
+                        leyendaView.translationY =
+                            0f // Reinicia la posición para futuras animaciones
                     }
                 })
 
@@ -265,7 +310,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 blue = 0
             }
 
-            if(libro.nombreSaga.equals("Libro Independiente")){
+            if (libro.nombreSaga.equals("Libro Independiente")) {
                 red = 106
                 green = 26
                 blue = 128
@@ -338,7 +383,10 @@ class MapaInteractivoActivity : AppCompatActivity() {
         val drawableId = resources.getIdentifier(nombre, "drawable", packageName)
         Log.d("DrawableVerification", "Nombre: $nombre, Drawable ID: $drawableId")
         if (drawableId == 0) {
-            Log.e("DrawableVerification", "Drawable no encontrado para: $nombre. Usando default_cover.")
+            Log.e(
+                "DrawableVerification",
+                "Drawable no encontrado para: $nombre. Usando default_cover."
+            )
             return R.drawable.portada_elcamino // Asegúrate de tener esta imagen en drawable/
         }
         return drawableId
@@ -396,4 +444,27 @@ class MapaInteractivoActivity : AppCompatActivity() {
         Log.d("MapaInteractivo", "Extras: ${intent?.extras}")
         startActivity(intent)
     }
+
+    private fun cargarLibrosSiEsNecesario(nombreArchivoJson: String) {
+        lifecycleScope.launch {
+            try {
+                // Verificar si la base de datos está vacía
+                val librosEnDb = libroViewModel.allLibros.value
+                if (librosEnDb.isNullOrEmpty()) {
+                    // Leer el JSON y cargarlo
+                    val inputStream = assets.open(nombreArchivoJson)
+                    val jsonString = inputStream.bufferedReader().use { it.readText() }
+
+                    val gson = Gson()
+                    val libros = gson.fromJson(jsonString, Array<Libro>::class.java).toList()
+
+                    // Insertar los libros en la base de datos
+                    libroViewModel.insertLibros(libros)
+                }
+            } catch (e: IOException) {
+                Log.e("CargaLibros", "Error al cargar el archivo JSON: $nombreArchivoJson", e)
+            }
+        }
+    }
+
 }

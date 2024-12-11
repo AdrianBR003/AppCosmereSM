@@ -98,7 +98,7 @@ class AjustesActivity : AppCompatActivity() {
     val newsApi = retrofit.create(NewsApiService::class.java)
 
     override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(LocaleHelper.setLocale(newBase!!))
+        super.attachBaseContext(LocaleHelper.setLocale(newBase!!,""))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -499,12 +499,8 @@ class AjustesActivity : AppCompatActivity() {
         }
     }
 
-
-
-
-
     private fun setLocale(languageCode: String) {
-        LocaleHelper.setLocale(this)
+        LocaleHelper.setLocale(this,"")
         // Reinicia la actividad para aplicar los cambios
         // Utilizamos Handler para asegurar que el cambio de configuración se complete antes de recrear
         Handler(Looper.getMainLooper()).postDelayed({
