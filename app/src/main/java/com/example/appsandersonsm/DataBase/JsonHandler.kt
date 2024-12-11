@@ -12,6 +12,42 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
     private val fileNameEs = "libros.json"
     private val fileNameEn = "libros_en.json"
 
+    // SobreCarga de Metodos
+    fun cargarLibrosDesdeJson(languageCode: String): List<Libro> {
+        val fileName = if (languageCode == "en") fileNameEn else fileNameEs
+        val libros = mutableListOf<Libro>()
+        val jsonString = leerJsonDesdeAssets(fileName)
+
+        if (jsonString != null) {
+            try {
+                val jsonArray = JSONArray(jsonString)
+                for (i in 0 until jsonArray.length()) {
+                    val jsonObject = jsonArray.getJSONObject(i)
+                    val libro = Libro(
+                        id = 0, // Autogenerado por la base de datos
+                        nombreLibro = jsonObject.getString("nombreLibro"),
+                        nombreSaga = jsonObject.getString("nombreSaga"),
+                        nombrePortada = jsonObject.getString("nombrePortada"),
+                        progreso = jsonObject.optInt("progreso", 0),
+                        totalPaginas = jsonObject.optInt("totalPaginas", 1500),
+                        inicialSaga = jsonObject.optBoolean("inicialSaga", false),
+                        sinopsis = jsonObject.optString("sinopsis", "Sinopsis no disponible"),
+                        valoracion = jsonObject.optDouble("valoracion", 0.0).toFloat(),
+                        numeroNotas = jsonObject.optInt("nNotas", 0),
+                        empezarLeer = jsonObject.optBoolean("empezarLeer", false),
+                        userId = "default" // Inicialmente vacío
+                    )
+                    libros.add(libro)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("JsonHandler", "Error al parsear JSON: ${e.message}")
+            }
+        }
+        return libros
+    }
+
+
     fun cargarLibrosDesdeJson(languageCode: String, userId: String): List<Libro> {
         val fileName = if (languageCode == "en") fileNameEn else fileNameEs
         val libros = mutableListOf<Libro>()

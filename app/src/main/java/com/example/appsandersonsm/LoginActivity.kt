@@ -76,6 +76,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
@@ -93,7 +94,6 @@ class LoginActivity : AppCompatActivity() {
         val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es"
         LocaleHelper.setLocale(this, language)
 
-        super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
         // Inicializar FirebaseAuth
@@ -307,7 +307,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun cargarLibrosYConfigurarAnimaciones(languageCode: String) {
         lifecycleScope.launch(Dispatchers.IO) {
-            val libros = jsonHandler.cargarLibrosDesdeJson(languageCode,"") // Daigual en este caso el userId
+            val libros = jsonHandler.cargarLibrosDesdeJson(languageCode) // Daigual en este caso el userId
             if (libros.isNotEmpty()) {
                 withContext(Dispatchers.Main) {
                     setupBookAnimations(libros)

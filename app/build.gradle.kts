@@ -105,6 +105,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat.v161)
     implementation(libs.materialratingbar.library)
+    implementation (libs.gson) // Asegúrate de usar la última versión
 
 
     // Compose dependencies
