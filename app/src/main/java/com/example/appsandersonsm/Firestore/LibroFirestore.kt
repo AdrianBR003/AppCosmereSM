@@ -19,7 +19,8 @@ data class LibroFirestore(
             sinopsis = "",
             valoracion = valoracion,
             numeroNotas = 0, // Ajusta según tus necesidades
-            empezarLeer = false // Ajusta según tus necesidades
+            empezarLeer = false, // Ajusta según tus necesidades
+            userId = ""
         )
     }
 

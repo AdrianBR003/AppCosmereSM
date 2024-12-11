@@ -8,20 +8,25 @@ import kotlinx.coroutines.flow.Flow
 
 class LibroRepository(private val libroDao: LibroDao) {
 
-    val allLibros: Flow<List<Libro>> = libroDao.getAllLibros()
-    val allSagas: Flow<List<String>> = libroDao.getAllSagas()
-
-    fun getLibrosBySaga(nombreSaga: String): Flow<List<Libro>> {
-        return libroDao.getLibrosBySaga(nombreSaga)
+    fun getAllLibrosByUsuario(userId: String): Flow<List<Libro>> {
+        return libroDao.getAllLibrosByUsuario(userId)
     }
 
-    suspend fun getLibroById(id: Int): Libro? {
-        return libroDao.getLibroById(id)
+    fun getAllSagasByUsuario(userId: String): Flow<List<String>> {
+        return libroDao.getAllSagasPorUsuario(userId)
     }
 
-    suspend fun updateLocalization(languageCode: String, jsonHandler: JsonHandler) {
+    fun getLibrosBySagaAndUsuario(nombreSaga: String, userId: String): Flow<List<Libro>> {
+        return libroDao.getLibrosBySagaAndUsuario(nombreSaga, userId)
+    }
+
+    suspend fun getLibroByIdAndUsuario(id: Int, userId: String): Libro? {
+        return libroDao.getLibroById(id, userId)
+    }
+
+    suspend fun updateLocalization(languageCode: String, jsonHandler: JsonHandler, userId: String) {
         // Cargar los libros localizados desde el JSON correspondiente
-        val librosLocalizados = jsonHandler.cargarLibrosDesdeJson(languageCode)
+        val librosLocalizados = jsonHandler.cargarLibrosDesdeJson(languageCode, userId)
         // Actualizar los datos en la base de datos con la información localizada
         librosLocalizados.forEach { libro ->
             libro.sinopsis?.let {
@@ -29,7 +34,8 @@ class LibroRepository(private val libroDao: LibroDao) {
                     libro.id,
                     libro.nombreLibro,
                     libro.nombreSaga,
-                    it
+                    it,
+                    userId
                 )
             }
         }
@@ -37,6 +43,10 @@ class LibroRepository(private val libroDao: LibroDao) {
 
     suspend fun insertLibros(libros: List<Libro>) {
         libroDao.insertLibros(libros)
+    }
+
+    suspend fun insertLibro(libro: Libro) {
+        libroDao.insertLibro(libro)
     }
 
     suspend fun updateLibro(libro: Libro) {
@@ -47,11 +57,15 @@ class LibroRepository(private val libroDao: LibroDao) {
         libroDao.deleteLibro(libro)
     }
 
-    suspend fun actualizarSinopsis(libroId: Int, sinopsis: String) {
-        libroDao.actualizarSinopsis(libroId, sinopsis)
+    suspend fun actualizarSinopsis(libroId: Int, sinopsis: String, userId: String) {
+        libroDao.actualizarSinopsis(libroId, sinopsis, userId)
     }
 
-    suspend fun actualizarValoracion(libroId: Int, valoracion: Float) {
-        libroDao.actualizarValoracion(libroId, valoracion)
+    suspend fun actualizarValoracion(libroId: Int, valoracion: Float, userId: String) {
+        libroDao.actualizarValoracion(libroId, valoracion, userId)
+    }
+
+    suspend fun getCountByUsuario(userId: String): Int {
+        return libroDao.getCountByUsuario(userId)
     }
 }

@@ -1,34 +1,42 @@
 // LibroViewModel.kt
 package com.example.appsandersonsm.ViewModel
 
+import android.util.Log
 import androidx.lifecycle.*
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Repository.LibroRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
 
-    val allLibros: LiveData<List<Libro>> = repository.allLibros.asLiveData()
-    val allSagas: LiveData<List<String>> = repository.allSagas.asLiveData()
-
-    fun getLibrosBySaga(nombreSaga: String): LiveData<List<Libro>> {
-        return repository.getLibrosBySaga(nombreSaga).asLiveData()
+    fun getAllLibrosByUsuario(userId: String): LiveData<List<Libro>> {
+        return repository.getAllLibrosByUsuario(userId).asLiveData()
     }
 
-    fun updateLocalizacion(languageCode: String, jsonHandler: JsonHandler) = viewModelScope.launch {
-        repository.updateLocalization(languageCode, jsonHandler)
+    fun getAllSagasByUsuario(userId: String): LiveData<List<String>> {
+        return repository.getAllSagasByUsuario(userId).asLiveData()
     }
 
-    fun getLibroById(id: Int): LiveData<Libro?> {
+    fun getLibrosBySagaAndUsuario(nombreSaga: String, userId: String): LiveData<List<Libro>> {
+        return repository.getLibrosBySagaAndUsuario(nombreSaga, userId).asLiveData()
+    }
+
+    fun getLibroByIdAndUsuario(id: Int, userId: String): LiveData<Libro?> {
         val libro = MutableLiveData<Libro?>()
         viewModelScope.launch {
-            libro.postValue(repository.getLibroById(id))
+            libro.postValue(repository.getLibroByIdAndUsuario(id, userId))
         }
         return libro
     }
+
+    fun updateLocalizacion(languageCode: String, jsonHandler: JsonHandler, userId: String) =
+        viewModelScope.launch {
+            repository.updateLocalization(languageCode, jsonHandler, userId)
+        }
 
     fun insertLibros(libros: List<Libro>) = viewModelScope.launch {
         repository.insertLibros(libros)
@@ -42,17 +50,22 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
         repository.deleteLibro(libro)
     }
 
-    // Actualizar la sinopsis de un libro
-    fun actualizarSinopsis(libroId: Int, sinopsis: String) = viewModelScope.launch {
-        repository.actualizarSinopsis(libroId, sinopsis)
+    fun actualizarSinopsis(libroId: Int, sinopsis: String, userId: String) = viewModelScope.launch {
+        repository.actualizarSinopsis(libroId, sinopsis, userId)
     }
 
-    // Actualizar la valoración de un libro
-    fun actualizarValoracion(libroId: Int, valoracion: Float) = viewModelScope.launch {
+    fun actualizarValoracion(libroId: Int, valoracion: Float, userId: String) = viewModelScope.launch {
         require(valoracion in 0.0..10.0) { "La valoración debe estar entre 0 y 10." }
-        repository.actualizarValoracion(libroId, valoracion)
+        repository.actualizarValoracion(libroId, valoracion, userId)
     }
 
+    suspend fun guardarLibroEnLaNube(libro: Libro) {
+        val libroData = libro.toFirestore() // Convierte el libro a un mapa para Firestore
+        Log.d("LibroViewModel", "Guardando libro en la nube: $libroData")
+        FirebaseFirestore.getInstance().collection("libros")
+            .document(libro.id.toString())
+            .set(libroData)
+    }
 }
 
 class LibroViewModelFactory(private val repository: LibroRepository) : ViewModelProvider.Factory {

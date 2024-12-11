@@ -31,6 +31,7 @@ import com.example.appsandersonsm.Firestore.DataRepository
 import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.MapaInteractivoActivity
 import com.example.appsandersonsm.Modelo.Libro
+import com.example.appsandersonsm.Modelo.Usuario
 import com.example.appsandersonsm.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -45,6 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import java.util.UUID
 import kotlin.random.Random
 
 class LoginActivity : AppCompatActivity() {
@@ -53,7 +55,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var rlToggleLanguage: RelativeLayout
     private lateinit var tvLanguageState: TextView
-    private var isChangingLanguage: Boolean = false // Nueva variable de control
+    private var isChangingLanguage: Boolean = false
     private lateinit var jsonHandler: JsonHandler
     private lateinit var auth: FirebaseAuth
     private lateinit var libroDao: LibroDao
@@ -65,31 +67,31 @@ class LoginActivity : AppCompatActivity() {
         private const val PREFS_NAME = "AppPreferences"
         private const val KEY_LANGUAGE = "language"
         private const val KEY_IS_LOGIN_SKIPPED = "isLoginSkipped"
+        private const val KEY_IS_LOGGED_IN = "IS_LOGGED_IN"
+        private const val KEY_USER_ID = "USER_ID"
     }
 
     override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(LocaleHelper.setLocale(newBase!!,""))
+        super.attachBaseContext(LocaleHelper.setLocale(newBase!!, ""))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-
+        val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
         // Verificar si el usuario ya está autenticado
-        val isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false)
-        val userId = prefs.getString("USER_ID", null)
+        val isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
+        val userId = prefs.getString(KEY_USER_ID, null)
+        sharedPreferences.edit().putString("USER_ID", userId).apply()
 
         if (isLoggedIn && userId != null) {
             // Redirigir a la siguiente actividad
-            val intent = Intent(this, MapaInteractivoActivity::class.java)
-            startActivity(intent)
-            finish()
+            navigateToMainActivity(userId)
             return
         }
-        
-        val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es" // Valor por defecto "es"
-        LocaleHelper.setLocale(this, language)
 
+        val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es"
+        LocaleHelper.setLocale(this, language)
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -98,13 +100,12 @@ class LoginActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         configureGoogleSignIn()
 
-        // Inicializar libroDao y notaDao primero
+        // Inicializar libroDao y notaDao
         val db = AppDatabase.getDatabase(applicationContext, lifecycleScope)
         libroDao = db.libroDao()
-        Log.d("LoginActivity", "libroDao inicializado correctamente.")
         notaDao = db.notaDao()
 
-        // Inicializar el Repository después
+        // Inicializar Repository
         repository = DataRepository(libroDao, notaDao)
 
         // Inicializar vistas relacionadas con el cambio de idioma
@@ -113,12 +114,6 @@ class LoginActivity : AppCompatActivity() {
 
         // Inicializar JsonHandler
         jsonHandler = JsonHandler(applicationContext, libroDao)
-
-        // Inicializar FirebaseAuth
-        auth = FirebaseAuth.getInstance()
-
-        // Inicializar Repository
-        repository = DataRepository(libroDao, notaDao)
 
         // Configurar el fondo y el estado del idioma
         setBackgroundBasedOnLanguage(language)
@@ -131,14 +126,11 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        val isLoginSkipped = sharedPreferences.getBoolean(KEY_IS_LOGIN_SKIPPED, false)
+        val isLoginSkipped = prefs.getBoolean(KEY_IS_LOGIN_SKIPPED, false)
 
         if (isLoginSkipped) {
             Toast.makeText(this, getString(R.string.mensajeInicioSesionInvitado), Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, MapaInteractivoActivity::class.java) // Cambia esta actividad si es necesario
-            startActivity(intent)
-            finish() // Finaliza LoginActivity
+            navigateToMainActivity(UUID.randomUUID().toString())
             return
         }
 
@@ -149,7 +141,6 @@ class LoginActivity : AppCompatActivity() {
         addPulsatingEffectToBorder()
 
         // Configurar animaciones de portadas de libros
-        // Cargar libros desde JSON según el idioma
         cargarLibrosYConfigurarAnimaciones(language)
 
         findViewById<View>(R.id.btn_skip_login).setOnClickListener {
@@ -161,61 +152,45 @@ class LoginActivity : AppCompatActivity() {
         val googleSignInButton = findViewById<View>(R.id.btn_google_sign_in)
         verificarTextoGoogleSignIn(googleSignInButton)
 
-        // Configurar el botón de inicio de sesión de Google
         findViewById<View>(R.id.btn_google_sign_in).setOnClickListener {
             signInWithGoogle()
         }
     }
 
-
-
     override fun onResume() {
         super.onResume()
-        // Rehabilitar el botón cuando la actividad se haya recreado
         isChangingLanguage = false
         rlToggleLanguage.isEnabled = true
     }
 
-    /**
-     * Cambia el idioma entre inglés y español.
-     */
     private fun toggleLanguage() {
         isChangingLanguage = true
-        rlToggleLanguage.isEnabled = false // Deshabilitar el botón para evitar múltiples clics
+        rlToggleLanguage.isEnabled = false
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         val currentLanguage = prefs.getString(KEY_LANGUAGE, "es") ?: "es"
         val newLanguage = if (currentLanguage.startsWith("es")) "en" else "es"
 
-        // Guardar el nuevo idioma en SharedPreferences
         prefs.edit().putString(KEY_LANGUAGE, newLanguage).apply()
 
-        // Reiniciar la actividad para aplicar los cambios
         LocaleHelper.setLocale(this, newLanguage)
-        recreate() // Reinicia la actividad
+        recreate()
     }
 
-    /**
-     * Configura el fondo del RelativeLayout según el idioma.
-     */
     private fun setBackgroundBasedOnLanguage(language: String?) {
         when (language?.lowercase()) {
             "es", "spanish" -> {
-                rlToggleLanguage.setBackgroundResource(R.drawable.rounded_es) // Reemplaza con tu drawable para español
+                rlToggleLanguage.setBackgroundResource(R.drawable.rounded_es)
             }
             "en", "english" -> {
-                rlToggleLanguage.setBackgroundResource(R.drawable.rounded_en) // Reemplaza con tu drawable para inglés
+                rlToggleLanguage.setBackgroundResource(R.drawable.rounded_en)
             }
             else -> {
-                // Fondo por defecto si el idioma no es reconocido
                 rlToggleLanguage.setBackgroundResource(R.drawable.rounded_es)
             }
         }
     }
 
-    /**
-     * Actualiza el estado del TextView que muestra el idioma actual.
-     */
     private fun updateLanguageState(language: String?) {
         tvLanguageState.text = when (language?.lowercase()) {
             "es", "spanish" -> getString(R.string.espanol)
@@ -225,28 +200,25 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun skipLogin() {
-        // Guardar en SharedPreferences que el usuario ha omitido el inicio de sesión
-        val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        sharedPreferences.edit().putBoolean(KEY_IS_LOGIN_SKIPPED, true).apply()
+        val userId = UUID.randomUUID().toString()
 
-        // Navegar a la siguiente actividad
-        val intent = Intent(this, MapaInteractivoActivity::class.java)
-        startActivity(intent)
-        finish()
+        // Registrar al usuario invitado en Room
+        registrarUsuarioEnRoom(userId, "Invitado", null, true)
+
+        saveUserSession(userId, isLoginSkipped = true)
+        navigateToMainActivity(userId)
     }
 
     private fun configureGoogleSignIn() {
-        val idiomaActual = LocaleHelper.getLanguage(this) // Devuelve el idioma, e.g., "es" o "en"
+        val idiomaActual = LocaleHelper.getLanguage(this)
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail() // Solicitar el correo electrónico
-            .requestIdToken(getString(R.string.default_web_client_id)) // Solicitar el idToken
+            .requestEmail()
+            .requestIdToken(getString(R.string.default_web_client_id))
             .build()
 
-        // Configurar el cliente de Google Sign-In
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        // Configurar el idioma global para que afecte al botón
         LocaleHelper.setLocale(this, idiomaActual)
     }
 
@@ -260,6 +232,60 @@ class LoginActivity : AppCompatActivity() {
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RC_SIGN_IN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                handleGoogleSignIn(account)
+            } catch (e: ApiException) {
+                Toast.makeText(this, getString(R.string.error_iniciar_sesion), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun handleGoogleSignIn(account: GoogleSignInAccount?) {
+        if (account != null) {
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+            auth.signInWithCredential(credential).addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val userId = account.id ?: UUID.randomUUID().toString()
+                    val userName = account.displayName
+                    val userEmail = account.email
+
+                    // Registrar al usuario en Room
+                    registrarUsuarioEnRoom(userId, userName, userEmail, false)
+
+                    saveUserSession(userId)
+                    navigateToMainActivity(userId)
+                } else {
+                    Toast.makeText(this, getString(R.string.error_iniciar_sesion), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+
+    private fun saveUserSession(userId: String, isLoginSkipped: Boolean = false) {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        prefs.edit().apply {
+            putBoolean(KEY_IS_LOGGED_IN, true)
+            putString(KEY_USER_ID, userId)
+            putBoolean(KEY_IS_LOGIN_SKIPPED, isLoginSkipped)
+            apply()
+        }
+    }
+
+
+    private fun navigateToMainActivity(userId: String) {
+        val intent = Intent(this, MapaInteractivoActivity::class.java).apply {
+            putExtra("USER_ID", userId)
+        }
+        startActivity(intent)
+        finish()
+    }
 
     private fun addPulsatingEffectToBorder() {
         val container = findViewById<FrameLayout>(R.id.btn_google_sign_in_container)
@@ -279,22 +305,9 @@ class LoginActivity : AppCompatActivity() {
         animator.start()
     }
 
-    private fun obtenerDrawablePorNombre(nombre: String): Int {
-        val drawableId = resources.getIdentifier(nombre, "drawable", packageName)
-        if (drawableId == 0) {
-            Log.e("DrawableVerification", "Drawable no encontrado para: $nombre. Usando default_cover.")
-            return R.drawable.portada_elcamino
-        }
-        return drawableId
-    }
-
-    /**
-     * Carga los libros desde el JSON correspondiente y configura las animaciones.
-     * @param languageCode El código del idioma actual ("en" o "es").
-     */
     private fun cargarLibrosYConfigurarAnimaciones(languageCode: String) {
         lifecycleScope.launch(Dispatchers.IO) {
-            val libros = jsonHandler.cargarLibrosDesdeJson(languageCode)
+            val libros = jsonHandler.cargarLibrosDesdeJson(languageCode,"") // Daigual en este caso el userId
             if (libros.isNotEmpty()) {
                 withContext(Dispatchers.Main) {
                     setupBookAnimations(libros)
@@ -307,13 +320,6 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
-
-
-    /**
-     * Configura las animaciones de las portadas de libros.
-     * @param libros La lista de libros a animar.
-     */
     private fun setupBookAnimations(libros: List<Libro>) {
         Log.d("LoginActivity", "setupBookAnimations llamado con ${libros.size} libros.")
         bookContainer.post {
@@ -331,10 +337,9 @@ class LoginActivity : AppCompatActivity() {
                         bookCover.layoutParams = params
                         bookCover.visibility = View.INVISIBLE
                         bookCover.setBackgroundResource(R.drawable.book_init_border)
-                        bookCover.setPadding(2, 2, 2, 2) // Ajusta los valores para dar espacio al marco
+                        bookCover.setPadding(2, 2, 2, 2)
                         bookContainer.addView(bookCover)
 
-                        // Configura la animación de cada libro
                         animateBookCover(bookCover, containerWidth, containerHeight, index)
                     } else {
                         Log.e("LoginActivity", "No se encontró la portada: ${libro.nombrePortada}")
@@ -346,106 +351,59 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
     private fun animateBookCover(
         bookCover: ImageView,
         containerWidth: Float,
         containerHeight: Float,
         index: Int
     ) {
-        // Posiciones iniciales y finales
-
         val valorA = (Random.nextFloat() * 0.5f) + 0.2f
         val startY = containerHeight
         val endY = containerHeight * valorA
         val bound = (containerWidth - 200).toInt()
         val startX = if (bound > 0) Random.nextInt(bound).toFloat() else 0f
 
-        // Configuración inicial
         bookCover.x = startX
         bookCover.y = startY
 
-        // Animación de movimiento hacia arriba
         val translateY = ObjectAnimator.ofFloat(bookCover, "y", startY, endY).apply {
             duration = 6000
             interpolator = DecelerateInterpolator()
         }
 
-        // Animación de desvanecimiento
         val fadeOut = ObjectAnimator.ofFloat(bookCover, "alpha", 1f, 0f).apply {
             duration = 500
             startDelay = 1500
         }
 
-        // Combinar animaciones
         val animatorSet = AnimatorSet()
         animatorSet.playTogether(translateY, fadeOut)
-        animatorSet.startDelay = (Random.nextInt(3500) + 2000).toLong() // Inicio de las animaciones - Retraso aleatorio entre 2 y 5.5 segundos
+        animatorSet.startDelay = (Random.nextInt(3500) + 2000).toLong()
         animatorSet.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator) {
                 bookCover.visibility = View.VISIBLE
             }
 
             override fun onAnimationEnd(animation: Animator) {
-                // Reinicia la posición y la alpha
                 val validBound = (containerWidth - 200).coerceAtLeast(0f).toInt()
                 val newStartX = if (validBound > 0) Random.nextInt(validBound).toFloat() else 0f
                 bookCover.x = newStartX
                 bookCover.y = startY
                 bookCover.alpha = 1f
-                animatorSet.start() // Reinicia la animación
+                animatorSet.start()
             }
         })
 
         animatorSet.start()
     }
 
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == RC_SIGN_IN) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                handleSignInResult(account)
-            } catch (e: ApiException) {
-                Log.e("LoginActivity", "SignInResult: failed code=" + e.statusCode)
-                Toast.makeText(this, getString(R.string.error_iniciar_sesion, e.localizedMessage), Toast.LENGTH_SHORT).show()
-            }
+    private fun obtenerDrawablePorNombre(nombre: String): Int {
+        val drawableId = resources.getIdentifier(nombre, "drawable", packageName)
+        if (drawableId == 0) {
+            Log.e("DrawableVerification", "Drawable no encontrado para: $nombre. Usando default_cover.")
+            return R.drawable.portada_elcamino
         }
-    }
-
-    private fun handleSignInResult(account: GoogleSignInAccount?) {
-        if (account != null) {
-            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-            auth.signInWithCredential(credential)
-                .addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        val user = auth.currentUser
-                        if (user != null) {
-                            val userId = user.uid
-                            // Sincronizar datos con Firestore
-                            lifecycleScope.launch {
-                                repository.synchronizeData(userId)
-                                Log.d("LoginActivity", "Sincronización de datos completada exitosamente.")
-                            }
-                            // Escuchar actualizaciones en tiempo real (opcional)
-                            repository.listenForFirestoreUpdates(userId)
-                            Log.d("LoginActivity", "Listeners para Firestore establecidos correctamente.")
-                        }
-                        val welcomeMessage = getString(R.string.bienvenido_inicio, account.displayName)
-                        Toast.makeText(this, welcomeMessage, Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this, MapaInteractivoActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        // Manejar fallos en el inicio de sesión
-                        Log.e("LoginActivity", "signInWithCredential:failure", task.exception)
-                        Toast.makeText(this, getString(R.string.error_iniciar_sesion), Toast.LENGTH_SHORT).show()
-                    }
-                }
-        }
+        return drawableId
     }
 
     private fun verificarTextoGoogleSignIn(googleSignInButton: View) {
@@ -462,12 +420,26 @@ class LoginActivity : AppCompatActivity() {
                         else -> "  Sign in          "
                     }
 
-                    child.text = customText // Cambiar manualmente el texto
+                    child.text = customText
                     Log.d("LoginActivity", "Texto forzado del botón Google Sign-In: $customText")
                 }
             }
         } else {
             Log.e("LoginActivity", "El botón de Google Sign-In no es del tipo esperado.")
+        }
+    }
+
+    private fun registrarUsuarioEnRoom(userId: String, nombre: String?, email: String?, esInvitado: Boolean) {
+        val usuarioDao = AppDatabase.getDatabase(applicationContext, lifecycleScope).usuarioDao()
+        val nuevoUsuario = Usuario(
+            id = userId,
+            nombre = nombre,
+            email = email,
+            esInvitado = esInvitado
+        )
+
+        lifecycleScope.launch {
+            usuarioDao.insertarUsuario(nuevoUsuario)
         }
     }
 

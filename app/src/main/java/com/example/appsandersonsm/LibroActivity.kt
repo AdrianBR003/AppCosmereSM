@@ -32,6 +32,7 @@ class LibroActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var ratingBar: RatingBar
     private var idLibro: Int = 0
+    private var userId = ""
 
     // ViewModel para gestionar los datos de libros
     private val libroViewModel: LibroViewModel by viewModels {
@@ -43,6 +44,10 @@ class LibroActivity : AppCompatActivity() {
         setContentView(R.layout.activity_libros)
 
         supportActionBar?.hide() // Ocultar la barra superior
+
+        // Coger el ID del Intent del Login
+        userId = intent.getStringExtra("USER_ID") ?: ""
+
 
         // Intent
         idLibro = intent.getIntExtra("LIBRO_ID", 0)
@@ -98,12 +103,12 @@ class LibroActivity : AppCompatActivity() {
         val jsonHandler = JsonHandler(this, (application as InitApplication).database.libroDao())
 
         // Llamar a la función del ViewModel para actualizar la localización
-        libroViewModel.updateLocalizacion(languageCode, jsonHandler)
+        libroViewModel.updateLocalizacion(languageCode, jsonHandler, userId)
     }
 
     private fun observarDatos() {
         // Observar la lista de libros
-        libroViewModel.allLibros.observe(this) { libros ->
+        libroViewModel.getAllLibrosByUsuario(userId).observe(this) { libros ->
             if (!libros.isNullOrEmpty()) {
                 configurarSpinnerSagas(libros.map { it.nombreSaga })
                 filtrarLibros(libros)
@@ -121,7 +126,7 @@ class LibroActivity : AppCompatActivity() {
                 position: Int,
                 id: Long
             ) {
-                libroViewModel.allLibros.value?.let { filtrarLibros(it) }
+                libroViewModel.getAllLibrosByUsuario(userId).value?.let { filtrarLibros(it) }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -134,7 +139,7 @@ class LibroActivity : AppCompatActivity() {
                 position: Int,
                 id: Long
             ) {
-                libroViewModel.allLibros.value?.let { filtrarLibros(it) }
+                libroViewModel.getAllLibrosByUsuario(userId).value?.let { filtrarLibros(it) }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}

@@ -6,15 +6,19 @@ import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.appsandersonsm.Dao.LibroDao
 import com.example.appsandersonsm.Dao.NotaDao
+import com.example.appsandersonsm.Dao.UsuarioDao
+import com.example.appsandersonsm.InitApplication
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Modelo.Nota
+import com.example.appsandersonsm.Modelo.Usuario
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [Libro::class, Nota::class], version = 2, exportSchema = false)
+@Database(entities = [Libro::class, Nota::class, Usuario::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
+    abstract fun usuarioDao(): UsuarioDao
     abstract fun libroDao(): LibroDao
     abstract fun notaDao(): NotaDao
 
@@ -31,6 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_database"
                 ).build()
+                Log.d("RoomDatabase", "Base de datos creada con éxito")
                 INSTANCE = instance
                 instance
             }
@@ -39,22 +44,25 @@ abstract class AppDatabase : RoomDatabase() {
 
     private class AppDatabaseCallback(
         private val context: Context,
-        private val scope: CoroutineScope
+        private val scope: CoroutineScope,
+        private val userId: String
     ) : RoomDatabase.Callback() {
 
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             INSTANCE?.let { database ->
                 scope.launch(Dispatchers.IO) {
-                    populateDatabase(database.libroDao(), context)
+                    populateDatabase(database.libroDao(), context, userId)
                 }
             }
         }
 
-        private suspend fun populateDatabase(libroDao: LibroDao, context: Context) {
+
+        private suspend fun populateDatabase(libroDao: LibroDao, context: Context, userId: String) {
             // Carga datos desde un archivo JSON en el idioma predeterminado (español)
             val jsonHandler = JsonHandler(context, libroDao)
-            jsonHandler.cargarDatosIniciales()
+            jsonHandler.cargarDatosIniciales(userId) // Pasar userId al cargar los datos
+            Log.d("AppDatabase", "Datos iniciales cargados para userId: $userId")
         }
     }
 }

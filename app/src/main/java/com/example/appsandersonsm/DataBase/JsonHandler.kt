@@ -12,8 +12,7 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
     private val fileNameEs = "libros.json"
     private val fileNameEn = "libros_en.json"
 
-
-    fun cargarLibrosDesdeJson(languageCode: String): List<Libro> {
+    fun cargarLibrosDesdeJson(languageCode: String, userId: String): List<Libro> {
         val fileName = if (languageCode == "en") fileNameEn else fileNameEs
         val libros = mutableListOf<Libro>()
         val jsonString = leerJsonDesdeAssets(fileName)
@@ -34,7 +33,8 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
                         sinopsis = jsonObject.optString("sinopsis", "Sinopsis no disponible"),
                         valoracion = jsonObject.optDouble("valoracion", 0.0).toFloat(),
                         numeroNotas = jsonObject.optInt("nNotas", 0),
-                        empezarLeer = jsonObject.optBoolean("empezarLeer", false)
+                        empezarLeer = jsonObject.optBoolean("empezarLeer", false),
+                        userId = userId // Asociar con el usuario
                     )
                     libros.add(libro)
                 }
@@ -47,9 +47,9 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
     }
 
     /**
-     * Carga los datos iniciales desde el archivo JSON en español.
+     * Carga los datos iniciales desde el archivo JSON en español para un usuario específico.
      */
-    suspend fun cargarDatosIniciales() {
+    suspend fun cargarDatosIniciales(userId: String) {
         val jsonString = leerJsonDesdeAssets(fileNameEs)
 
         if (jsonString != null) {
@@ -69,12 +69,13 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
                         sinopsis = jsonObject.optString("sinopsis", "Sinopsis no disponible"),
                         valoracion = jsonObject.optDouble("valoracion", 0.0).toFloat(),
                         numeroNotas = jsonObject.optInt("nNotas", 0),
-                        empezarLeer = jsonObject.optBoolean("empezarLeer", false)
+                        empezarLeer = jsonObject.optBoolean("empezarLeer", false),
+                        userId = userId // Asociar con el usuario
                     )
                     libros.add(libro)
                 }
                 libroDao.insertLibros(libros)
-                Log.d("JsonHandler", "Libros iniciales cargados.")
+                Log.d("JsonHandler", "Libros iniciales cargados para el usuario: $userId")
             } catch (e: Exception) {
                 e.printStackTrace()
                 Log.e("JsonHandler", "Error al parsear JSON inicial: ${e.message}")
@@ -87,7 +88,7 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
     /**
      * Carga y actualiza los campos localizados desde el archivo JSON correspondiente.
      */
-    suspend fun actualizarLocalizacionIdioma(languageCode: String) {
+    suspend fun actualizarLocalizacionIdioma(languageCode: String, userId: String) {
         val fileName = if (languageCode == "en") fileNameEn else fileNameEs
         val jsonString = leerJsonDesdeAssets(fileName)
 
@@ -105,8 +106,8 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
                     val sinopsis = jsonObject.getString("sinopsis")
 
                     // Actualiza los campos localizados
-                    libroDao.updateLibroLocalization(id, nombreLibro, nombreSaga, sinopsis)
-                    Log.d("JsonHandler", "Libro actualizado ID: $id")
+                    libroDao.updateLibroLocalization(id, nombreLibro, nombreSaga, sinopsis, userId)
+                    Log.d("JsonHandler", "Libro actualizado ID: $id para el usuario: $userId")
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

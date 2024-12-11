@@ -12,40 +12,42 @@ import kotlinx.coroutines.withContext
 
 class NotaRepository(private val notaDao: NotaDao) {
 
-    val notas: LiveData<List<Nota>> = notaDao.getAllNotas()
-
-    suspend fun actualizarFechaModificacion(notaId: Int, nuevaFecha: String) {
-        notaDao.actualizarFechaModificacion(notaId, nuevaFecha)
+    fun getAllNotasByUsuario(userId: String): LiveData<List<Nota>> {
+        return notaDao.getAllNotasByUsuario(userId)
     }
 
-    suspend fun insertarNotasEstaticasSiTablaVacia(notasEstaticas: List<Nota>, libroId: Int) {
+    suspend fun actualizarFechaModificacion(notaId: Int, nuevaFecha: String, userId: String) {
+        notaDao.actualizarFechaModificacion(notaId, nuevaFecha, userId)
+    }
+
+    suspend fun insertarNotasEstaticasSiTablaVacia(notasEstaticas: List<Nota>, libroId: Int, userId: String) {
         withContext(Dispatchers.IO) {
-            notaDao.insertarNotasSiTablaVaciaTransaccion(notasEstaticas, libroId)
+            notaDao.insertarNotasSiTablaVaciaTransaccion(notasEstaticas, libroId, userId)
         }
     }
 
-    suspend fun eliminarNotaPorId(idNota: Int) {
-           notaDao.eliminarNotaPorId(idNota)
+    suspend fun eliminarNotaPorId(idNota: Int, userId: String) {
+        notaDao.eliminarNotaPorId(idNota, userId)
     }
 
-    fun contarNotasPorLibro(libroId: Int): LiveData<Int> {
-        return notaDao.contarNotasPorLibro(libroId)
+    fun contarNotasPorLibro(libroId: Int, userId: String): LiveData<Int> {
+        return notaDao.contarNotasPorLibro(libroId, userId)
     }
 
     suspend fun insertOrUpdateNota(nota: Nota) {
         notaDao.insertOrUpdateNota(nota)
     }
 
-    fun getNotaById(id: Int): LiveData<Nota> {
-        return notaDao.getNotaById(id)
+    fun getNotaById(id: Int, userId: String): LiveData<Nota> {
+        return notaDao.getNotaById(id, userId)
     }
 
-    fun getNotasByLibroId(libroId: Int): Flow<List<Nota>> {
-        return notaDao.getNotasByLibroId(libroId)
+    fun getNotasByLibroId(libroId: Int, userId: String): Flow<List<Nota>> {
+        return notaDao.getNotasByLibroId(libroId, userId)
     }
 
-    fun getNotasPorLibro(libroId: Int): Flow<List<Nota>> {
-        return notaDao.getNotasPorLibro(libroId)
+    fun getNotasPorLibro(libroId: Int, userId: String): Flow<List<Nota>> {
+        return notaDao.getNotasPorLibro(libroId, userId)
     }
 
     suspend fun updateNota(nota: Nota) {
@@ -55,4 +57,5 @@ class NotaRepository(private val notaDao: NotaDao) {
     suspend fun deleteNota(nota: Nota) {
         notaDao.deleteNota(nota)
     }
+
 }

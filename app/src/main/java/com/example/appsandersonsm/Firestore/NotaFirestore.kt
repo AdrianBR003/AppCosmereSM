@@ -16,7 +16,8 @@ data class NotaFirestore(
             titulo = titulo,
             contenido = contenido,
             fechaCreacion = fechaCreacion,
-            fechaModificacion = fechaModificacion
+            fechaModificacion = fechaModificacion,
+            userId = ""
         )
     }
 

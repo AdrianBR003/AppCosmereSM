@@ -24,10 +24,16 @@ class EditarNotaActivity : AppCompatActivity() {
     private var notaId: Int = 0
     private lateinit var notaViewModel: NotaViewModel
     private var nota: Nota? = null
+    private var userId = ""
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_editar_nota)
+
+        // Coger el ID del Intent del Login
+        userId = intent.getStringExtra("USER_ID") ?: ""
+
 
         // Inicializar vistas
         editTextTitulo = findViewById(R.id.editTextTitulo)
@@ -43,7 +49,7 @@ class EditarNotaActivity : AppCompatActivity() {
         notaId = intent.getIntExtra("NOTA_ID", 0)
 
         // Cargar la nota desde la base de datos
-        notaViewModel.getNotaById(notaId).observe(this) { nota ->
+        notaViewModel.getNotaById(notaId, userId).observe(this) { nota ->
             if (nota != null) {
                 this.nota = nota
                 editTextTitulo.setText(nota.titulo)
@@ -110,7 +116,7 @@ class EditarNotaActivity : AppCompatActivity() {
     }
 
     private fun eliminarNotaPorId(idNota: Int) {
-        notaViewModel.eliminarNotaPorId(idNota)
+        notaViewModel.eliminarNotaPorId(idNota, userId)
 
         // Opcional: Mostrar un mensaje al usuario
         Toast.makeText(this, "Nota eliminada", Toast.LENGTH_SHORT).show()

@@ -61,7 +61,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private lateinit var arrowOverlayView: ArrowOverlayView
 
     private var isLeyendaVisible = false
-
+    private var userId = ""
     // Lista para guardar las animaciones y poder gestionarlas
     private val animators = mutableListOf<ValueAnimator>()
 
@@ -99,6 +99,9 @@ class MapaInteractivoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_mapa_interactivo)
         supportActionBar?.hide() // Ocultar la barra de acción predeterminada
 
+        // Coger el ID del Intent del Login
+        userId = intent.getStringExtra("USER_ID") ?: ""
+
         // Antes de observar los libros, cargar el JSON adecuado
         val idiomaActual = Locale.getDefault().language // Devuelve "es", "en", etc.
         val nombreArchivoJson = when (idiomaActual) {
@@ -109,7 +112,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
         cargarLibrosSiEsNecesario(nombreArchivoJson)
 
         // Ahora inicializa el ViewModel y observa los datos como de costumbre
-        libroViewModel.allLibros.observe(this, Observer { libros ->
+        libroViewModel.getAllLibrosByUsuario(userId).observe(this, Observer { libros ->
             if (libros != null) {
                 listaLibros = libros
                 inicializarMarcadores()
@@ -146,7 +149,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
             }
         })
 
-        libroViewModel.allLibros.observe(this, Observer { libros ->
+        libroViewModel.getAllLibrosByUsuario(userId).observe(this, Observer { libros ->
             if (libros != null) {
                 listaLibros = libros
                 if (photoView.viewTreeObserver.isAlive) {
@@ -167,7 +170,9 @@ class MapaInteractivoActivity : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_settings -> {
-                    startActivity(Intent(this, AjustesActivity::class.java))
+                    val intent = Intent(this, AjustesActivity::class.java)
+                    intent.putExtra("USER_ID", userId)
+                    startActivity(intent)
                     true
                 }
 
@@ -177,7 +182,9 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 }
 
                 R.id.nav_book -> {
-                    startActivity(Intent(this, LibroActivity::class.java))
+                    val intent = Intent(this, LibroActivity::class.java)
+                    intent.putExtra("USER_ID", userId)
+                    startActivity(intent)
                     true
                 }
 
@@ -189,7 +196,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
         arrowOverlayView.relaciones = relacionesCronologicas
 
         // Observa los datos de libros desde el ViewModel
-        libroViewModel.allLibros.observe(this, Observer { libros ->
+        libroViewModel.getAllLibrosByUsuario(userId).observe(this, Observer { libros ->
             if (libros != null) {
                 listaLibros = libros
                 // Solo inicializar los marcadores si el ViewTreeObserver ya se ejecutó
@@ -440,6 +447,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private fun abrirDetallesLibro(libroId: Int) {
         val intent = Intent(this, DetallesLibroActivity::class.java)
         intent.putExtra("LIBRO_ID", libroId)
+        intent.putExtra("USER_ID", userId)
         Log.d("MapaInteractivo", "Intent: $intent")
         Log.d("MapaInteractivo", "Extras: ${intent?.extras}")
         startActivity(intent)
@@ -449,7 +457,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 // Verificar si la base de datos está vacía
-                val librosEnDb = libroViewModel.allLibros.value
+                val librosEnDb = libroViewModel.getAllLibrosByUsuario(userId).value
                 if (librosEnDb.isNullOrEmpty()) {
                     // Leer el JSON y cargarlo
                     val inputStream = assets.open(nombreArchivoJson)

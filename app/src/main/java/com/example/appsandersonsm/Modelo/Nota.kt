@@ -23,7 +23,6 @@ import java.util.Locale
  *
  */
 
-
 @Entity(
     tableName = "notas",
     foreignKeys = [
@@ -31,14 +30,21 @@ import java.util.Locale
             entity = Libro::class,
             parentColumns = ["id"], // Clave primaria de "libros"
             childColumns = ["libroId"], // Clave foránea en "notas"
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE // Elimina las notas si el libro se elimina
+        ),
+        ForeignKey(
+            entity = Usuario::class,
+            parentColumns = ["id"], // Clave primaria de "usuarios"
+            childColumns = ["userId"], // Clave foránea en "notas"
+            onDelete = ForeignKey.CASCADE // Elimina las notas si el usuario se elimina
         )
     ],
-    indices = [Index(value = ["libroId"])]
+    indices = [Index(value = ["libroId"]), Index(value = ["userId"])] // Índices para optimizar consultas
 )
 data class Nota(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val libroId: Int, // Debe coincidir con el tipo de "id" en "libros"
+    val libroId: Int, // Relación con "libros"
+    val userId: String, // Relación con "usuarios"
     var titulo: String,
     var contenido: String,
     val fechaCreacion: String = obtenerFechaActual(),
@@ -54,6 +60,7 @@ data class Nota(
         )
     }
 }
+
 
 fun obtenerFechaActual(): String {
     val formatoFecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())

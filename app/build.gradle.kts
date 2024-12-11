@@ -71,9 +71,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx.v261)
+    implementation(libs.androidx.room.ktx)
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-
 
 
 
@@ -86,6 +86,8 @@ dependencies {
     // Firebase y Google Sign-In
     implementation(libs.firebase.auth.ktx) // Se gestiona a través de Firebase BOM
     implementation(libs.play.services.auth) // Verifica la versión correcta
+    implementation (libs.firebase.bom.v3220)// Actualiza a la última versión
+    implementation (libs.google.firebase.firestore.ktx)
 
     // Otras dependencias
     implementation(libs.play.services.auth)

@@ -79,7 +79,7 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var toggleButtonText: TextView
     private var isEN: Boolean = false // Estado inicial: ES
     private var isChangingLanguage: Boolean = false
-
+    private var userId = ""
     val defaultLanguage = Locale.getDefault().language.takeIf { it == "es" || it == "en" } ?: "es"
 
     // Usar LibroViewModel existente
@@ -104,6 +104,10 @@ class AjustesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState) // Llamada a super.onCreate()
         setContentView(R.layout.activity_ajustes)
+
+        // Coger el ID del Intent del Login
+        userId = intent.getStringExtra("USER_ID") ?: ""
+
 
         // Inicializar vistas y componentes
         initViews()
@@ -215,9 +219,14 @@ class AjustesActivity : AppCompatActivity() {
     private fun signOut() {
         // Cerrar sesión en Google
         googleSignInClient.signOut().addOnCompleteListener(this) {
-            // Restablecer el valor de isLoginSkipped en SharedPreferences
+            // Restablecer las preferencias de sesión en SharedPreferences
             val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-            sharedPreferences.edit().putBoolean("isLoginSkipped", false).apply()
+            sharedPreferences.edit().apply {
+                putBoolean("isLoginSkipped", false)
+                putBoolean("IS_LOGGED_IN", false) // Marcar como no logueado
+                remove("USER_ID") // Eliminar el identificador del usuario
+                apply()
+            }
 
             // Mostrar mensaje de confirmación
             Toast.makeText(this, "Has cerrado sesión", Toast.LENGTH_SHORT).show()
@@ -230,9 +239,10 @@ class AjustesActivity : AppCompatActivity() {
         }
     }
 
+
     private fun observarDatos() {
         // Observa los libros desde el ViewModel
-        libroViewModel.allLibros.observe(this) { libros ->
+        libroViewModel.getAllLibrosByUsuario(userId = userId).observe(this) { libros ->
             // Filtra los libros terminados (progreso == totalPaginas y totalPaginas > 0)
             val librosTerminados = libros.filter { it.progreso == it.totalPaginas && it.totalPaginas > 0 }
             val totalPaginasLeidas = librosTerminados.sumOf { it.progreso }
@@ -480,7 +490,7 @@ class AjustesActivity : AppCompatActivity() {
                         val database = AppDatabase.getDatabase(applicationContext, CoroutineScope(Dispatchers.IO))
                         val jsonHandler = JsonHandler(applicationContext, database.libroDao())
 
-                        libroViewModel.updateLocalizacion(newLanguage, jsonHandler)
+                        libroViewModel.updateLocalizacion(newLanguage, jsonHandler, userId)
 
                         withContext(Dispatchers.Main) {
                             // Aplicar el nuevo idioma y recrear la actividad

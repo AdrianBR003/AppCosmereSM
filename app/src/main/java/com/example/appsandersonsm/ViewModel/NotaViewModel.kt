@@ -14,22 +14,19 @@ import java.util.Locale
 
 class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
 
+    fun getAllNotasByUsuario(userId: String): LiveData<List<Nota>> {
+        return repository.getAllNotasByUsuario(userId)
+    }
 
-
-    private val _notas = MutableLiveData<List<Nota>>()
-    val notas: LiveData<List<Nota>> = repository.notas
-
-
-
-    fun eliminarNotaPorId(idNota: Int) {
+    fun eliminarNotaPorId(idNota: Int, userId: String) {
         viewModelScope.launch {
-            repository.eliminarNotaPorId(idNota)
+            repository.eliminarNotaPorId(idNota, userId)
         }
     }
 
-    fun insertarNotasEstaticasSiVacia(notasEstaticas: List<Nota>, idLibro: Int) {
+    fun insertarNotasEstaticasSiVacia(notasEstaticas: List<Nota>, libroId: Int, userId: String) {
         viewModelScope.launch {
-            repository.insertarNotasEstaticasSiTablaVacia(notasEstaticas, idLibro)
+            repository.insertarNotasEstaticasSiTablaVacia(notasEstaticas, libroId, userId)
         }
     }
 
@@ -39,41 +36,25 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
         }
     }
 
-    private fun obtenerFechaActual(): String {
-        val formatoFecha = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        return formatoFecha.format(Date())
+    fun getNotaById(id: Int, userId: String): LiveData<Nota> {
+        return repository.getNotaById(id, userId)
     }
 
-    fun getNotaById(id: Int): LiveData<Nota> {
-        return repository.getNotaById(id)
-    }
-
-    fun getNotasByLibroId(libroId: Int): LiveData<List<Nota>> {
-        return repository.getNotasByLibroId(libroId).asLiveData()
+    fun getNotasByLibroId(libroId: Int, userId: String): LiveData<List<Nota>> {
+        return repository.getNotasByLibroId(libroId, userId).asLiveData()
     }
 
     fun updateNota(nota: Nota) = viewModelScope.launch {
         repository.updateNota(nota)
     }
 
-    fun addNota(nota: Nota) {
-        val currentNotas = _notas.value?.toMutableList() ?: mutableListOf()
-        currentNotas.add(nota)
-        _notas.value = currentNotas
-
-        Log.d("NotaViewModel", "Nueva nota añadida: $nota")
+    fun contarNotasPorLibro(libroId: Int, userId: String): LiveData<Int> {
+        return repository.contarNotasPorLibro(libroId, userId)
     }
-
-
-
-    fun contarNotasPorLibro(libroId: Int): LiveData<Int> {
-        return repository.contarNotasPorLibro(libroId)
-    }
-
+    
 
     // Factory para el ViewModel
-    class NotaViewModelFactory(private val repository: NotaRepository) :
-        ViewModelProvider.Factory {
+    class NotaViewModelFactory(private val repository: NotaRepository) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(NotaViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
@@ -82,7 +63,4 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
             throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
-
 }
-
-

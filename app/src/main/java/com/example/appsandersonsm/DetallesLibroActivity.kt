@@ -22,6 +22,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -32,6 +33,7 @@ import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.example.appsandersonsm.ViewModel.NotaViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.launch
 
 class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListener {
 
@@ -55,6 +57,8 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private var idLibro: Int = 0
     private var isExpanded = false // Variable para gestionar el estado expandido/colapsado
     private var contadorNotas: Int = 3 // Empezamos con 3 notas estáticas
+    private var userId = "";
+
 
     private val languageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -69,6 +73,10 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         super.onCreate(savedInstanceState)
         Log.d("DetallesLibroActivity", "Application context: $applicationContext")
         setContentView(R.layout.activity_detalles_libro)
+
+        // Coger el ID del Intent del Login
+        userId = intent.getStringExtra("USER_ID") ?: ""
+
 
         // Inicializar ViewModel después de que la actividad esté completamente creada
         notaViewModel = ViewModelProvider(
@@ -141,6 +149,17 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     override fun onPause() {
         super.onPause()
         LocalBroadcastManager.getInstance(this).unregisterReceiver(languageChangeReceiver)
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        // Guardar los datos en la nube
+        libro?.let { libroActualizado ->
+            lifecycleScope.launch {
+                guardarDatosEnLaNube(libroActualizado)
+            }
+        }
     }
 
     private fun inicializarViewModels() {
@@ -268,7 +287,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         })
 
         ratingBarValoracion.setOnRatingBarChangeListener { _, rating, _ ->
-            libro?.let { libroViewModel.actualizarValoracion(it.id, rating) }
+            libro?.let { libroViewModel.actualizarValoracion(it.id, rating,userId) }
         }
     }
 
@@ -290,13 +309,13 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     }
 
     private fun contarNotas(libroId: Int, callback: (Int) -> Unit) {
-        notaViewModel.contarNotasPorLibro(libroId).observe(this) { numeroNotas ->
+        notaViewModel.contarNotasPorLibro(libroId,userId).observe(this) { numeroNotas ->
             callback(numeroNotas ?: 0)
         }
     }
 
     private fun cargarDatosLibro(libroId: Int, callback: (Libro?) -> Unit) {
-        libroViewModel.getLibroById(libroId).observe(this) { libroCargado ->
+        libroViewModel.getLibroByIdAndUsuario(libroId,userId).observe(this) { libroCargado ->
             if (libroCargado == null) {
                 Log.e(
                     "DetallesLibroActivity",
@@ -365,16 +384,16 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
     private fun insertarNotasEstaticasSiNecesario() {
         val notasEstaticas = listOf(
-            Nota(libroId = idLibro, titulo = "Nota 1", contenido = "Contenido de la nota 1"),
-            Nota(libroId = idLibro, titulo = "Nota 2", contenido = "Contenido de la nota 2"),
-            Nota(libroId = idLibro, titulo = "Nota 3", contenido = "Contenido de la nota 3")
+            Nota(libroId = idLibro, userId = userId, titulo = "Nota 1", contenido = "Contenido de la nota 1"),
+            Nota(libroId = idLibro, userId = userId, titulo = "Nota 2", contenido = "Contenido de la nota 2"),
+            Nota(libroId = idLibro, userId = userId,titulo = "Nota 3", contenido = "Contenido de la nota 3")
         )
 
-        notaViewModel.insertarNotasEstaticasSiVacia(notasEstaticas, idLibro)
+        notaViewModel.insertarNotasEstaticasSiVacia(notasEstaticas, idLibro, userId)
     }
 
     private fun observarNotas() {
-        notaViewModel.getNotasByLibroId(idLibro).observe(this) { notas ->
+        notaViewModel.getNotasByLibroId(idLibro, userId = userId).observe(this) { notas ->
             Log.d(
                 "DetallesLibroActivity",
                 "Notas cargadas desde ViewModel: $notas"
@@ -389,6 +408,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
         val nuevaNota = Nota(
             libroId = idLibro,
+            userId = userId,
             titulo = "Nota $contadorNotas",
             contenido = "Contenido de la nota $contadorNotas"
         )
@@ -399,5 +419,15 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         // Opcional: Mostrar un mensaje al usuario (ejemplo, Toast)
         Toast.makeText(this, "Nota $contadorNotas añadida", Toast.LENGTH_SHORT).show()
     }
+
+    private suspend fun guardarDatosEnLaNube(libro: Libro) {
+        try {
+            libroViewModel.guardarLibroEnLaNube(libro)
+            Log.d("DetallesLibroActivity", "Datos guardados en la nube correctamente.")
+        } catch (e: Exception) {
+            Log.e("DetallesLibroActivity", "Error al guardar datos en la nube: ${e.localizedMessage}")
+        }
+    }
+
 }
 
