@@ -60,4 +60,7 @@ interface LibroDao {
 
     @Query("UPDATE libros SET valoracion = :valoracion WHERE id = :libroId AND userId = :userId")
     suspend fun actualizarValoracion(libroId: Int, valoracion: Float, userId: String)
+
+    @Query("DELETE FROM libros")
+    suspend fun deleteAllLibros()
 }

@@ -9,12 +9,27 @@ import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Repository.LibroRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
 
     fun getAllLibrosByUsuario(userId: String): LiveData<List<Libro>> {
         return repository.getAllLibrosByUsuario(userId).asLiveData()
+    }
+
+    /**
+     * Método para borrar todos los libros de la base de datos.
+     */
+    fun clearAllBooks() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.deleteAllLibros()
+                // Acciones post-eliminación si son necesarias
+            } catch (e: Exception) {
+                Log.e("YourViewModel", "Error al borrar todos los libros: ${e.message}")
+            }
+        }
     }
 
     fun getAllSagasByUsuario(userId: String): LiveData<List<String>> {

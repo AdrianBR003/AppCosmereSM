@@ -16,6 +16,11 @@ class LibroRepository(private val libroDao: LibroDao) {
         return libroDao.getAllSagasPorUsuario(userId)
     }
 
+    suspend fun deleteAllLibros(): Unit {
+        return libroDao.deleteAllLibros()
+    }
+
+
     fun getLibrosBySagaAndUsuario(nombreSaga: String, userId: String): Flow<List<Libro>> {
         return libroDao.getLibrosBySagaAndUsuario(nombreSaga, userId)
     }

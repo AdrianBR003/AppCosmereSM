@@ -19,18 +19,18 @@ import com.example.appsandersonsm.Firestore.LibroFirestore
     indices = [Index(value = ["userId"])] // Índice para mejorar la consulta por usuario
 )
 data class Libro(
-    @PrimaryKey(autoGenerate = true) val id: Int,
-    val nombreLibro: String,
-    val nombreSaga: String,
-    val nombrePortada: String?,
-    var progreso: Int,
-    var totalPaginas: Int,
-    var inicialSaga: Boolean,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val nombreLibro: String = "",
+    val nombreSaga: String = "",
+    val nombrePortada: String? = null,
+    var progreso: Int = 0,
+    var totalPaginas: Int = 0,
+    var inicialSaga: Boolean = false,
     var sinopsis: String? = "",
     var valoracion: Float = 0.0f,
     var numeroNotas: Int = 0,
-    var empezarLeer: Boolean,
-    val userId: String // Relación con la tabla "usuarios"
+    var empezarLeer: Boolean = false,
+    val userId: String = "" // Relación con la tabla "usuarios"
 ) {
     fun toFirestore(): LibroFirestore {
         return LibroFirestore(
@@ -40,4 +40,3 @@ data class Libro(
         )
     }
 }
-

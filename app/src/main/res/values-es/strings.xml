@@ -5,7 +5,7 @@
     <string name="mensajeInicioSesionInvitado">Inicio de Sesion como Invitado</string>
     <string name="espanol">ES</string>
     <string name="ingles">EN</string>
-    <string name="error_iniciar_sesion">Error al iniciar sesión: %1$s</string>
+    <string name="error_iniciar_sesion">Error al iniciar sesión</string>
     <string name="bienvenido_inicio">Bienvenido, %1$s</string>
     <string name="iniciarS">Iniciar Sesion como Invitado</string>
 
@@ -61,10 +61,9 @@
     <string name="not_started_default">No empezados</string>
 
     <!-- Otros -->
-    <string name="error_sincronizacion">synchronization error</string>
     <string name="app_name">AppSandersonSM</string>
     <string name="title_activity_login" translatable="false">LoginActivity</string>
-    <string name="default_web_client_id" translatable="false">592736434825-l422ecmildqh7i7cn1i0mcnf4ae5mqfs.apps.googleusercontent.com</string>
+    <string name="error_sincronizacion">Error de Sincronizacion\n</string>
 
 
 </resources>

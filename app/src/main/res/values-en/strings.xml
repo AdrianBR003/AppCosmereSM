@@ -29,7 +29,7 @@
 
     <string name="espanol">ES</string>
     <string name="ingles">EN</string>
-    <string name="error_iniciar_sesion">Sign-in error: %1$s</string>
+    <string name="error_iniciar_sesion">Sign-in error</string>
     <string name="bienvenido_inicio">Welcome, %1$s</string>
 
     <string name="spinner_leido_all">All</string>
@@ -43,6 +43,7 @@
     <string name="read_default">Read</string>
     <string name="started_default">Started</string>
     <string name="not_started_default">Not Started</string>
+    <string name="error_sincronizacion">synchronization error</string>
 
 
 </resources>

@@ -24,6 +24,12 @@
         </activity>
 
         <activity
+            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <activity
             android:name=".LoginActivity"
             android:exported="true"
             tools:ignore="MissingClass"

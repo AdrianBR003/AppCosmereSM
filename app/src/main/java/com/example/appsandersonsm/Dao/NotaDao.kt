@@ -61,4 +61,6 @@ interface NotaDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateNota(nota: Nota)
+    @Query("DELETE FROM notas")
+    suspend fun deleteAllNotas()
 }

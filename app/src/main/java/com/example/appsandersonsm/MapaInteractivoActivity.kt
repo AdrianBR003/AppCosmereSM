@@ -24,6 +24,7 @@ import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -31,6 +32,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.example.appsandersonsm.Dao.LibroDao
+import com.example.appsandersonsm.Dao.NotaDao
+import com.example.appsandersonsm.Dao.UsuarioDao
 import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
@@ -38,6 +42,7 @@ import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
 import io.getstream.photoview.PhotoView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.Locale
@@ -59,7 +64,9 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private var listaLibros: List<Libro> = emptyList()
     private val markers = mutableListOf<ImageView>()
     private lateinit var arrowOverlayView: ArrowOverlayView
-
+    private lateinit var libroDao: LibroDao
+    private lateinit var notaDao: NotaDao
+    private lateinit var usuarioDao: UsuarioDao
     private var isLeyendaVisible = false
     private var userId = ""
     // Lista para guardar las animaciones y poder gestionarlas
@@ -99,8 +106,15 @@ class MapaInteractivoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_mapa_interactivo)
         supportActionBar?.hide() // Ocultar la barra de acción predeterminada
 
-        // Coger el ID del Intent del Login
+        // Obtener el ID del usuario desde el Intent
         userId = intent.getStringExtra("USER_ID") ?: ""
+
+        if (userId.isEmpty()) {
+            Log.e("MapaInteractivo", "userId está vacío. Finalizando actividad.")
+            Toast.makeText(this, "Error: ID de usuario no proporcionado.", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         // Antes de observar los libros, cargar el JSON adecuado
         val idiomaActual = Locale.getDefault().language // Devuelve "es", "en", etc.
@@ -111,7 +125,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
         cargarLibrosSiEsNecesario(nombreArchivoJson)
 
-        // Ahora inicializa el ViewModel y observa los datos como de costumbre
+        // Inicializa el ViewModel y observa los datos
         libroViewModel.getAllLibrosByUsuario(userId).observe(this, Observer { libros ->
             if (libros != null) {
                 listaLibros = libros
@@ -149,18 +163,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
             }
         })
 
-        libroViewModel.getAllLibrosByUsuario(userId).observe(this, Observer { libros ->
-            if (libros != null) {
-                listaLibros = libros
-                if (photoView.viewTreeObserver.isAlive) {
-                    inicializarMarcadores()
-                }
-            } else {
-                Log.e("MapaInteractivo", "No se encontraron libros en el ViewModel.")
-            }
-        })
-
-
         // Listener para actualizar la posición de los marcadores y las flechas
         photoView.setOnMatrixChangeListener { actualizarMarcadoresYFlechas() }
 
@@ -194,24 +196,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
         // Configurar las relaciones cronológicas en el ArrowOverlayView
         arrowOverlayView.relaciones = relacionesCronologicas
-
-        // Observa los datos de libros desde el ViewModel
-        libroViewModel.getAllLibrosByUsuario(userId).observe(this, Observer { libros ->
-            if (libros != null) {
-                listaLibros = libros
-                // Solo inicializar los marcadores si el ViewTreeObserver ya se ejecutó
-                if (photoView.viewTreeObserver.isAlive) {
-                    inicializarMarcadores()
-                } else {
-                    Log.d(
-                        "MapaInteractivo",
-                        "PhotoView aún no está listo. Esperando para inicializar marcadores."
-                    )
-                }
-            } else {
-                Log.e("MapaInteractivo", "No se encontraron libros para inicializar marcadores.")
-            }
-        })
 
         // Leyenda
 
@@ -456,23 +440,33 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private fun cargarLibrosSiEsNecesario(nombreArchivoJson: String) {
         lifecycleScope.launch {
             try {
-                // Verificar si la base de datos está vacía
+                // Verificar si la base de datos está vacía para el usuario actual
                 val librosEnDb = libroViewModel.getAllLibrosByUsuario(userId).value
                 if (librosEnDb.isNullOrEmpty()) {
-                    // Leer el JSON y cargarlo
+                    // Leer el archivo JSON
                     val inputStream = assets.open(nombreArchivoJson)
                     val jsonString = inputStream.bufferedReader().use { it.readText() }
 
                     val gson = Gson()
                     val libros = gson.fromJson(jsonString, Array<Libro>::class.java).toList()
 
+                    // Asignar el userId a cada libro cargado desde el JSON
+                    val librosConUserId = libros.map { libro ->
+                        libro.copy(userId = userId) // Asegura que userId no sea null
+                    }
+
                     // Insertar los libros en la base de datos
-                    libroViewModel.insertLibros(libros)
+                    libroViewModel.insertLibros(librosConUserId)
+
+                    Log.d("MapaInteractivo", "Libros cargados desde JSON y asignados al userId: $userId")
+                } else {
+                    Log.d("MapaInteractivo", "Libros ya existen en la base de datos para el userId: $userId")
                 }
             } catch (e: IOException) {
                 Log.e("CargaLibros", "Error al cargar el archivo JSON: $nombreArchivoJson", e)
+            } catch (e: Exception) {
+                Log.e("CargaLibros", "Error inesperado al cargar libros: ${e.message}", e)
             }
         }
     }
-
 }

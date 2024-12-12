@@ -29,6 +29,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -36,6 +37,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appsandersonsm.API.NewsApiService
 import com.example.appsandersonsm.Adapter.NoticiasAdapter
 import com.example.appsandersonsm.Dao.LibroDao
+import com.example.appsandersonsm.Dao.NotaDao
+import com.example.appsandersonsm.Dao.UsuarioDao
 import com.example.appsandersonsm.DataBase.AppDatabase
 import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Locale.LocaleHelper
@@ -67,6 +70,8 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var textViewSagasEmpezadas: TextView
 
+    private lateinit var notaDao: NotaDao
+    private lateinit var usuarioDao: UsuarioDao
     private lateinit var libroDao: LibroDao
     private lateinit var libroRepository: LibroRepository
     private lateinit var jsonHandler: JsonHandler
@@ -127,6 +132,7 @@ class AjustesActivity : AppCompatActivity() {
         configureGoogleSignIn()
         setupLogoutButton()
         setupToggleButton()
+
     }
 
 
@@ -183,7 +189,10 @@ class AjustesActivity : AppCompatActivity() {
 
     private fun setupLogoutButton() {
         val btnLogout = findViewById<Button>(R.id.btn_logout)
-        btnLogout.setOnClickListener { signOut() }
+        btnLogout.setOnClickListener {
+            libroViewModel.clearAllBooks()
+            signOut()
+        }
     }
 
     private fun setupToggleButton() {
@@ -215,30 +224,6 @@ class AjustesActivity : AppCompatActivity() {
             textSCNombre.text = if (defaultLanguage == "es") "Invitado" else "Guest"
         }
     }
-
-    private fun signOut() {
-        // Cerrar sesión en Google
-        googleSignInClient.signOut().addOnCompleteListener(this) {
-            // Restablecer las preferencias de sesión en SharedPreferences
-            val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-            sharedPreferences.edit().apply {
-                putBoolean("isLoginSkipped", false)
-                putBoolean("IS_LOGGED_IN", false) // Marcar como no logueado
-                remove("USER_ID") // Eliminar el identificador del usuario
-                apply()
-            }
-
-            // Mostrar mensaje de confirmación
-            Toast.makeText(this, "Has cerrado sesión", Toast.LENGTH_SHORT).show()
-
-            // Redirigir al usuario a la pantalla de inicio de sesión
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-            finish()
-        }
-    }
-
 
     private fun observarDatos() {
         // Observa los libros desde el ViewModel
@@ -535,4 +520,31 @@ class AjustesActivity : AppCompatActivity() {
         toggleButtonText.setTextColor(currentTextColor)
         toggleButton.background = ContextCompat.getDrawable(this, currentDrawableRes)
     }
+
+
+    private fun signOut() {
+        lifecycleScope.launch {
+            signOutFromGoogle() // Procede a cerrar sesión de Google y limpiar SharedPreferences
+        }
+    }
+
+
+    private fun signOutFromGoogle() {
+        googleSignInClient.signOut().addOnCompleteListener(this) {
+            // Restablecer las preferencias de sesión en SharedPreferences
+            val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+            sharedPreferences.edit().apply {
+                putBoolean("isLoginSkipped", false)
+                putBoolean("IS_LOGGED_IN", false) // Marcar como no logueado
+                remove("USER_ID") // Eliminar el identificador del usuario
+                apply()
+            }
+            // Redirigir al usuario a la pantalla de inicio de sesión
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            finish()
+        }
+    }
+
 }

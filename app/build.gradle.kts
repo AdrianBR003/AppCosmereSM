@@ -63,6 +63,9 @@ dependencies {
     implementation (libs.glide)
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
     annotationProcessor (libs.compiler)
 
 
@@ -107,6 +110,13 @@ dependencies {
     implementation(libs.materialratingbar.library)
     implementation (libs.gson) // Asegúrate de usar la última versión
 
+    // LiveData y ViewModel
+    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+
+    // Coroutines
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
     // Compose dependencies
     implementation(platform(libs.androidx.compose.bom))

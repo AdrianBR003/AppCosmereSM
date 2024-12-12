@@ -43,10 +43,10 @@ import java.util.Locale
 )
 data class Nota(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val libroId: Int, // Relación con "libros"
-    val userId: String, // Relación con "usuarios"
-    var titulo: String,
-    var contenido: String,
+    val libroId: Int = 0, // Relación con "libros"
+    val userId: String = "", // Relación con "usuarios"
+    var titulo: String = "",
+    var contenido: String = "",
     val fechaCreacion: String = obtenerFechaActual(),
     var fechaModificacion: String = ""
 ) {
@@ -59,11 +59,16 @@ data class Nota(
             libroId = libroId
         )
     }
+
+    companion object {
+        fun obtenerFechaActual(): String {
+            // Implementa la lógica para obtener la fecha actual en el formato deseado
+            // Por ejemplo:
+            val formatter = java.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                java.util.Locale.getDefault()
+            )
+            return formatter.format(java.util.Date())
+        }
+    }
 }
-
-
-fun obtenerFechaActual(): String {
-    val formatoFecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    return formatoFecha.format(Date())
-}
-
