@@ -213,12 +213,29 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         bottomNavigationView.selectedItemId = R.id.nav_book
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_settings -> startActivity(Intent(this, AjustesActivity::class.java))
-                R.id.nav_map -> startActivity(Intent(this, MapaInteractivoActivity::class.java))
-                R.id.nav_book -> startActivity(Intent(this, LibroActivity::class.java))
+                R.id.nav_settings -> {
+                    val intent = Intent(this, AjustesActivity::class.java)
+                    intent.putExtra("USER_ID", userId)
+                    startActivity(intent)
+                    true
+                }
+
+                R.id.nav_map -> {
+                    val intent = Intent(this, MapaInteractivoActivity::class.java)
+                    intent.putExtra("USER_ID", userId)
+                    startActivity(intent)
+                    true
+                }
+
+                R.id.nav_book -> {
+                    val intent = Intent(this, LibroActivity::class.java)
+                    intent.putExtra("USER_ID", userId)
+                    startActivity(intent)
+                    true
+                }
+
                 else -> false
             }
-            true
         }
     }
 

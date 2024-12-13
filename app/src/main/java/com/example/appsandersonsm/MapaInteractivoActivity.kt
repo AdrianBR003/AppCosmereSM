@@ -35,6 +35,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.example.appsandersonsm.Dao.LibroDao
 import com.example.appsandersonsm.Dao.NotaDao
 import com.example.appsandersonsm.Dao.UsuarioDao
+import com.example.appsandersonsm.DataBase.AppDatabase
 import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
@@ -42,8 +43,10 @@ import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
 import io.getstream.photoview.PhotoView
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -104,7 +107,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapa_interactivo)
-        supportActionBar?.hide() // Ocultar la barra de acción predeterminada
+        supportActionBar?.hide() // Ocult   ar la barra de acción predeterminada
 
         // Obtener el ID del usuario desde el Intent
         userId = intent.getStringExtra("USER_ID") ?: ""
@@ -115,15 +118,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
             finish()
             return
         }
-
-        // Antes de observar los libros, cargar el JSON adecuado
-        val idiomaActual = Locale.getDefault().language // Devuelve "es", "en", etc.
-        val nombreArchivoJson = when (idiomaActual) {
-            "en" -> "libros_en.json"
-            else -> "libros.json" // Por defecto, español
-        }
-
-        cargarLibrosSiEsNecesario(nombreArchivoJson)
 
         // Inicializa el ViewModel y observa los datos
         libroViewModel.getAllLibrosByUsuario(userId).observe(this, Observer { libros ->
@@ -174,6 +168,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 R.id.nav_settings -> {
                     val intent = Intent(this, AjustesActivity::class.java)
                     intent.putExtra("USER_ID", userId)
+                    Log.d("Id", "MapaInteractivo a nav_settings=${userId}")
                     startActivity(intent)
                     true
                 }
@@ -186,6 +181,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 R.id.nav_book -> {
                     val intent = Intent(this, LibroActivity::class.java)
                     intent.putExtra("USER_ID", userId)
+                    Log.d("Id", "MapaInteractivo a nav_book=${userId}")
                     startActivity(intent)
                     true
                 }
@@ -370,20 +366,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
         }, 100) // Ajusta el tiempo de retraso si es necesario
     }
 
-    private fun obtenerDrawablePorNombre(nombre: String): Int {
-        val drawableId = resources.getIdentifier(nombre, "drawable", packageName)
-        Log.d("DrawableVerification", "Nombre: $nombre, Drawable ID: $drawableId")
-        if (drawableId == 0) {
-            Log.e(
-                "DrawableVerification",
-                "Drawable no encontrado para: $nombre. Usando default_cover."
-            )
-            return R.drawable.portada_elcamino // Asegúrate de tener esta imagen en drawable/
-        }
-        return drawableId
-    }
-
-
     private fun actualizarMarcadoresYFlechas() {
         val matrix = FloatArray(9)
         photoView.imageMatrix.getValues(matrix)
@@ -432,41 +414,8 @@ class MapaInteractivoActivity : AppCompatActivity() {
         val intent = Intent(this, DetallesLibroActivity::class.java)
         intent.putExtra("LIBRO_ID", libroId)
         intent.putExtra("USER_ID", userId)
-        Log.d("MapaInteractivo", "Intent: $intent")
+        Log.d("Id", "MapaInteractivo a DetallesLibroActivity=${userId}")
         Log.d("MapaInteractivo", "Extras: ${intent?.extras}")
         startActivity(intent)
-    }
-
-    private fun cargarLibrosSiEsNecesario(nombreArchivoJson: String) {
-        lifecycleScope.launch {
-            try {
-                // Verificar si la base de datos está vacía para el usuario actual
-                val librosEnDb = libroViewModel.getAllLibrosByUsuario(userId).value
-                if (librosEnDb.isNullOrEmpty()) {
-                    // Leer el archivo JSON
-                    val inputStream = assets.open(nombreArchivoJson)
-                    val jsonString = inputStream.bufferedReader().use { it.readText() }
-
-                    val gson = Gson()
-                    val libros = gson.fromJson(jsonString, Array<Libro>::class.java).toList()
-
-                    // Asignar el userId a cada libro cargado desde el JSON
-                    val librosConUserId = libros.map { libro ->
-                        libro.copy(userId = userId) // Asegura que userId no sea null
-                    }
-
-                    // Insertar los libros en la base de datos
-                    libroViewModel.insertLibros(librosConUserId)
-
-                    Log.d("MapaInteractivo", "Libros cargados desde JSON y asignados al userId: $userId")
-                } else {
-                    Log.d("MapaInteractivo", "Libros ya existen en la base de datos para el userId: $userId")
-                }
-            } catch (e: IOException) {
-                Log.e("CargaLibros", "Error al cargar el archivo JSON: $nombreArchivoJson", e)
-            } catch (e: Exception) {
-                Log.e("CargaLibros", "Error inesperado al cargar libros: ${e.message}", e)
-            }
-        }
     }
 }

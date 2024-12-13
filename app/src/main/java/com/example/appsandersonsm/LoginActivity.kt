@@ -57,6 +57,7 @@ import android.widget.*
 import kotlinx.coroutines.*
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import com.example.appsandersonsm.ViewModel.LibroViewModel
 
 import com.google.android.gms.tasks.Task
 
@@ -73,6 +74,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var libroDao: LibroDao
     private lateinit var usuarioDao: UsuarioDao
     private lateinit var notaDao: NotaDao
+    private lateinit var libroViewModel: LibroViewModel
     // private lateinit var repository: DataRepository // Comentado: No se utiliza en la clase
 
     companion object {
@@ -164,7 +166,7 @@ class LoginActivity : AppCompatActivity() {
         val userId = prefs.getString(KEY_USER_ID, null)
 
         // Si el usuario ya ha iniciado sesión, navegar directamente a la actividad principal
-        if (isLoggedIn && userId != null && !isLoginSkipped) {
+        if ((isLoggedIn && userId != null) || (isLoginSkipped && userId != null)) {
             navigateToMainActivity(userId)
             return
         }
@@ -342,6 +344,7 @@ class LoginActivity : AppCompatActivity() {
      */
     private suspend fun sincronizarDatosConFirestore(userId: String) {
         try {
+
             Log.d("sincronizarDatosConFirestore", "Iniciando sincronización para el usuario: $userId")
 
             // Obtener datos locales desde la base de datos ROOM
@@ -373,6 +376,7 @@ class LoginActivity : AppCompatActivity() {
                         "sincronizarDatosConFirestore",
                         "No existen datos en Firestore. Subiendo datos locales a la nube..."
                     )
+
 
                     // Crear un mapa de datos para Firestore
                     val usuarioMap = hashMapOf(

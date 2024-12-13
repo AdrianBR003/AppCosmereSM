@@ -164,11 +164,17 @@ class AjustesActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_settings -> true
                 R.id.nav_map -> {
-                    startActivity(Intent(this, MapaInteractivoActivity::class.java))
+                    val intent = Intent(this,MapaInteractivoActivity::class.java)
+                    intent.putExtra("USER_ID", userId)
+                    Log.d("Id", "AjustesActivity a nav_map=${userId}")
+                    startActivity(intent)
                     true
                 }
                 R.id.nav_book -> {
-                    startActivity(Intent(this, LibroActivity::class.java))
+                    val intent = Intent(this,LibroActivity::class.java)
+                    Log.d("Id", "AjustesActivity a nav_book=${userId}")
+                    intent.putExtra("USER_ID", userId)
+                    startActivity(intent)
                     true
                 }
                 else -> false

@@ -65,12 +65,16 @@ class LibroActivity : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_settings -> {
-                    startActivity(Intent(this, AjustesActivity::class.java))
+                    val intent = Intent(this, AjustesActivity::class.java)
+                    intent.putExtra("USER_ID", userId)
+                    startActivity(intent)
                     true
                 }
 
                 R.id.nav_map -> {
-                    startActivity(Intent(this, MapaInteractivoActivity::class.java))
+                    val intent = Intent(this, MapaInteractivoActivity::class.java)
+                    intent.putExtra("USER_ID", userId)
+                    startActivity(intent)
                     true
                 }
 
@@ -82,6 +86,8 @@ class LibroActivity : AppCompatActivity() {
         // Inicializar adaptador del RecyclerView
         libroAdapter = LibroAdapter(this) { libro ->
             val intent = Intent(this, DetallesLibroActivity::class.java)
+            Log.d("LibroActivity","libroId ${libro.id}")
+            intent.putExtra("USER_ID", userId)
             intent.putExtra("LIBRO_ID", libro.id)
             startActivity(intent)
         }

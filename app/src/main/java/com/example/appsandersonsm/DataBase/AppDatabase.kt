@@ -26,8 +26,6 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-
-
         fun getDatabase(context: Context, scope: CoroutineScope): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -39,30 +37,6 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE = instance
                 instance
             }
-        }
-    }
-
-    private class AppDatabaseCallback(
-        private val context: Context,
-        private val scope: CoroutineScope,
-        private val userId: String
-    ) : RoomDatabase.Callback() {
-
-        override fun onCreate(db: SupportSQLiteDatabase) {
-            super.onCreate(db)
-            INSTANCE?.let { database ->
-                scope.launch(Dispatchers.IO) {
-                    populateDatabase(database.libroDao(), context, userId)
-                }
-            }
-        }
-
-
-        private suspend fun populateDatabase(libroDao: LibroDao, context: Context, userId: String) {
-            // Carga datos desde un archivo JSON en el idioma predeterminado (español)
-            val jsonHandler = JsonHandler(context, libroDao)
-            jsonHandler.cargarDatosIniciales(userId) // Pasar userId al cargar los datos
-            Log.d("AppDatabase", "Datos iniciales cargados para userId: $userId")
         }
     }
 }
