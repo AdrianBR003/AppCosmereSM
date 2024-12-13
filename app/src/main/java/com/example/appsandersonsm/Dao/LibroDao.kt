@@ -28,6 +28,16 @@ interface LibroDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLibros(libros: List<Libro>)
 
+    @Query("UPDATE libros SET userId = :newUserId WHERE userId = 'id_default'")
+    suspend fun actualizarLibrosIdDefault(newUserId: String)
+
+    @Query("DELETE FROM libros")
+    suspend fun borrarTodosLosLibros()
+
+    @Query("DELETE FROM sqlite_sequence WHERE name='libros'")
+    suspend fun resetearSecuenciaLibros()
+
+
     @Update
     suspend fun updateLibro(libro: Libro)
 
@@ -38,7 +48,7 @@ interface LibroDao {
     suspend fun getLibroById(id: Int, userId: String): Libro?
 
     @Query("SELECT * FROM libros WHERE userId = :userId")
-    fun getAllLibrosByUsuario(userId: String): Flow<List<Libro>>
+    fun getAllLibrosByUsuario(userId: String): LiveData<List<Libro>>
 
     @Query("SELECT DISTINCT nombreSaga FROM libros WHERE userId = :userId")
     fun getAllSagasPorUsuario(userId: String): Flow<List<String>>

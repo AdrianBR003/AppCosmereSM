@@ -9,8 +9,21 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NotaDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Query("SELECT * FROM notas WHERE userId = :userId")
+    fun getAllNotasByUsuario(userId: String): LiveData<List<Nota>>
+
+    @Query("DELETE FROM notas")
+    suspend fun borrarTodasLasNotas()
+
+    @Query("DELETE FROM sqlite_sequence WHERE name='notas'")
+    suspend fun resetearSecuenciaNotas()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertarNotas(notas: List<Nota>)
+
+    @Query("UPDATE notas SET userId = :newUserId WHERE userId = 'id_default'")
+    suspend fun actualizarNotasIdDefault(newUserId: String)
+
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(nota: Nota)
@@ -40,9 +53,6 @@ interface NotaDao {
             )
         }
     }
-
-    @Query("SELECT * FROM notas WHERE userId = :userId")
-    fun getAllNotasByUsuario(userId: String): LiveData<List<Nota>>
 
     @Update
     suspend fun updateNota(nota: Nota)

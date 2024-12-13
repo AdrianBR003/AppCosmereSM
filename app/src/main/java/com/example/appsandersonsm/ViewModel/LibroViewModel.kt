@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
 
     fun getAllLibrosByUsuario(userId: String): LiveData<List<Libro>> {
-        return repository.getAllLibrosByUsuario(userId).asLiveData()
+        return repository.getAllLibrosByUsuario(userId)
     }
 
     /**

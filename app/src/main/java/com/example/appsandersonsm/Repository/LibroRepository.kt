@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 class LibroRepository(private val libroDao: LibroDao) {
 
-    fun getAllLibrosByUsuario(userId: String): Flow<List<Libro>> {
+    fun getAllLibrosByUsuario(userId: String): LiveData<List<Libro>> {
         return libroDao.getAllLibrosByUsuario(userId)
     }
 

@@ -53,9 +53,14 @@ import kotlin.math.roundToInt
 
 class MapaInteractivoActivity : AppCompatActivity() {
 
+
+    private var isReceiverRegistered = false
+
+
     private val languageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "LANGUAGE_CHANGED") {
+                isReceiverRegistered = true
                 recreate()
             }
         }
@@ -72,6 +77,10 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private lateinit var usuarioDao: UsuarioDao
     private var isLeyendaVisible = false
     private var userId = ""
+    var photoViewReady = false
+    var listaLibrosReady = false
+
+
     // Lista para guardar las animaciones y poder gestionarlas
     private val animators = mutableListOf<ValueAnimator>()
 
@@ -114,18 +123,23 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
         if (userId.isEmpty()) {
             Log.e("MapaInteractivo", "userId está vacío. Finalizando actividad.")
-            Toast.makeText(this, "Error: ID de usuario no proporcionado.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error: ID de usuario no proporcionado.", Toast.LENGTH_SHORT)
+                .show()
             finish()
             return
         }
 
         // Inicializa el ViewModel y observa los datos
+        // Observar los libros asociados al usuario
+        Log.d("MapaInteractivo", "Observando libros del usuario: $userId")
         libroViewModel.getAllLibrosByUsuario(userId).observe(this, Observer { libros ->
-            if (libros != null) {
-                listaLibros = libros
-                inicializarMarcadores()
+            if (libros.isNullOrEmpty()) {
+                Log.e("MapaInteractivo", "No se encontraron libros.")
             } else {
-                Log.e("MapaInteractivo", "No se encontraron libros en el ViewModel.")
+                Log.d("MapaInteractivo", "Libros cargados: ${libros.size}")
+                listaLibros = libros
+                listaLibrosReady=true
+                // Asegúrate de que esta función maneje correctamente los datos
             }
         })
 
@@ -146,8 +160,9 @@ class MapaInteractivoActivity : AppCompatActivity() {
             ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 if (listaLibros.isNotEmpty()) {
-                    inicializarMarcadores()
+                    photoViewReady = true
                     photoView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    intentarInicializarMarcadores()
                 } else {
                     Log.d(
                         "MapaInteractivo",
@@ -270,7 +285,18 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(languageChangeReceiver)
+        if (isReceiverRegistered) {
+            unregisterReceiver(languageChangeReceiver)
+            isReceiverRegistered = false
+        }
+    }
+
+    private fun intentarInicializarMarcadores() {
+        if (photoViewReady && listaLibrosReady) {
+            Log.d("MapaInteractivo", "Intentando inicializar marcadores.")
+            Log.d("MapaInteractivo", "User Id intentarInicializarmArcadores: ${userId}")
+            inicializarMarcadores()
+        }
     }
 
     private fun inicializarMarcadores() {
@@ -414,7 +440,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
         val intent = Intent(this, DetallesLibroActivity::class.java)
         intent.putExtra("LIBRO_ID", libroId)
         intent.putExtra("USER_ID", userId)
-        Log.d("Id", "MapaInteractivo a DetallesLibroActivity=${userId}")
         Log.d("MapaInteractivo", "Extras: ${intent?.extras}")
         startActivity(intent)
     }

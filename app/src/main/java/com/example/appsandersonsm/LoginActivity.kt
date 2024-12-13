@@ -75,10 +75,8 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var usuarioDao: UsuarioDao
     private lateinit var notaDao: NotaDao
     private lateinit var libroViewModel: LibroViewModel
-    // private lateinit var repository: DataRepository // Comentado: No se utiliza en la clase
 
     companion object {
-        // Constantes utilizadas en la clase
         private const val RC_SIGN_IN = 9001
         private const val PREFS_NAME = "AppPreferences"
         private const val KEY_LANGUAGE = "language"
@@ -87,11 +85,9 @@ class LoginActivity : AppCompatActivity() {
         private const val KEY_USER_ID = "USER_ID"
     }
 
-    // Referencia a Firestore
     private val firestore = FirebaseFirestore.getInstance()
 
     override fun attachBaseContext(newBase: Context?) {
-        // Manejar el caso donde 'newBase' podría ser null
         val baseContext = newBase ?: this
         val prefs = baseContext.getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es"
@@ -101,13 +97,28 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inicializar preferencias
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val isLoginSkipped = prefs.getBoolean(KEY_IS_LOGIN_SKIPPED, false)
+        val isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
+        val userId = prefs.getString(KEY_USER_ID, null)
+
+        // Si ya está logueado o ha hecho skip anteriormente
+        if ((isLoggedIn && userId != null) || (isLoginSkipped && userId != null)) {
+            // Evitas mostrar la pantalla de login:
+            lifecycleScope.launch {
+                // Haces la sincronización que necesites aquí
+                if (!userId.equals("id_default")) {
+                    sincronizarDatosConFirestore(userId)
+                }
+                navigateToMainActivity(userId)
+            }
+            return
+        }
+
         val editor = prefs.edit()
 
-        // Inicializar valores predeterminados si no existen
         if (!prefs.contains(KEY_LANGUAGE)) {
-            editor.putString(KEY_LANGUAGE, "es") // Idioma por defecto
+            editor.putString(KEY_LANGUAGE, "es")
         }
 
         if (!prefs.contains(KEY_IS_LOGIN_SKIPPED)) {
@@ -124,26 +135,21 @@ class LoginActivity : AppCompatActivity() {
 
         editor.apply()
 
-        // Configurar el idioma
         val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es"
         LocaleHelper.setLocale(this, language)
 
         setContentView(R.layout.activity_login)
 
-        // Inicializar FirebaseAuth
         auth = FirebaseAuth.getInstance()
         configureGoogleSignIn()
 
-        // Inicializar DAOs
         val db = AppDatabase.getDatabase(applicationContext, lifecycleScope)
         usuarioDao = db.usuarioDao()
         libroDao = db.libroDao()
         notaDao = db.notaDao()
 
-        // Inicializar JsonHandler
         jsonHandler = JsonHandler(applicationContext, libroDao)
 
-        // Inicializar vistas relacionadas con el cambio de idioma
         rlToggleLanguage = findViewById(R.id.rlToggleLanguage)
         tvLanguageState = findViewById(R.id.tvLanguageState)
         setBackgroundBasedOnLanguage(language)
@@ -160,18 +166,15 @@ class LoginActivity : AppCompatActivity() {
             crearLibrosPredeterminadosSiNoExisten("id_default", language)
         }
 
-        // Verificar sesión de usuario
-        val isLoginSkipped = prefs.getBoolean(KEY_IS_LOGIN_SKIPPED, false)
-        val isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
-        val userId = prefs.getString(KEY_USER_ID, null)
-
-        // Si el usuario ya ha iniciado sesión, navegar directamente a la actividad principal
         if ((isLoggedIn && userId != null) || (isLoginSkipped && userId != null)) {
-            navigateToMainActivity(userId)
+            if(!userId.equals("id_default")){
+                navigateToMainActivitySkip(userId)
+            }else {
+                navigateToMainActivity(userId)
+            }
             return
         }
 
-        // Continuar con la configuración de la interfaz
         bookContainer = findViewById(R.id.bookContainer)
         addPulsatingEffectToBorder()
         cargarLibrosYConfigurarAnimaciones(language)
@@ -203,7 +206,7 @@ class LoginActivity : AppCompatActivity() {
                     val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es"
 
                     val customText = when (language) {
-                        "en" -> "Login Session" // Usar recursos de strings para localización
+                        "en" -> "Login Session"
                         "es" -> "Iniciar Sesion"
                         else -> "Iniciar Sesion"
                     }
@@ -227,7 +230,6 @@ class LoginActivity : AppCompatActivity() {
 
         LocaleHelper.setLocale(this, newLanguage)
         recreate()
-        // Comentario: Podría considerarse una transición más suave en lugar de reiniciar la actividad.
     }
 
     private fun setBackgroundBasedOnLanguage(language: String?) {
@@ -235,11 +237,9 @@ class LoginActivity : AppCompatActivity() {
             "es", "spanish" -> {
                 rlToggleLanguage.setBackgroundResource(R.drawable.rounded_es)
             }
-
             "en", "english" -> {
                 rlToggleLanguage.setBackgroundResource(R.drawable.rounded_en)
             }
-
             else -> {
                 rlToggleLanguage.setBackgroundResource(R.drawable.rounded_es)
             }
@@ -259,7 +259,6 @@ class LoginActivity : AppCompatActivity() {
 
         saveUserSession(userId, isLoginSkipped = true)
         navigateToMainActivity(userId)
-        // Comentario: Asegurar que "id_default" esté correctamente configurado en Firestore.
     }
 
     private fun configureGoogleSignIn() {
@@ -271,8 +270,6 @@ class LoginActivity : AppCompatActivity() {
             .build()
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
-
-        // Comentario: 'LocaleHelper.setLocale' ya se ha llamado en 'onCreate', por lo que esta llamada podría ser redundante.
     }
 
     private fun signInWithGoogle() {
@@ -298,7 +295,6 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.error_iniciar_sesion), Toast.LENGTH_SHORT)
                     .show()
                 Log.e("LoginActivity", "Error al iniciar sesión: ${e.message}", e)
-                // Comentario: Podría implementarse manejo específico de errores según el código de excepción.
             }
         }
     }
@@ -308,15 +304,66 @@ class LoginActivity : AppCompatActivity() {
             val credential = GoogleAuthProvider.getCredential(account.idToken, null)
             auth.signInWithCredential(credential).addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    Log.d("LoginActivity", "Inicio de sesión exitoso con Google.")
-                    val userId = auth.currentUser?.uid ?: "id_default"
+                    val firebaseUser = auth.currentUser
+                    if (firebaseUser == null) {
+                        Toast.makeText(
+                            this,
+                            getString(R.string.error_iniciar_sesion),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@addOnCompleteListener
+                    }
+
+                    val userId = firebaseUser.uid
                     Log.d("LoginActivity", "User ID: $userId")
 
-                    lifecycleScope.launch {
-                        withContext(Dispatchers.IO) {
-                            crearLibrosPredeterminadosSiNoExisten(userId)
-                            sincronizarDatosConFirestore(userId)
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        // 1. Crear el nuevo usuario con userId (si no existe)
+                        val usuarioExistente = usuarioDao.obtenerUsuarioPorId(userId)
+                        if (usuarioExistente == null) {
+                            val nuevoUsuario = Usuario(
+                                id = userId,
+                                nombre = firebaseUser.displayName,
+                                email = firebaseUser.email,
+                                esInvitado = false
+                            )
+                            usuarioDao.insertarUsuario(nuevoUsuario)
                         }
+
+                        // 2. Actualizar referencias de libros y notas desde 'id_default' al nuevo userId
+                        libroDao.actualizarLibrosIdDefault(userId)
+                        notaDao.actualizarNotasIdDefault(userId)
+
+                        // 3. Borrar el usuario 'id_default'
+                        usuarioDao.borrarUsuario("id_default")
+
+                        // Guardar datos actuales del nuevo usuario
+                        val librosActuales = libroDao.obtenerLibrosPorUsuario(userId)
+                        val notasActuales = notaDao.getAllNotasByUsuario(userId).getOrAwaitValue() ?: emptyList()
+
+                        // 4. Borrar todos los registros locales para reiniciar IDs
+                        notaDao.borrarTodasLasNotas()
+                        libroDao.borrarTodosLosLibros()
+
+                        // 5. Resetear secuencias para que IDs empiecen desde 1
+                        libroDao.resetearSecuenciaLibros()
+                        notaDao.resetearSecuenciaNotas()
+
+                        // 6. Reinsertar los datos con id=0, de esta manera Room generará IDs desde 1
+                        val librosReiniciados = librosActuales.map { it.copy(id = 0) }
+                        val notasReiniciadas = notasActuales.map { it.copy(id = 0) }
+
+                        libroDao.insertLibros(librosReiniciados)
+                        notaDao.insertarNotas(notasReiniciadas)
+
+                        // Verificación: Contar los libros guardados
+                        val countLibros = libroDao.getCountByUsuario(userId)
+                        Log.d("LoginActivity", "Libros guardados para $userId: $countLibros")
+
+                        // 7. Sincronizar con Firestore
+                        sincronizarDatosConFirestore(userId)
+
+
                     }
                 } else {
                     Log.e(
@@ -328,26 +375,19 @@ class LoginActivity : AppCompatActivity() {
                         getString(R.string.error_iniciar_sesion),
                         Toast.LENGTH_SHORT
                     ).show()
-                    // Comentario: Podría proporcionarse más información o intentar reintentar la autenticación.
                 }
             }
         } else {
             Log.e("LoginActivity", "Cuenta de Google nula.")
             Toast.makeText(this, getString(R.string.error_iniciar_sesion), Toast.LENGTH_SHORT).show()
-            // Comentario: Notificar al usuario sobre la falta de cuenta de Google seleccionada.
         }
     }
 
-    /**
-     * Sincroniza los datos locales con Firestore.
-     * @param userId El ID del usuario autenticado.
-     */
+
     private suspend fun sincronizarDatosConFirestore(userId: String) {
         try {
-
             Log.d("sincronizarDatosConFirestore", "Iniciando sincronización para el usuario: $userId")
 
-            // Obtener datos locales desde la base de datos ROOM
             val localUsuario = usuarioDao.obtenerUsuarioPorId(userId)
             val localLibros = libroDao.obtenerLibrosPorUsuario(userId)
             val localNotas = notaDao.getAllNotasByUsuario(userId).getOrAwaitValue() ?: emptyList()
@@ -362,13 +402,8 @@ class LoginActivity : AppCompatActivity() {
                 return
             }
 
-            // Proceder con la sincronización en el hilo de fondo
             withContext(Dispatchers.IO) {
-                // Referencia al documento de usuario en Firestore
                 val userDocRef = firestore.collection("users").document(userId)
-
-                // Obtener datos de Firestore
-                Log.d("sincronizarDatosConFirestore", "Obteniendo datos de Firestore...")
                 val userSnapshot = userDocRef.get().await()
 
                 if (!userSnapshot.exists()) {
@@ -377,8 +412,6 @@ class LoginActivity : AppCompatActivity() {
                         "No existen datos en Firestore. Subiendo datos locales a la nube..."
                     )
 
-
-                    // Crear un mapa de datos para Firestore
                     val usuarioMap = hashMapOf(
                         "id" to localUsuario.id,
                         "nombre" to localUsuario.nombre,
@@ -386,29 +419,33 @@ class LoginActivity : AppCompatActivity() {
                         "esInvitado" to localUsuario.esInvitado
                     )
 
-                    // Subir datos del usuario
                     userDocRef.set(usuarioMap, SetOptions.merge()).await()
 
-                    // Subir subcolección de libros
                     localLibros.forEach { libro ->
                         val libroDocRef = userDocRef.collection("libros").document(libro.id.toString())
                         val libroMap = hashMapOf(
                             "id" to libro.id,
+                            "nombreLibro" to libro.nombreLibro,
+                            "nombreSaga" to libro.nombreSaga,
                             "nombrePortada" to libro.nombrePortada,
+                            "progreso" to libro.progreso,
+                            "totalPaginas" to libro.totalPaginas,
+                            "inicialSaga" to libro.inicialSaga,
+                            "sinopsis" to libro.sinopsis,
+                            "valoracion" to libro.valoracion,
+                            "numeroNotas" to libro.numeroNotas,
+                            "empezarLeer" to libro.empezarLeer,
                             "userId" to libro.userId
-                            // Agrega otros campos necesarios
                         )
                         libroDocRef.set(libroMap, SetOptions.merge()).await()
                     }
 
-                    // Subir subcolección de notas
                     localNotas.forEach { nota ->
                         val notaDocRef = userDocRef.collection("notas").document(nota.id.toString())
                         val notaMap = hashMapOf(
                             "id" to nota.id,
                             "contenido" to nota.contenido,
                             "userId" to nota.userId
-                            // Agrega otros campos necesarios
                         )
                         notaDocRef.set(notaMap, SetOptions.merge()).await()
                     }
@@ -417,7 +454,6 @@ class LoginActivity : AppCompatActivity() {
                         "sincronizarDatosConFirestore",
                         "Datos locales subidos correctamente a Firestore."
                     )
-                    // Navegar a la actividad principal
                     saveUserSession(userId)
                     withContext(Dispatchers.Main) {
                         navigateToMainActivity(userId)
@@ -428,7 +464,6 @@ class LoginActivity : AppCompatActivity() {
                         "Existen datos en Firestore. Comparando y sincronizando..."
                     )
 
-                    // Obtener datos de Firestore
                     val usuarioFirestore = userSnapshot.getString("nombre")?.let {
                         Usuario(
                             id = userSnapshot.getString("id") ?: "",
@@ -438,13 +473,11 @@ class LoginActivity : AppCompatActivity() {
                         )
                     }
 
-                    // Obtener subcolección de libros
                     val librosFirestoreSnapshot = userDocRef.collection("libros").get().await()
                     val librosFirestore = librosFirestoreSnapshot.documents.mapNotNull { doc ->
                         doc.toObject(Libro::class.java)
                     }
 
-                    // Obtener subcolección de notas
                     val notasFirestoreSnapshot = userDocRef.collection("notas").get().await()
                     val notasFirestore = notasFirestoreSnapshot.documents.mapNotNull { doc ->
                         doc.toObject(Nota::class.java)
@@ -452,10 +485,9 @@ class LoginActivity : AppCompatActivity() {
 
                     Log.d(
                         "sincronizarDatosConFirestore",
-                        "Datos de Firestore obtenidos: usuario=${usuarioFirestore?.nombre}, libros=${librosFirestore.size}, notas=${notasFirestore.size}"
+                        "Datos de Firestore: usuario=${usuarioFirestore?.nombre}, libros=${librosFirestore.size}, notas=${notasFirestore.size}"
                     )
 
-                    // Comparar datos locales con Firestore
                     val datosCoincidenLocal = datosCoinciden(localUsuario, usuarioFirestore)
                     val librosCoinciden = listasCoinciden(localLibros, librosFirestore)
                     val notasCoinciden = listasCoinciden(localNotas, notasFirestore)
@@ -470,7 +502,6 @@ class LoginActivity : AppCompatActivity() {
                             "sincronizarDatosConFirestore",
                             "Los datos no coinciden. Sobrescribiendo datos locales con los de Firestore..."
                         )
-                        // Sobrescribir datos locales con los de Firestore
                         sobrescribirDatosLocales(
                             userId,
                             usuarioFirestore,
@@ -480,9 +511,8 @@ class LoginActivity : AppCompatActivity() {
                     } else {
                         Log.d(
                             "sincronizarDatosConFirestore",
-                            "Los datos coinciden. Guardando sesión y navegando a la actividad principal..."
+                            "Los datos coinciden. Guardando sesión..."
                         )
-                        // Los datos coinciden, proceder normalmente
                         saveUserSession(userId)
                         withContext(Dispatchers.Main) {
                             navigateToMainActivity(userId)
@@ -496,7 +526,6 @@ class LoginActivity : AppCompatActivity() {
                 "Error al sincronizar con Firestore: ${e.message}",
                 e
             )
-            // Manejar el error adecuadamente, por ejemplo, mostrar un Toast
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     this@LoginActivity,
@@ -504,81 +533,9 @@ class LoginActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
-            // Comentario: Podría implementarse un sistema de reintentos o notificar al usuario para intentar nuevamente.
         }
     }
 
-    /**
-     * Sube los datos locales a Firestore Database.
-     */
-    private suspend fun subirDatosALaNube(
-        userId: String,
-        usuario: Usuario?,
-        libros: List<Libro>,
-        notas: List<Nota>
-    ) {
-        try {
-            val userDocRef = firestore.collection("users").document(userId)
-            val usuarioMap = usuario?.let {
-                mapOf(
-                    "id" to it.id,
-                    "nombre" to it.nombre,
-                    "email" to it.email,
-                    "esInvitado" to it.esInvitado
-                )
-            } ?: emptyMap<String, Any>()
-
-            val librosMap = libros.associate { libro ->
-                libro.id.toString() to mapOf(
-                    "id" to libro.id,
-                    "nombrePortada" to libro.nombrePortada,
-                    "userId" to libro.userId
-                    // Agrega otros campos necesarios
-                )
-            }
-
-            val notasMap = notas.associate { nota ->
-                nota.id.toString() to mapOf(
-                    "id" to nota.id,
-                    "contenido" to nota.contenido,
-                    "userId" to nota.userId
-                    // Agrega otros campos necesarios
-                )
-            }
-
-            val datosUsuario = mapOf(
-                "usuario" to usuarioMap,
-                "libros" to librosMap,
-                "notas" to notasMap
-            )
-
-            userDocRef.set(datosUsuario, SetOptions.merge()).await()
-            Log.d("LoginActivity", "Datos subidos correctamente a Firestore.")
-            saveUserSession(userId)
-            navigateToMainActivity(userId)
-        } catch (e: Exception) {
-            Log.e("LoginActivity", "Error al subir datos a Firestore: ${e.message}", e)
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@LoginActivity, getString(R.string.error_sincronizacion), Toast.LENGTH_SHORT).show()
-            }
-            // Comentario: Podría implementarse un manejo de errores más detallado según el tipo de excepción.
-        }
-    }
-
-    private fun saveUserSession(userId: String, isLoginSkipped: Boolean = false) {
-        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        prefs.edit().apply {
-            putBoolean(KEY_IS_LOGGED_IN, true)
-            putString(KEY_USER_ID, userId)
-            putBoolean(KEY_IS_LOGIN_SKIPPED, isLoginSkipped)
-            apply()
-        }
-        // Comentario: Considerar cifrar o proteger mejor los datos de sesión para mayor seguridad.
-    }
-
-    /**
-     * Sobrescribe los datos locales con los datos obtenidos de Firestore.
-     */
     private suspend fun sobrescribirDatosLocales(
         userId: String,
         usuarioFirebase: Usuario?,
@@ -586,15 +543,18 @@ class LoginActivity : AppCompatActivity() {
         notasFirebase: List<Nota>
     ) {
         try {
-            // Actualizar usuario
             if (usuarioFirebase != null) {
                 usuarioDao.insertarUsuario(usuarioFirebase)
             }
 
-            // Actualizar libros
-            libroDao.insertLibros(librosFirebase)
+            // Borramos datos locales, reseteamos secuencias y luego insertamos datos de Firestore
+            libroDao.borrarTodosLosLibros()
+            notaDao.borrarTodasLasNotas()
 
-            // Actualizar notas
+            libroDao.resetearSecuenciaLibros()
+            notaDao.resetearSecuenciaNotas()
+
+            libroDao.insertLibros(librosFirebase)
             notaDao.insertarNotas(notasFirebase)
 
             Log.d("LoginActivity", "Datos locales sobrescritos con los de Firestore.")
@@ -604,20 +564,9 @@ class LoginActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             Log.e("LoginActivity", "Error al sobrescribir datos locales: ${e.message}", e)
-            withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    this@LoginActivity,
-                    getString(R.string.error_sincronizacion),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            // Comentario: Manejar posibles errores durante la inserción en la base de datos local.
         }
     }
 
-    /**
-     * Verifica si los datos de usuario coinciden.
-     */
     private fun datosCoinciden(local: Usuario?, remoto: Usuario?): Boolean {
         if (local == null && remoto == null) return true
         if (local == null || remoto == null) return false
@@ -626,25 +575,32 @@ class LoginActivity : AppCompatActivity() {
                 local.esInvitado == remoto.esInvitado
     }
 
-    /**
-     * Verifica si dos listas de objetos coinciden.
-     */
     private fun <T> listasCoinciden(localList: List<T>, remoteList: List<T>): Boolean {
         if (localList.size != remoteList.size) return false
-
-        // Utilizar conjuntos para mejorar la eficiencia y no depender del orden
         return localList.toSet() == remoteList.toSet()
     }
 
     private fun navigateToMainActivity(userId: String) {
-        // Asumir que este método se llama desde el hilo principal
         val intent = Intent(this, MapaInteractivoActivity::class.java).apply {
             putExtra("USER_ID", userId)
         }
         startActivity(intent)
         finish()
-        // Comentario: 'runOnUiThread' no es necesario ya que se asume que este método se llama en el hilo principal.
     }
+
+    private fun navigateToMainActivitySkip(userId: String) {
+        lifecycleScope.launch {
+            Log.d("LoginActivity", "SKIP con el usuario con id ${userId}")
+            sincronizarDatosConFirestore(userId)
+            // Una vez completada la sincronización, navegas a MainActivity
+            val intent = Intent(this@LoginActivity, MapaInteractivoActivity::class.java).apply {
+                putExtra("USER_ID", userId)
+            }
+            startActivity(intent)
+            finish()
+        }
+    }
+
 
     private fun addPulsatingEffectToBorder() {
         val container = findViewById<FrameLayout>(R.id.btn_google_sign_in_container)
@@ -662,7 +618,6 @@ class LoginActivity : AppCompatActivity() {
         }
 
         animator.start()
-        // Comentario: Considerar almacenar el animador como una propiedad para poder detenerlo cuando la actividad se destruya.
     }
 
     private fun cargarLibrosYConfigurarAnimaciones(languageCode: String) {
@@ -686,7 +641,6 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
-        // Comentario: Se agrega un Toast para notificar al usuario si no se cargan libros.
     }
 
     private fun setupBookAnimations(libros: List<Libro>) {
@@ -716,7 +670,6 @@ class LoginActivity : AppCompatActivity() {
                             "LoginActivity",
                             "No se encontró la portada: ${libro.nombrePortada}"
                         )
-                        // Mostrar una imagen por defecto si no se encuentra la portada
                         bookCover.setImageResource(R.drawable.portada_elcamino)
                         bookCover.visibility = View.VISIBLE
                     }
@@ -776,7 +729,6 @@ class LoginActivity : AppCompatActivity() {
         })
 
         animatorSet.start()
-        // Comentario: Para optimizar, considerar limitar el número de animaciones simultáneas.
     }
 
     private fun obtenerDrawablePorNombre(nombre: String): Int {
@@ -795,10 +747,8 @@ class LoginActivity : AppCompatActivity() {
         userId: String,
         languageCode: String = "es"
     ) {
-        // Verificar si el usuario existe
         val usuarioExistente = usuarioDao.obtenerUsuarioPorId(userId)
         if (usuarioExistente == null) {
-            // Crear el usuario si no existe
             val nuevoUsuario = Usuario(
                 id = userId,
                 nombre = if (userId == "id_default") "Invitado" else "Usuario",
@@ -809,30 +759,33 @@ class LoginActivity : AppCompatActivity() {
             Log.d("LoginActivity", "Usuario creado: $userId")
         }
 
-        // Crear libros si no existen después de la eliminación
         val librosExistentes = libroDao.obtenerLibrosPorUsuario(userId)
         if (librosExistentes.isEmpty()) {
             if (userId == "id_default") {
-                // Crear libros predeterminados desde JSON para id_default
                 val librosDesdeJson = jsonHandler.cargarLibrosDesdeJson(languageCode, userId)
                 libroDao.insertLibros(librosDesdeJson)
                 Log.d("LoginActivity", "Libros predeterminados creados para id_default.")
             } else {
-                // Copiar libros de id_default para nuevos usuarios
                 val librosDefault = libroDao.obtenerLibrosPorUsuario("id_default")
                 if (librosDefault.isNotEmpty()) {
                     val librosCopia = librosDefault.map { libro ->
-                        libro.copy(id = 0, userId = userId) // 'id' se autogenerará
+                        libro.copy(id = 0, userId = userId) // Muy importante: id = 0
                     }
+                    libroDao.insertLibros(librosCopia)
+
+                    // Borramos todos los libros del usuario actual (si hubiera) y reiniciamos
+                    libroDao.borrarTodosLosLibros()
+                    notaDao.borrarTodasLasNotas()
+                    libroDao.resetearSecuenciaLibros()
+                    notaDao.resetearSecuenciaNotas()
+
                     libroDao.insertLibros(librosCopia)
                     Log.d(
                         "LoginActivity",
                         "Libros copiados desde id_default para el usuario: $userId"
                     )
                 } else {
-                    // Si id_default no tiene libros, cargar desde JSON
-                    val librosDesdeJson =
-                        jsonHandler.cargarLibrosDesdeJson(languageCode, userId)
+                    val librosDesdeJson = jsonHandler.cargarLibrosDesdeJson(languageCode, userId)
                     libroDao.insertLibros(librosDesdeJson)
                     Log.d(
                         "LoginActivity",
@@ -845,14 +798,8 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Extensión de LiveData para obtener su valor de forma suspendida.
-     *
-     * @return El valor actual de LiveData.
-     * @throws IllegalStateException Si LiveData no emite un valor.
-     */
     private suspend fun <T> LiveData<T>.getOrAwaitValue(): T {
-        return withContext(Dispatchers.Main) { // Asegura que observeForever se llame en el hilo principal
+        return withContext(Dispatchers.Main) {
             suspendCancellableCoroutine<T> { continuation ->
                 val observer = object : Observer<T> {
                     override fun onChanged(value: T) {
@@ -863,11 +810,21 @@ class LoginActivity : AppCompatActivity() {
 
                 observeForever(observer)
 
-                // Remover el observer si la coroutine se cancela
                 continuation.invokeOnCancellation {
                     removeObserver(observer)
                 }
             }
         }
     }
+
+    private fun saveUserSession(userId: String, isLoginSkipped: Boolean = false) {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        prefs.edit().apply {
+            putBoolean(KEY_IS_LOGGED_IN, true)
+            putString(KEY_USER_ID, userId)
+            putBoolean(KEY_IS_LOGIN_SKIPPED, isLoginSkipped)
+            apply()
+        }
+    }
+
 }
