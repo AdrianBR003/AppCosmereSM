@@ -33,7 +33,13 @@ import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.example.appsandersonsm.ViewModel.NotaViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.tasks.await
+
 
 class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListener {
 
@@ -58,7 +64,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private var isExpanded = false // Variable para gestionar el estado expandido/colapsado
     private var contadorNotas: Int = 3 // Empezamos con 3 notas estáticas
     private var userId = "";
-
+    val firestore = Firebase.firestore
 
     private val languageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -153,13 +159,12 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
     override fun onStop() {
         super.onStop()
-
-        // Guardar los datos en la nube
         libro?.let { libroActualizado ->
+            Log.d("DetallesLibroActivity", "Guardando en nube el libro: ${libroActualizado.id} con progreso=${libroActualizado.progreso}, totalPaginas=${libroActualizado.totalPaginas}, userId=$userId")
             lifecycleScope.launch {
-                guardarDatosEnLaNube(libroActualizado)
+                libroViewModel.guardarLibroEnLaNube(libroActualizado)
             }
-        }
+        } ?: Log.e("DetallesLibroActivity", "El libro es nulo al intentar guardar en la nube.")
     }
 
     private fun inicializarViewModels() {
@@ -437,14 +442,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         Toast.makeText(this, "Nota $contadorNotas añadida", Toast.LENGTH_SHORT).show()
     }
 
-    private suspend fun guardarDatosEnLaNube(libro: Libro) {
-        try {
-            libroViewModel.guardarLibroEnLaNube(libro)
-            Log.d("DetallesLibroActivity", "Datos guardados en la nube correctamente.")
-        } catch (e: Exception) {
-            Log.e("DetallesLibroActivity", "Error al guardar datos en la nube: ${e.localizedMessage}")
-        }
-    }
 
 }
 

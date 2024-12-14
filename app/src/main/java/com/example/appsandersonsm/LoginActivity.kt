@@ -502,6 +502,9 @@ class LoginActivity : AppCompatActivity() {
                             "sincronizarDatosConFirestore",
                             "Los datos no coinciden. Sobrescribiendo datos locales con los de Firestore..."
                         )
+
+                        Log.d("sincronizarDatosConFirestore", "Id usuario ${userId}")
+
                         sobrescribirDatosLocales(
                             userId,
                             usuarioFirestore,
@@ -543,21 +546,65 @@ class LoginActivity : AppCompatActivity() {
         notasFirebase: List<Nota>
     ) {
         try {
+            Log.d("LoginActivity", "Iniciando sobrescritura de datos locales.")
+            Log.d("LoginActivity", "UserId: $userId")
+            Log.d("LoginActivity", "UsuarioFirebase: ${usuarioFirebase?.id}, ${usuarioFirebase?.nombre}, ${usuarioFirebase?.email}, ${usuarioFirebase?.esInvitado}")
+
+            // Insertar el usuario primero, si existe
             if (usuarioFirebase != null) {
+                Log.d("LoginActivity", "Insertando usuario en la base local...")
                 usuarioDao.insertarUsuario(usuarioFirebase)
+                Log.d("LoginActivity", "Usuario insertado: ${usuarioFirebase.id}")
+            } else {
+                // Si usuarioFirebase es null, deberías asegurarte de tener un usuario existente
+                // o crear uno nuevo con el userId actual.
+                val existingUser = usuarioDao.obtenerUsuarioPorId(userId)
+                if (existingUser == null) {
+                    // Crea un usuario por defecto si no existe
+                    Log.d("LoginActivity", "UsuarioFirebase es null, creando usuario por defecto con userId: $userId")
+                    val nuevoUsuario = Usuario(
+                        id = userId,
+                        nombre = "Usuario sin datos Firestore",
+                        email = null,
+                        esInvitado = false
+                    )
+                    usuarioDao.insertarUsuario(nuevoUsuario)
+                    Log.d("LoginActivity", "Usuario por defecto insertado: $userId")
+                } else {
+                    Log.d("LoginActivity", "Usuario existente encontrado: ${existingUser.id}, no es necesario crear usuario.")
+                }
             }
 
-            // Borramos datos locales, reseteamos secuencias y luego insertamos datos de Firestore
+            // Verificar que el usuario está ahora en la base de datos
+            val usuarioEnBD = usuarioDao.obtenerUsuarioPorId(userId)
+            if (usuarioEnBD == null) {
+                Log.e("LoginActivity", "El usuario con id $userId no existe en la BD luego de la inserción, esto provocará error en llaves foráneas.")
+                return
+            } else {
+                Log.d("LoginActivity", "Usuario en BD: ${usuarioEnBD.id}, ${usuarioEnBD.nombre}, existe correctamente antes de insertar libros y notas.")
+            }
+
+            // Borramos datos locales
+            Log.d("LoginActivity", "Borrando todos los libros y notas locales.")
             libroDao.borrarTodosLosLibros()
             notaDao.borrarTodasLasNotas()
 
+            // Reseteamos secuencias
             libroDao.resetearSecuenciaLibros()
             notaDao.resetearSecuenciaNotas()
+            Log.d("LoginActivity", "Secuencias reseteadas.")
 
+            // Insertamos libros
+            Log.d("LoginActivity", "Insertando ${librosFirebase.size} libros de Firestore en la base local.")
             libroDao.insertLibros(librosFirebase)
-            notaDao.insertarNotas(notasFirebase)
+            Log.d("LoginActivity", "Libros insertados correctamente.")
 
-            Log.d("LoginActivity", "Datos locales sobrescritos con los de Firestore.")
+            // Insertamos notas
+            Log.d("LoginActivity", "Insertando ${notasFirebase.size} notas de Firestore en la base local.")
+            notaDao.insertarNotas(notasFirebase)
+            Log.d("LoginActivity", "Notas insertadas correctamente.")
+
+            Log.d("LoginActivity", "Datos locales sobrescritos con éxito.")
             saveUserSession(userId)
             withContext(Dispatchers.Main) {
                 navigateToMainActivity(userId)
@@ -566,6 +613,7 @@ class LoginActivity : AppCompatActivity() {
             Log.e("LoginActivity", "Error al sobrescribir datos locales: ${e.message}", e)
         }
     }
+
 
     private fun datosCoinciden(local: Usuario?, remoto: Usuario?): Boolean {
         if (local == null && remoto == null) return true

@@ -8,16 +8,22 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Repository.LibroRepository
+import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
+
+    private val firestore = Firebase.firestore
+
 
     fun getAllLibrosByUsuario(userId: String): LiveData<List<Libro>> {
         return repository.getAllLibrosByUsuario(userId)
     }
-
     /**
      * Método para borrar todos los libros de la base de datos.
      */
@@ -69,18 +75,48 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
         repository.actualizarSinopsis(libroId, sinopsis, userId)
     }
 
-    fun actualizarValoracion(libroId: Int, valoracion: Float, userId: String) = viewModelScope.launch {
-        require(valoracion in 0.0..10.0) { "La valoración debe estar entre 0 y 10." }
-        repository.actualizarValoracion(libroId, valoracion, userId)
+    fun actualizarValoracion(libroId: Int, valoracion: Float, userId: String) =
+        viewModelScope.launch {
+            require(valoracion in 0.0..10.0) { "La valoración debe estar entre 0 y 10." }
+            repository.actualizarValoracion(libroId, valoracion, userId)
+        }
+
+    fun guardarLibroEnLaNube(libro: Libro) {
+        viewModelScope.launch {
+            try {
+                Log.d(
+                    "LibroViewModel",
+                    "Iniciando guardado en nube: userId=${libro.userId}, libroId=${libro.id}"
+                )
+
+                val userDocRef = firestore.collection("users").document(libro.userId)
+                val libroDocRef = userDocRef.collection("libros").document(libro.id.toString())
+
+                val data = mapOf(
+                    "id" to libro.id,
+                    "nombreLibro" to libro.nombreLibro,
+                    "nombreSaga" to libro.nombreSaga,
+                    "nombrePortada" to libro.nombrePortada,
+                    "progreso" to libro.progreso,
+                    "totalPaginas" to libro.totalPaginas,
+                    "sinopsis" to libro.sinopsis,
+                    "valoracion" to libro.valoracion,
+                    "numeroNotas" to libro.numeroNotas,
+                    "userId" to libro.userId
+                )
+
+                libroDocRef.set(data, SetOptions.merge()).await()
+                Log.d("LibroViewModel", "Libro guardado correctamente en la nube.")
+            } catch (e: Exception) {
+                Log.e(
+                    "LibroViewModel",
+                    "Error al guardar libro en la nube: ${e.localizedMessage}",
+                    e
+                )
+            }
+        }
     }
 
-    suspend fun guardarLibroEnLaNube(libro: Libro) {
-        val libroData = libro.toFirestore() // Convierte el libro a un mapa para Firestore
-        Log.d("LibroViewModel", "Guardando libro en la nube: $libroData")
-        FirebaseFirestore.getInstance().collection("libros")
-            .document(libro.id.toString())
-            .set(libroData)
-    }
 }
 
 class LibroViewModelFactory(private val repository: LibroRepository) : ViewModelProvider.Factory {
