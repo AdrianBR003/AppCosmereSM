@@ -7,11 +7,9 @@ import android.animation.ValueAnimator
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.PointF
 import android.graphics.drawable.GradientDrawable
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -19,46 +17,35 @@ import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.example.appsandersonsm.Adapter.TutorialDialogFragment
 import com.example.appsandersonsm.Dao.LibroDao
 import com.example.appsandersonsm.Dao.NotaDao
-import com.example.appsandersonsm.Dao.UsuarioDao
 import com.example.appsandersonsm.DataBase.AppDatabase
-import com.example.appsandersonsm.DataBase.JsonHandler
-import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.gson.Gson
 import io.getstream.photoview.PhotoView
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONException
-import java.io.IOException
-import java.util.Locale
 import kotlin.math.roundToInt
 
 class MapaInteractivoActivity : AppCompatActivity() {
 
+    companion object {
+        private const val PREFS_NAME = "app_prefs"
+        private const val KEY_IS_FIRST_TIME = "isFirstTime"
+    }
 
     private var isReceiverRegistered = false
-
 
     private val languageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -123,7 +110,11 @@ class MapaInteractivoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_mapa_interactivo)
         supportActionBar?.hide() // Ocult   ar la barra de acción predeterminada
 
-
+        // Verificar si es la primera vez que el usuario accede
+        if (isFirstTimeUser()) {
+            showTutorial()
+            setFirstTimeUser(false)
+        }
 
         val database = AppDatabase.getDatabase(applicationContext, applicationScope)
         libroDao = database.libroDao()
@@ -302,6 +293,29 @@ class MapaInteractivoActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Verifica si es la primera vez que el usuario accede a esta actividad.
+     * @return `true` si es la primera vez, `false` en caso contrario.
+     */
+    private fun isFirstTimeUser(): Boolean {
+        val sharedPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPref.getBoolean(KEY_IS_FIRST_TIME, true)
+    }
+
+    /**
+     * Actualiza el estado de si es la primera vez que el usuario accede.
+     * @param isFirstTime `false` después de que el usuario haya visto el tutorial.
+     */
+    private fun setFirstTimeUser(isFirstTime: Boolean) {
+        val sharedPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putBoolean(KEY_IS_FIRST_TIME, isFirstTime)
+            apply()
+        }
+    }
+
+
+
     private fun intentarInicializarMarcadores() {
         if (photoViewReady && listaLibrosReady) {
             Log.d("MapaInteractivo", "Intentando inicializar marcadores.")
@@ -453,6 +467,10 @@ class MapaInteractivoActivity : AppCompatActivity() {
         intent.putExtra("USER_ID", userId)
         Log.d("MapaInteractivo", "Extras: ${intent?.extras}")
         startActivity(intent)
+    }
+    private fun showTutorial() {
+        val tutorialDialog = TutorialDialogFragment()
+        tutorialDialog.show(supportFragmentManager, "tutorial_dialog")
     }
 
 }

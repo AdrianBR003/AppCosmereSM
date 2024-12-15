@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <TextView
+        android:gravity="center"
+        android:id="@+id/tituloFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Mapa Interactivo"
+        android:textColor="@color/gold"
+        android:textSize="35sp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:paddingBottom="50dp"
+        />
+    <ImageView
+        android:id="@+id/imagenFragment"
+        android:layout_gravity="center"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:contentDescription="Descripcion"
+        />
+
+    <TextView
+        android:id="@+id/descripcionFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:paddingTop="60dp"
+        android:textSize="16sp"/>
+</LinearLayout>

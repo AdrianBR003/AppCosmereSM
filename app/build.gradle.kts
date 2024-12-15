@@ -110,6 +110,10 @@ dependencies {
     implementation(libs.materialratingbar.library)
     implementation (libs.gson) // Asegúrate de usar la última versión
 
+    // ViewPager
+    implementation (libs.androidx.viewpager2)
+    implementation (libs.material.v160)
+
     // LiveData y ViewModel
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")

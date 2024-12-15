@@ -20,6 +20,7 @@ libraryVersion = "1.4.0"
 lifecycleLivedataKtxVersion = "2.6.1"
 lifecycleViewmodelKtx = "2.8.7"
 material = "1.12.0"
+materialVersion = "1.6.0"
 photoview = "2.3.0"
 activity = "1.9.3"
 constraintlayout = "2.1.4"
@@ -40,6 +41,7 @@ firebaseCrashlyticsBuildtools = "3.0.2"
 firebaseFirestore = "25.1.1"
 firebaseDatabaseKtx = "21.0.0"
 firebaseDatabase = "21.0.0"
+viewpager2 = "1.0.0"
 
 [libraries]
 androidx-appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
@@ -47,6 +49,7 @@ androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-view
 androidx-lifecycle-livedata-ktx-v261 = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtxVersion" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
@@ -68,6 +71,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 labs-subsampling-scale-image-view = { module = "com.davemorrissey.labs:subsampling-scale-image-view", version.ref = "subsamplingScaleImageViewVersion" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+material-v160 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 materialratingbar-library = { module = "me.zhanghai.android.materialratingbar:library", version.ref = "libraryVersion" }
 photoview = { module = "com.github.chrisbanes:PhotoView", version.ref = "photoview" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
