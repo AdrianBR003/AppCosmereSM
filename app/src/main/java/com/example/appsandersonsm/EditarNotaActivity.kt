@@ -1,5 +1,7 @@
 package com.example.appsandersonsm
 
+import android.app.Activity
+import android.content.Intent
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
@@ -27,6 +29,9 @@ class EditarNotaActivity : AppCompatActivity() {
     private lateinit var notaViewModel: NotaViewModel
     private var nota: Nota? = null
     private var userId = ""
+    private var idLibro = -1
+    private var isnotaEliminada = false
+    val notasEliminadas = mutableListOf<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +43,10 @@ class EditarNotaActivity : AppCompatActivity() {
         // Obtener el USER_ID del Intent
         userId = intent.getStringExtra("USER_ID") ?: ""
         Log.d("EditarNotaActivity", "USER_ID recibido: $userId")
+
+        idLibro = intent.getIntExtra("LIBRO_ID", 0)
+        Log.d("EditarNotaActivity", "ID LIBRO recibido: $idLibro")
+
 
         // Obtén el ID de la nota del Intent
         var notaId = intent.getIntExtra("NOTA_ID", -1)
@@ -131,10 +140,18 @@ class EditarNotaActivity : AppCompatActivity() {
     }
 
     private fun eliminarNotaPorId(idNota: Int) {
+        isnotaEliminada = true
         notaViewModel.eliminarNotaPorId(idNota, userId)
-
-        // Opcional: Mostrar un mensaje al usuario
+        Log.d("EditarNotaActivity", "Notaid ${idNota}")
         Toast.makeText(this, "Nota eliminada", Toast.LENGTH_SHORT).show()
+        val i = Intent(this, DetallesLibroActivity::class.java)
+        i.putExtra("USER_ID", userId)
+        i.putExtra("LIBRO_ID", idLibro)
+        Log.d("EditarNotaActivity", "Enviando Libro_ID ${idLibro}")
+        i.putExtra("IS_NOTA", isnotaEliminada)
+        Log.d("EditarNotaActivity", "Enviando IS_NOTA ${isnotaEliminada}")
+        i.putExtra("notaId",idNota)
+        startActivity(i)
         finish()
     }
 

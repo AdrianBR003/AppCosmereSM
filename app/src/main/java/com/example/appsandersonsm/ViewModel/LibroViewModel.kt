@@ -89,7 +89,7 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
             repository.actualizarValoracion(libroId, valoracion, userId)
         }
 
-    fun guardarLibroEnLaNube(libro: Libro, notas: List<Nota>) {
+    fun guardarLibroEnLaNube(libro: Libro, notas: List<Nota>, idNotaL: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (libro.userId.isEmpty()) {
@@ -151,9 +151,13 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
                     Log.d("Nube", "Nota: $nota")
                 }
 
+                if(idNotaL!=-1) {
+                    Log.d("Nube", " ID de Nota eliminada ${idNotaL}")
+                    val notaDocRef = libroDocRef.collection("notas").document(idNotaL.toString())
+                    batch.delete(notaDocRef)
+                }
                 batch.commit().await()
                 Log.d("Nube", "Batch commit completado.")
-
                 Log.d("Nube", "Libro y notas guardados correctamente en la nube.")
 
                 withContext(Dispatchers.Main) {
@@ -172,10 +176,12 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
         }
     }
 
+
     /**
      * Factory para crear instancias de LibroViewModel.
      */
-    class LibroViewModelFactory(private val repository: LibroRepository) : ViewModelProvider.Factory {
+    class LibroViewModelFactory(private val repository: LibroRepository) :
+        ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(LibroViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")

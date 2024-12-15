@@ -74,10 +74,11 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private var libro: Libro? = null
     private var idLibro: Int = 0
     private var isExpanded = false
-    private var contadorNotas: Int = 3
+    private var contadorNotas: Int = 0
     private var userId = ""
+    private var idNotaEliminada = -1
+    private var isnotaEliminada = false
     private val firestore = FirebaseFirestore.getInstance()
-
     private val languageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "LANGUAGE_CHANGED") {
@@ -94,12 +95,15 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
         // Coger el ID del Intent del Login
         userId = intent.getStringExtra("USER_ID") ?: ""
+        // Obtener el Id Nota Eliminada
+        idNotaEliminada = intent.getIntExtra("notaId", -1)
+        // Obtener verificacion de eliminar nota
+        isnotaEliminada = intent.getBooleanExtra("IS_NOTA", false)
+        // Obtener el ID del libro del Intent
+        idLibro = intent.getIntExtra("LIBRO_ID", -1)
+        Log.d("DetallesLibroActivity", "Libro ID: $idLibro")
 
         supportActionBar?.hide()
-
-        // Obtener el ID del libro del Intent
-        idLibro = intent.getIntExtra("LIBRO_ID", 0)
-        Log.d("DetallesLibroActivity", "Libro ID: $idLibro")
 
         inicializarViewModels()
         inicializarVistas()
@@ -156,6 +160,17 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             }
             false
         }
+
+        if(isnotaEliminada && idNotaEliminada != -1){
+            Log.d("DetallesLibroActivity", "Preparando para eliminar nota con ID: $idNotaEliminada")
+                libro?.let { libroActualizado ->
+                    lifecycleScope.launch {
+                        val notasDelLibro = obtenerNotasDelLibro(libroActualizado.id, userId)
+                        libroViewModel.guardarLibroEnLaNube(libroActualizado,notasDelLibro,idNotaEliminada)
+                    }
+                }
+        }
+
     }
 
     override fun onResume() {
@@ -168,22 +183,29 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
     override fun onPause() {
         super.onPause()
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(languageChangeReceiver)
-    }
-
-    override fun onStop() {
-        super.onStop()
         libro?.let { libroActualizado ->
-            Log.d(
-                "DetallesLibroActivity",
-                "Guardando en nube el libro: ${libroActualizado.id} con progreso=${libroActualizado.progreso}, totalPaginas=${libroActualizado.totalPaginas}, userId=$userId"
-            )
+            // Extraer el ID de la nota para verificar si una eliminación es necesaria
+            val idNotaEliminada = intent.getIntExtra("notaId", -1)
 
-            lifecycleScope.launch {
-                val notasDelLibro = obtenerNotasDelLibro(libroActualizado.id, userId)
-                libroViewModel.guardarLibroEnLaNube(libroActualizado, notasDelLibro)
+            // Verificar si se requiere eliminar alguna nota
+            if (idNotaEliminada != -1) {
+                Log.d("DetallesLibroActivity", "Preparando para eliminar nota con ID: $idNotaEliminada y guardar cambios en el libro.")
+                // Este bloque maneja la eliminación de la nota además del guardado del libro
+                lifecycleScope.launch {
+                    val notasDelLibro = obtenerNotasDelLibro(libroActualizado.id, userId)
+                    val notasActualizadas = notasDelLibro.filter { it.id != idNotaEliminada }
+                    libroViewModel.guardarLibroEnLaNube(libroActualizado, notasActualizadas, idNotaEliminada)
+                }
+            } else {
+                // Solo guardar cambios en el libro si no hay notas a eliminar
+                Log.d("DetallesLibroActivity", "Guardando cambios en el libro sin eliminar ninguna nota.")
+                lifecycleScope.launch {
+                    val notasDelLibro = obtenerNotasDelLibro(libroActualizado.id, userId)
+                    libroViewModel.guardarLibroEnLaNube(libroActualizado, notasDelLibro, -1)
+                }
             }
         } ?: Log.e("DetallesLibroActivity", "El libro es nulo al intentar guardar en la nube.")
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(languageChangeReceiver)
     }
 
     private fun inicializarViewModels() {
@@ -413,6 +435,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         val intent = Intent(this, EditarNotaActivity::class.java)
         intent.putExtra("NOTA_ID", nota.id)
         intent.putExtra("USER_ID", userId)
+        intent.putExtra("LIBRO_ID",idLibro)
         startActivity(intent)
     }
 
