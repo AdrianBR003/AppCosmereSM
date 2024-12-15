@@ -24,12 +24,6 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
         }
     }
 
-    fun insertarNotasEstaticasSiVacia(notasEstaticas: List<Nota>, libroId: Int, userId: String) {
-        viewModelScope.launch {
-            repository.insertarNotasEstaticasSiTablaVacia(notasEstaticas, libroId, userId)
-        }
-    }
-
     fun insertarNota(nota: Nota) {
         viewModelScope.launch {
             repository.insertOrUpdateNota(nota)
@@ -51,7 +45,7 @@ class NotaViewModel(private val repository: NotaRepository) : ViewModel() {
     fun contarNotasPorLibro(libroId: Int, userId: String): LiveData<Int> {
         return repository.contarNotasPorLibro(libroId, userId)
     }
-    
+
 
     // Factory para el ViewModel
     class NotaViewModelFactory(private val repository: NotaRepository) : ViewModelProvider.Factory {

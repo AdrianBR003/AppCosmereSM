@@ -45,7 +45,7 @@ import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.Modelo.Noticia
 import com.example.appsandersonsm.Repository.LibroRepository
 import com.example.appsandersonsm.ViewModel.LibroViewModel
-import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
+import com.example.appsandersonsm.ViewModel.NotaViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -69,9 +69,7 @@ class AjustesActivity : AppCompatActivity() {
     private lateinit var recyclerViewNoticias: RecyclerView
     private lateinit var progressBar: ProgressBar
     private lateinit var textViewSagasEmpezadas: TextView
-
-    private lateinit var notaDao: NotaDao
-    private lateinit var usuarioDao: UsuarioDao
+    private lateinit var notaViewModel: NotaViewModel
     private lateinit var libroDao: LibroDao
     private lateinit var libroRepository: LibroRepository
     private lateinit var jsonHandler: JsonHandler
@@ -91,7 +89,7 @@ class AjustesActivity : AppCompatActivity() {
     private val libroViewModel: LibroViewModel by viewModels {
         val app = application as? InitApplication
             ?: throw IllegalStateException("Application is not InitApplication")
-        LibroViewModelFactory(app.libroRepository)
+        LibroViewModel.LibroViewModelFactory(app.libroRepository)
     }
 
     // API
@@ -110,17 +108,25 @@ class AjustesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState) // Llamada a super.onCreate()
         setContentView(R.layout.activity_ajustes)
 
+        // Obtener instancia de InitApplication
+        val app = application as InitApplication
+
+        // Inicializar ViewModels usando factories
+        val notaViewModelFactory = NotaViewModel.NotaViewModelFactory(app.notaRepository)
+        notaViewModel = ViewModelProvider(this, notaViewModelFactory).get(NotaViewModel::class.java)
+
+        // Inicializar Vistas
+        initViews()
+
+
+
         // Coger el ID del Intent del Login
         userId = intent.getStringExtra("USER_ID") ?: ""
-
-
-        // Inicializar vistas y componentes
-        initViews()
 
         // Inicializar la base de datos y el DAO
         val database = AppDatabase.getDatabase(this, CoroutineScope(Dispatchers.IO))
         libroDao = database.libroDao()
-        libroRepository = LibroRepository(libroDao)
+        libroRepository = LibroRepository(libroDao, app.appDatabase.notaDao())
         jsonHandler = JsonHandler(this, libroDao)
 
         // Configurar la navegación, RecyclerView, observadores, etc.
@@ -552,5 +558,4 @@ class AjustesActivity : AppCompatActivity() {
             finish()
         }
     }
-
 }

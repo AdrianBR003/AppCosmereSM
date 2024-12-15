@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.appsandersonsm.Firestore.LibroFirestore
 
 @Entity(
     tableName = "libros",
@@ -30,13 +29,6 @@ data class Libro(
     var valoracion: Float = 0.0f,
     var numeroNotas: Int = 0,
     var empezarLeer: Boolean = false,
-    val userId: String = "" // Relación con la tabla "usuarios"
-) {
-    fun toFirestore(): LibroFirestore {
-        return LibroFirestore(
-            nombreLibro = nombreLibro,
-            progreso = progreso,
-            valoracion = valoracion
-        )
-    }
-}
+    val userId: String="" ,
+    val idNotaL: Int = 0 // Nuevo campo
+)

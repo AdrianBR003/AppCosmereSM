@@ -12,7 +12,7 @@ data class NotaFirestore(
     fun toNota(id: Int, libroId: Int): Nota {
         return Nota(
             id = id,
-            libroId = libroId,
+            idLibroN = libroId,
             titulo = titulo,
             contenido = contenido,
             fechaCreacion = fechaCreacion,

@@ -44,6 +44,7 @@
     <string name="started_default">Started</string>
     <string name="not_started_default">Not Started</string>
     <string name="error_sincronizacion">synchronization error</string>
+    <string name="no_internet_connection">There is no internet access</string>
 
 
 </resources>

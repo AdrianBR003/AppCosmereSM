@@ -11,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.ViewModel.NotaViewModel
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.firestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -21,18 +24,30 @@ class EditarNotaActivity : AppCompatActivity() {
     private lateinit var editTextContenido: EditText
     private lateinit var imageViewDelete: ImageView
     private lateinit var botonGuardar: Button
-    private var notaId: Int = 0
     private lateinit var notaViewModel: NotaViewModel
     private var nota: Nota? = null
     private var userId = ""
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("EditarNotaActivity", "onCreate iniciado")
         setContentView(R.layout.activity_editar_nota)
+        Log.d("EditarNotaActivity", "Layout inflado")
 
-        // Coger el ID del Intent del Login
+
+        // Obtener el USER_ID del Intent
         userId = intent.getStringExtra("USER_ID") ?: ""
+        Log.d("EditarNotaActivity", "USER_ID recibido: $userId")
+
+        // Obtén el ID de la nota del Intent
+        var notaId = intent.getIntExtra("NOTA_ID", -1)
+        Log.d("EditarNotaActivity", "Nota ID recibido: $notaId")
+
+        if (notaId == -1) {
+            Log.e("EditarNotaActivity", "Nota ID no válido")
+            finish() // Cierra la actividad si el ID no es válido
+            return
+        }
 
 
         // Inicializar vistas

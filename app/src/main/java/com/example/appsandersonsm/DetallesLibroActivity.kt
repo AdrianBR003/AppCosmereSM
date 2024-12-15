@@ -21,6 +21,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -30,15 +31,22 @@ import com.example.appsandersonsm.Adapter.NotasAdapter
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.ViewModel.LibroViewModel
-import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.example.appsandersonsm.ViewModel.NotaViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
+import androidx.room.Room
+import com.example.appsandersonsm.Dao.LibroDao
+import com.example.appsandersonsm.DataBase.AppDatabase
+import com.example.appsandersonsm.Repository.LibroRepository
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import com.example.appsandersonsm.ViewModel.NotaViewModel.NotaViewModelFactory
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListener {
@@ -58,18 +66,22 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private lateinit var llNetScroll: LinearLayout
     private lateinit var nestedScrollViewSinopsis: NestedScrollView
 
+    private val app: InitApplication by lazy {
+        application as? InitApplication
+            ?: throw IllegalStateException("InitApplication no está configurada correctamente")
+    }
 
     private var libro: Libro? = null
     private var idLibro: Int = 0
-    private var isExpanded = false // Variable para gestionar el estado expandido/colapsado
-    private var contadorNotas: Int = 3 // Empezamos con 3 notas estáticas
-    private var userId = "";
-    val firestore = Firebase.firestore
+    private var isExpanded = false
+    private var contadorNotas: Int = 3
+    private var userId = ""
+    private val firestore = FirebaseFirestore.getInstance()
 
     private val languageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "LANGUAGE_CHANGED") {
-                recreate() // Recrear la actividad para aplicar cambios de idioma
+                recreate()
             }
         }
     }
@@ -83,14 +95,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         // Coger el ID del Intent del Login
         userId = intent.getStringExtra("USER_ID") ?: ""
 
-
-        // Inicializar ViewModel después de que la actividad esté completamente creada
-        notaViewModel = ViewModelProvider(
-            this,
-            NotaViewModel.NotaViewModelFactory((application as InitApplication).notaRepository)
-        ).get(NotaViewModel::class.java)
-
-        supportActionBar?.hide() // Ocultar la barra de acción predeterminada
+        supportActionBar?.hide()
 
         // Obtener el ID del libro del Intent
         idLibro = intent.getIntExtra("LIBRO_ID", 0)
@@ -104,10 +109,24 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         observarNotas()
         inicializarDatosLibro()
 
-        // Inicialmente, ocultar el LinearLayout y el NestedScrollView
+        // Observar el estado de guardado
+        libroViewModel.guardarEstado.observe(this, Observer { exito ->
+            if (exito) {
+                Toast.makeText(
+                    this,
+                    "Libro y notas guardados exitosamente en la nube.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    this,
+                    "Error al guardar libro y notas en la nube.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        })
 
         nestedScrollViewSinopsis = findViewById(R.id.scrollViewSinopsis)
-
         btnExpandirSinopsis = findViewById(R.id.btnExpandirSinopsis)
         nestedScrollViewSinopsis.visibility = View.GONE
 
@@ -116,21 +135,18 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             toggleSinopsisVisibility(nestedScrollViewSinopsis, btnExpandirSinopsis)
         }
 
-        // Anyadir la nota
+        // Añadir la nota
         val addNotaImageView = findViewById<ImageView>(R.id.btn_anyadirnotas)
         addNotaImageView.setOnClickListener {
             agregarNuevaNota()
         }
-
 
         // Configurar el comportamiento táctil del NestedScrollView
         nestedScrollViewSinopsis.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                     nestedScrollViewSinopsis.parent.requestDisallowInterceptTouchEvent(
-                        nestedScrollViewSinopsis.canScrollVertically(-1) || nestedScrollViewSinopsis.canScrollVertically(
-                            1
-                        )
+                        nestedScrollViewSinopsis.canScrollVertically(-1) || nestedScrollViewSinopsis.canScrollVertically(1)
                     )
                 }
 
@@ -140,8 +156,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             }
             false
         }
-
-
     }
 
     override fun onResume() {
@@ -160,23 +174,32 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     override fun onStop() {
         super.onStop()
         libro?.let { libroActualizado ->
-            Log.d("DetallesLibroActivity", "Guardando en nube el libro: ${libroActualizado.id} con progreso=${libroActualizado.progreso}, totalPaginas=${libroActualizado.totalPaginas}, userId=$userId")
+            Log.d(
+                "DetallesLibroActivity",
+                "Guardando en nube el libro: ${libroActualizado.id} con progreso=${libroActualizado.progreso}, totalPaginas=${libroActualizado.totalPaginas}, userId=$userId, idNotaL=${libroActualizado.idNotaL}"
+            )
+
             lifecycleScope.launch {
-                libroViewModel.guardarLibroEnLaNube(libroActualizado)
+                val notasDelLibro = obtenerNotasDelLibro(libroActualizado.idNotaL, userId)
+                libroViewModel.guardarLibroEnLaNube(libroActualizado, notasDelLibro)
             }
         } ?: Log.e("DetallesLibroActivity", "El libro es nulo al intentar guardar en la nube.")
     }
 
     private fun inicializarViewModels() {
-        notaViewModel = ViewModelProvider(
-            this,
-            NotaViewModel.NotaViewModelFactory((application as InitApplication).notaRepository)
-        )[NotaViewModel::class.java]
-
+        // Crear una instancia de la Factory desde LibroViewModel
+        val libroViewModelFactory = LibroViewModel.LibroViewModelFactory(app.libroRepository)
         libroViewModel = ViewModelProvider(
             this,
-            LibroViewModelFactory((application as InitApplication).libroRepository)
-        )[LibroViewModel::class.java]
+            libroViewModelFactory
+        ).get(LibroViewModel::class.java)
+
+        // Supongo que tienes una factory similar para NotaViewModel
+        val notaViewModelFactory = NotaViewModelFactory(app.notaRepository)
+        notaViewModel = ViewModelProvider(
+            this,
+            notaViewModelFactory
+        ).get(NotaViewModel::class.java)
     }
 
     private fun inicializarVistas() {
@@ -202,9 +225,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                     recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(
-                        recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(
-                            1
-                        )
+                        recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(1)
                     )
                 }
 
@@ -245,11 +266,10 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     }
 
     fun toggleSinopsisVisibility(llNetScroll: NestedScrollView, btnExpandirSinopsis: ImageView) {
-        val duration = 300L // Duración de la animación en milisegundos
+        val duration = 300L
         val interpolator = AccelerateDecelerateInterpolator()
 
         if (isExpanded) {
-            // Colapsar: animar la desaparición del NestedScrollView
             llNetScroll.animate()
                 .translationY(-llNetScroll.height.toFloat())
                 .alpha(0f)
@@ -263,12 +283,10 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 }
                 .start()
         } else {
-            // Asegurarse de que la vista está medida antes de animar
             llNetScroll.visibility = View.VISIBLE
             llNetScroll.alpha = 0f
             llNetScroll.translationY = -llNetScroll.height.toFloat()
 
-            // Usar post para asegurar que las propiedades se actualicen después de la medida
             llNetScroll.post {
                 llNetScroll.animate()
                     .translationY(0f)
@@ -282,10 +300,8 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             }
         }
 
-        // Cambiar el estado
         isExpanded = !isExpanded
     }
-
 
     private fun configurarListeners() {
         editTextProgressCurrent.addTextChangedListener(object : TextWatcher {
@@ -309,19 +325,14 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         })
 
         ratingBarValoracion.setOnRatingBarChangeListener { _, rating, _ ->
-            libro?.let { libroViewModel.actualizarValoracion(it.id, rating,userId) }
+            libro?.let { libroViewModel.actualizarValoracion(it.id, rating, userId) }
         }
     }
 
     private fun inicializarDatosLibro() {
-        // Primero, contar las notas y actualizar el libro en memoria
         contarNotas(idLibro) { numeroNotas ->
             Log.d("DetallesLibroActivity", "Número de notas para libro $idLibro: $numeroNotas")
 
-            // Inicializar notas estaticas
-            insertarNotasEstaticasSiNecesario()
-
-            // Una vez se obtienen las notas, cargar los datos del libro
             cargarDatosLibro(idLibro) { libroCargado ->
                 libro = libroCargado
                 libro?.numeroNotas = numeroNotas
@@ -331,13 +342,13 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     }
 
     private fun contarNotas(libroId: Int, callback: (Int) -> Unit) {
-        notaViewModel.contarNotasPorLibro(libroId,userId).observe(this) { numeroNotas ->
+        notaViewModel.contarNotasPorLibro(libroId, userId).observe(this) { numeroNotas ->
             callback(numeroNotas ?: 0)
         }
     }
 
     private fun cargarDatosLibro(libroId: Int, callback: (Libro?) -> Unit) {
-        libroViewModel.getLibroByIdAndUsuario(libroId,userId).observe(this) { libroCargado ->
+        libroViewModel.getLibroByIdAndUsuario(libroId, userId).observe(this) { libroCargado ->
             if (libroCargado == null) {
                 Log.e(
                     "DetallesLibroActivity",
@@ -350,7 +361,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
     private fun actualizarUIConDatosLibro(libro: Libro?) {
         libro?.let {
-            // Actualizar vistas con los datos del libro
             val resID = resources.getIdentifier(it.nombrePortada, "drawable", packageName)
             imagenPortada.setImageResource(resID)
             editTextProgressCurrent.setText(it.progreso.toString())
@@ -399,19 +409,11 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
     override fun onNotaClick(nota: Nota) {
         Toast.makeText(this, "Nota seleccionada: ${nota.titulo}", Toast.LENGTH_SHORT).show()
-        startActivity(Intent(this, EditarNotaActivity::class.java).apply {
-            putExtra("NOTA_ID", nota.id)
-        })
-    }
-
-    private fun insertarNotasEstaticasSiNecesario() {
-        val notasEstaticas = listOf(
-            Nota(libroId = idLibro, userId = userId, titulo = "Nota 1", contenido = "Contenido de la nota 1"),
-            Nota(libroId = idLibro, userId = userId, titulo = "Nota 2", contenido = "Contenido de la nota 2"),
-            Nota(libroId = idLibro, userId = userId,titulo = "Nota 3", contenido = "Contenido de la nota 3")
-        )
-
-        notaViewModel.insertarNotasEstaticasSiVacia(notasEstaticas, idLibro, userId)
+        userId = intent.getStringExtra("USER_ID") ?: ""
+        val intent = Intent(this, EditarNotaActivity::class.java)
+        intent.putExtra("NOTA_ID", nota.id)
+        intent.putExtra("USER_ID", userId)
+        startActivity(intent)
     }
 
     private fun observarNotas() {
@@ -419,29 +421,29 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             Log.d(
                 "DetallesLibroActivity",
                 "Notas cargadas desde ViewModel: $notas"
-            ) // Verifica que las notas llegan
-            notasAdapter.submitList(notas) // Actualiza el RecyclerView con las notas
+            )
+            notasAdapter.submitList(notas)
         }
     }
 
     private fun agregarNuevaNota() {
-        // Incrementar el contador para generar una nueva nota
         contadorNotas++
 
         val nuevaNota = Nota(
-            libroId = idLibro,
+            idLibroN = idLibro,
             userId = userId,
             titulo = "Nota $contadorNotas",
             contenido = "Contenido de la nota $contadorNotas"
         )
 
-        // Insertar la nueva nota
         notaViewModel.insertarNota(nuevaNota)
 
-        // Opcional: Mostrar un mensaje al usuario (ejemplo, Toast)
         Toast.makeText(this, "Nota $contadorNotas añadida", Toast.LENGTH_SHORT).show()
     }
 
-
+    private suspend fun obtenerNotasDelLibro(idNotaL: Int, userId: String): List<Nota> {
+        return withContext(Dispatchers.IO) {
+            libroViewModel.obtenerNotasDelLibro(idNotaL, userId)
+        }
+    }
 }
-

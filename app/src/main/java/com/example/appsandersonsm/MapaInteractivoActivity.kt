@@ -39,7 +39,6 @@ import com.example.appsandersonsm.DataBase.AppDatabase
 import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
-import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
 import io.getstream.photoview.PhotoView
@@ -110,7 +109,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
     // Inicializar el ViewModel usando el delegado by viewModels
     private val libroViewModel: LibroViewModel by viewModels {
-        LibroViewModelFactory((application as InitApplication).libroRepository)
+        LibroViewModel.LibroViewModelFactory((application as InitApplication).libroRepository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

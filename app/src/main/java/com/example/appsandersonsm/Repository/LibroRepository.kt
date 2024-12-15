@@ -2,11 +2,15 @@ package com.example.appsandersonsm.Repository
 
 import androidx.lifecycle.LiveData
 import com.example.appsandersonsm.Dao.LibroDao
+import com.example.appsandersonsm.Dao.NotaDao
 import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Modelo.Libro
+import com.example.appsandersonsm.Modelo.Nota
 import kotlinx.coroutines.flow.Flow
 
-class LibroRepository(private val libroDao: LibroDao) {
+class LibroRepository(private val libroDao: LibroDao, private val notaDao: NotaDao) {
+
+
 
     fun getAllLibrosByUsuario(userId: String): LiveData<List<Libro>> {
         return libroDao.getAllLibrosByUsuario(userId)
@@ -27,6 +31,12 @@ class LibroRepository(private val libroDao: LibroDao) {
 
     suspend fun getLibroByIdAndUsuario(id: Int, userId: String): Libro? {
         return libroDao.getLibroById(id, userId)
+    }
+
+    // Método que utiliza notaDao
+    suspend fun getNotasPorLibroYUsuario(idNotaL: Int, userId: String): List<Nota> {
+        // Asegúrate de que el método en NotaDao está correctamente definido
+        return notaDao.obtenerNotasPorLibroYUsuario(idNotaL, userId)
     }
 
     suspend fun updateLocalization(languageCode: String, jsonHandler: JsonHandler, userId: String) {

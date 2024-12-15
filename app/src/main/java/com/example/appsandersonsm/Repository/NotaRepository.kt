@@ -16,22 +16,26 @@ class NotaRepository(private val notaDao: NotaDao) {
         return notaDao.getAllNotasByUsuario(userId)
     }
 
-    suspend fun actualizarFechaModificacion(notaId: Int, nuevaFecha: String, userId: String) {
-        notaDao.actualizarFechaModificacion(notaId, nuevaFecha, userId)
+    suspend fun insertarNota(nota: Nota) {
+        notaDao.insertarNota(nota)
     }
 
-    suspend fun insertarNotasEstaticasSiTablaVacia(notasEstaticas: List<Nota>, libroId: Int, userId: String) {
-        withContext(Dispatchers.IO) {
-            notaDao.insertarNotasSiTablaVaciaTransaccion(notasEstaticas, libroId, userId)
-        }
+    suspend fun insertarNotas(notas: List<Nota>) {
+        notaDao.insertarNotas(notas)
     }
 
-    suspend fun eliminarNotaPorId(idNota: Int, userId: String) {
-        notaDao.eliminarNotaPorId(idNota, userId)
+    suspend fun getNotasPorLibroYUsuario(libroId: Int, userId: String): List<Nota> {
+        return notaDao.obtenerNotasPorLibroYUsuario(libroId, userId)
     }
 
     fun contarNotasPorLibro(libroId: Int, userId: String): LiveData<Int> {
         return notaDao.contarNotasPorLibro(libroId, userId)
+    }
+
+
+
+    suspend fun eliminarNotaPorId(idNota: Int, userId: String) {
+        notaDao.eliminarNotaPorId(idNota, userId)
     }
 
     suspend fun insertOrUpdateNota(nota: Nota) {

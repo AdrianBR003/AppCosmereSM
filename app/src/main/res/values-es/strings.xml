@@ -64,6 +64,7 @@
     <string name="app_name">AppSandersonSM</string>
     <string name="title_activity_login" translatable="false">LoginActivity</string>
     <string name="error_sincronizacion">Error de Sincronizacion\n</string>
+    <string name="no_internet_connection">No hay acceso a Internet</string>
 
 
 </resources>

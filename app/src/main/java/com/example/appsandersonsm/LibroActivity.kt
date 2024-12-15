@@ -18,7 +18,6 @@ import com.example.appsandersonsm.Adapter.LibroAdapter
 import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
-import com.example.appsandersonsm.ViewModel.LibroViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import org.json.JSONArray
 import java.util.Locale
@@ -36,7 +35,7 @@ class LibroActivity : AppCompatActivity() {
 
     // ViewModel para gestionar los datos de libros
     private val libroViewModel: LibroViewModel by viewModels {
-        LibroViewModelFactory((application as InitApplication).libroRepository)
+        LibroViewModel.LibroViewModelFactory((application as InitApplication).libroRepository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,7 +105,7 @@ class LibroActivity : AppCompatActivity() {
         val languageCode = prefs.getString("language", Locale.getDefault().language) ?: "es"
 
         // Crear JsonHandler con el dao, sin modificar la clase
-        val jsonHandler = JsonHandler(this, (application as InitApplication).database.libroDao())
+        val jsonHandler = JsonHandler(this, (application as InitApplication).appDatabase.libroDao())
 
         // Llamar a la función del ViewModel para actualizar la localización
         libroViewModel.updateLocalizacion(languageCode, jsonHandler, userId)
