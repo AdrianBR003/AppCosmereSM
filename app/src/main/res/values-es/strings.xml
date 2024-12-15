@@ -88,6 +88,7 @@ Me pregunto quién salió mejor parado.”</string>
     <string name="titulo_palabras_radiantes">Palabras Radiantes</string>
     <string name="titulo_juramentada">Juramentada</string>
     <string name="titulo_el_ritmo_de_la_guerra">El Ritmo de la Guerra</string>
+    <string name="error_progress">El progreso actual no puede exceder el total.</string>
 
 
 </resources>

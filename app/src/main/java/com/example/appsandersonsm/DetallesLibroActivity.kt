@@ -441,7 +441,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         // Validar que 'currentInput' no exceda 'totalInput'
         val current = if (currentInput > totalInput) {
             // Mostrar mensaje de error
-            editTextProgressCurrent.error = "El progreso actual no puede exceder el total."
+            editTextProgressCurrent.error = getString(R.string.error_progress)
 
             // Ajustar el valor actual al total
             totalInput

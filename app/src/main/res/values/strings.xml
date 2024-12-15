@@ -90,6 +90,7 @@ Me pregunto quién salió mejor parado.”</string>
     <string name="titulo_palabras_radiantes">Words of Radiance</string>
     <string name="titulo_juramentada">Oathbringer</string>
     <string name="titulo_el_ritmo_de_la_guerra">Rhythm of War</string>
+    <string name="error_progress">El progreso actual no puede exceder el total.</string>
 
 
 </resources>
