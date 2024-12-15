@@ -174,13 +174,13 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     override fun onStop() {
         super.onStop()
         libro?.let { libroActualizado ->
-            Log.d(
+            Log.d( 
                 "DetallesLibroActivity",
-                "Guardando en nube el libro: ${libroActualizado.id} con progreso=${libroActualizado.progreso}, totalPaginas=${libroActualizado.totalPaginas}, userId=$userId, idNotaL=${libroActualizado.idNotaL}"
+                "Guardando en nube el libro: ${libroActualizado.id} con progreso=${libroActualizado.progreso}, totalPaginas=${libroActualizado.totalPaginas}, userId=$userId"
             )
 
             lifecycleScope.launch {
-                val notasDelLibro = obtenerNotasDelLibro(libroActualizado.idNotaL, userId)
+                val notasDelLibro = obtenerNotasDelLibro(libroActualizado.id, userId)
                 libroViewModel.guardarLibroEnLaNube(libroActualizado, notasDelLibro)
             }
         } ?: Log.e("DetallesLibroActivity", "El libro es nulo al intentar guardar en la nube.")

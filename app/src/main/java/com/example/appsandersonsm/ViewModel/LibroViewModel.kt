@@ -38,7 +38,7 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
             try {
                 repository.deleteAllLibros()
             } catch (e: Exception) {
-                Log.e("LibroViewModel", "Error al borrar todos los libros: ${e.message}")
+                Log.d("LibroViewModel", "Error al borrar todos los libros: ${e.message}")
             }
         }
     }
@@ -83,7 +83,7 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
     fun actualizarValoracion(libroId: Int, valoracion: Float, userId: String) =
         viewModelScope.launch {
             if (valoracion !in 0.0..10.0) {
-                Log.e("LibroViewModel", "Valoración inválida: $valoracion")
+                Log.d("Nube", "Valoración inválida: $valoracion")
                 return@launch
             }
             repository.actualizarValoracion(libroId, valoracion, userId)
@@ -93,26 +93,26 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (libro.userId.isEmpty()) {
-                    Log.e("LibroViewModel", "userId está vacío.")
+                    Log.d("LibroViewModel", "userId está vacío.")
                     return@launch
                 }
                 if (libro.id <= 0) {
-                    Log.e("LibroViewModel", "libro.id es inválido: ${libro.id}")
+                    Log.d("LibroViewModel", "libro.id es inválido: ${libro.id}")
                     return@launch
                 }
 
                 for (nota in notas) {
                     if (nota.id <= 0) {
-                        Log.e("LibroViewModel", "Nota con id inválido: ${nota.id}")
+                        Log.d("LibroViewModel", "Nota con id inválido: ${nota.id}")
                         return@launch
                     }
                 }
 
                 Log.d(
-                    "LibroViewModel",
-                    "Iniciando guardado en nube: userId=${libro.userId}, libroId=${libro.id}, idNotaL=${libro.idNotaL}"
+                    "Nube",
+                    "Iniciando guardado en nube: userId=${libro.userId}, libroId=${libro.id}"
                 )
-                Log.d("LibroViewModel", "Número de notas a guardar: ${notas.size}")
+                Log.d("Nube", "Número de notas a guardar: ${notas.size}")
 
                 val userDocRef = firestore.collection("users").document(libro.userId.toString())
                 val libroDocRef = userDocRef.collection("libros").document(libro.id.toString())
@@ -129,13 +129,12 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
                     "numeroNotas" to libro.numeroNotas,
                     "empezarLeer" to libro.empezarLeer,
                     "userId" to libro.userId,
-                    "idNotaL" to libro.idNotaL
                 )
 
                 val batch = firestore.batch()
 
                 batch.set(libroDocRef, data, SetOptions.merge())
-                Log.d("LibroViewModel", "Añadido libro al batch: ${libro.id}")
+                Log.d("Nube", "Añadido libro al batch: ${libro.id}")
 
                 for (nota in notas) {
                     val notaDocRef = libroDocRef.collection("notas").document(nota.id.toString())
@@ -146,20 +145,20 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
                         "idLibroN" to nota.idLibroN
                     )
                     batch.set(notaDocRef, notaData, SetOptions.merge())
-                    Log.d("LibroViewModel", "Añadida nota al batch: ${nota.id}")
+                    Log.d("Nube", "Añadida nota al batch: ${nota.id}")
                 }
 
                 batch.commit().await()
-                Log.d("LibroViewModel", "Batch commit completado.")
+                Log.d("Nube", "Batch commit completado.")
 
-                Log.d("LibroViewModel", "Libro y notas guardados correctamente en la nube.")
+                Log.d("Nube", "Libro y notas guardados correctamente en la nube.")
 
                 withContext(Dispatchers.Main) {
                     _guardarEstado.value = true
                 }
             } catch (e: Exception) {
-                Log.e(
-                    "LibroViewModel",
+                Log.d(
+                    "Nube",
                     "Error al guardar libro y notas en la nube: ${e.localizedMessage}",
                     e
                 )
