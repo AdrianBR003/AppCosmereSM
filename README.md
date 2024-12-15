@@ -1,3 +1,9 @@
+ <div align="right">
+   
+   [![Tiempo de Desarrollo:](https://wakatime.com/badge/user/80ed10d0-375c-46c9-a143-17140f452371/project/400455e0-d1cc-4663-836c-9be406bafe73.svg)](https://wakatime.com/badge/user/80ed10d0-375c-46c9-a143-17140f452371/project/400455e0-d1cc-4663-836c-9be406bafe73)
+  </div>
+
+
 # Aplicación de Guía de Lectura para el Cosmere - CosmereApp v1.0.0-beta
 
 > [!WARNING]
@@ -35,6 +41,3 @@
 - **Autor principal**: [Adrian Benítez Roldán](https://github.com/AdrianBR003)
 - **Basado en el universo de**: [Brandon Sanderson](https://x.com/brandsanderson)
 - **Imagenes  y Fuentes recopiladas de**: [Cosmere.es](https://cosmere.es/) , [CopperMind](https://es.coppermind.net/wiki/Coppermind:Bienvenidos) y [Amazon](https://www.amazon.es/)
-
-
-
