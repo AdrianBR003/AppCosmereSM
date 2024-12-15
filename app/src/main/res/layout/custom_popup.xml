@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/rounded_bottom_nav"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ImageView
+        android:id="@+id/imageViewIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:scaleX="2"
+        android:scaleY="2"
+        android:src="@mipmap/ic_launcher_foreground" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_marginBottom="5dp"
+        android:scaleX="1"
+        android:scaleY="1">
+
+        <TextView
+            android:id="@+id/textViewTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/felicidades"
+            android:textColor="@color/gold"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textViewMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="@string/completado_libro"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <TextView
+            android:textStyle="bold"
+            android:id="@+id/tv_libro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="El Camino de los Reyes"
+            android:textColor="@color/gold_s"
+            android:textSize="18sp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_frase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:gravity="center"
+        android:text="Vida antes que Muerte, Fuerza antes que Debilidad, Viaje antes que Destino"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:textStyle="italic" />
+
+
+
+    <Button
+        android:id="@+id/buttonClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="@color/menuIconos"
+        android:scaleX="1"
+        android:scaleY="1"
+        android:text="@string/cerrar" />
+
+</LinearLayout>

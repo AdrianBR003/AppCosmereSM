@@ -23,6 +23,9 @@ interface LibroDao {
         userId: String
     )
 
+    @Query("UPDATE libros SET leido = :leido WHERE id = :idLibro")
+    suspend fun actualizarEstadoLeido(idLibro: Int, leido: Boolean)
+
     @Query("UPDATE libros SET inicialSaga = :inicialSaga WHERE id = :id AND userId = :userId")
     suspend fun updateInicialSaga(id: Int, inicialSaga: Boolean, userId: String)
 

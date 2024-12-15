@@ -35,7 +35,8 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
                         valoracion = jsonObject.optDouble("valoracion", 0.0).toFloat(),
                         numeroNotas = jsonObject.optInt("nNotas", 0),
                         empezarLeer = jsonObject.optBoolean("empezarLeer", false),
-                        userId = "default" // Inicialmente vacío
+                        userId = "default", // Inicialmente vacío
+                        leido = jsonObject.optBoolean("leido",false)
                     )
                     libros.add(libro)
                 }
@@ -70,7 +71,8 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
                         valoracion = jsonObject.optDouble("valoracion", 0.0).toFloat(),
                         numeroNotas = jsonObject.optInt("nNotas", 0),
                         empezarLeer = jsonObject.optBoolean("empezarLeer", false),
-                        userId = userId // Asociar con el usuario
+                        userId = userId, // Asociar con el usuario
+                        leido = jsonObject.optBoolean("leido",false)
                     )
                     libros.add(libro)
                 }
@@ -106,7 +108,8 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
                         valoracion = jsonObject.optDouble("valoracion", 0.0).toFloat(),
                         numeroNotas = jsonObject.optInt("nNotas", 0),
                         empezarLeer = jsonObject.optBoolean("empezarLeer", false),
-                        userId = userId // Asociar con el usuario
+                        userId = userId, // Asociar con el usuario
+                        leido = jsonObject.optBoolean("leido",false)
                     )
                     libros.add(libro)
                 }
@@ -120,40 +123,6 @@ class JsonHandler(private val context: Context, private val libroDao: LibroDao) 
             Log.e("JsonHandler", "JSON inicial no encontrado o vacío.")
         }
     }
-
-    /**
-     * Carga y actualiza los campos localizados desde el archivo JSON correspondiente.
-     */
-    suspend fun actualizarLocalizacionIdioma(languageCode: String, userId: String) {
-        val fileName = if (languageCode == "en") fileNameEn else fileNameEs
-        val jsonString = leerJsonDesdeAssets(fileName)
-
-        if (jsonString != null) {
-            try {
-                val jsonArray = JSONArray(jsonString)
-                Log.d("JsonHandler", "Cantidad de libros en $fileName: ${jsonArray.length()}")
-                for (i in 0 until jsonArray.length()) {
-                    val jsonObject = jsonArray.getJSONObject(i)
-
-                    // Asegúrate de extraer los datos con el tipo correcto
-                    val id = jsonObject.getInt("id")
-                    val nombreLibro = jsonObject.getString("nombreLibro")
-                    val nombreSaga = jsonObject.getString("nombreSaga")
-                    val sinopsis = jsonObject.getString("sinopsis")
-
-                    // Actualiza los campos localizados
-                    libroDao.updateLibroLocalization(id, nombreLibro, nombreSaga, sinopsis, userId)
-                    Log.d("JsonHandler", "Libro actualizado ID: $id para el usuario: $userId")
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.e("JsonHandler", "Error al parsear JSON ($fileName): ${e.message}")
-            }
-        } else {
-            Log.e("JsonHandler", "JSON no encontrado o vacío: $fileName")
-        }
-    }
-
     /**
      * Lee el contenido de un archivo JSON desde la carpeta assets.
      */

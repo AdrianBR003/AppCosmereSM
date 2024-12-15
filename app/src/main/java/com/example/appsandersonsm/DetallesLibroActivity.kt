@@ -11,7 +11,9 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -19,6 +21,7 @@ import android.widget.ProgressBar
 import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.Observer
@@ -402,11 +405,15 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             libro?.let { libroActualizado ->
                 libroActualizado.progreso = current
                 libroActualizado.totalPaginas = total
-
                 contarNotas(idLibro) { numeroNotas ->
                     libroActualizado.numeroNotas = numeroNotas
-                    libroViewModel.updateLibro(libroActualizado)
                     Log.d("DetallesLibroActivity", "Progreso actualizado: $current / $total")
+                    // Mostrar popup si se completó el libro por primera vez
+                    if (current == total && !libroActualizado.leido) {
+                        mostrarPopupCelebracion()
+                        libroActualizado.leido=true
+                    }
+                    libroViewModel.updateLibro(libroActualizado)
                 }
             }
         } else {
@@ -418,12 +425,44 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     }
 
     private fun updateProgressBar() {
-        val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
-        val total =
-            editTextProgressTotal.text.toString().toIntOrNull() ?: libro?.totalPaginas ?: 100
+        // Obtener el valor actual ingresado por el usuario
+        val currentInput = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
+
+        // Obtener el valor total, ya sea ingresado por el usuario o de 'libro'
+        val totalInput = editTextProgressTotal.text.toString().toIntOrNull() ?: libro?.totalPaginas ?: 100
+
+        // Validar que 'totalInput' no sea cero para evitar división por cero
+        if (totalInput <= 0) {
+            editTextProgressTotal.error = "El total debe ser mayor que cero."
+            progressBar.progress = 0
+            return
+        }
+
+        // Validar que 'currentInput' no exceda 'totalInput'
+        val current = if (currentInput > totalInput) {
+            // Mostrar mensaje de error
+            editTextProgressCurrent.error = "El progreso actual no puede exceder el total."
+
+            // Ajustar el valor actual al total
+            totalInput
+
+            // Opcional: Actualizar el campo de texto para reflejar el cambio
+            // editTextProgressCurrent.setText(totalInput.toString())
+
+        } else {
+            // Limpiar cualquier error previo
+            editTextProgressCurrent.error = null
+            currentInput
+        }
+
+        // Calcular el porcentaje de progreso
+        val progressPercent = calcularProgreso(current, totalInput).coerceIn(0, 100)
+
+        // Configurar la ProgressBar
         progressBar.max = 100
-        progressBar.progress = calcularProgreso(current, total).coerceIn(0, 100)
+        progressBar.progress = progressPercent
     }
+
 
     private fun calcularProgreso(current: Int, total: Int): Int {
         return if (total > 0) (current * 100) / total else 0
@@ -469,4 +508,71 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             libroViewModel.obtenerNotasDelLibro(idNotaL, userId)
         }
     }
+
+    private fun mostrarPopupCelebracion() {
+        // Inflar el diseño personalizado
+        val inflater = layoutInflater
+        val view = inflater.inflate(R.layout.custom_popup, null)
+        val buttonClose = view.findViewById<Button>(R.id.buttonClose)
+
+        // Inicializar los elementos del diseño
+        val textViewMessage = view.findViewById<TextView>(R.id.tv_libro)
+        val fraseViewMessage = view.findViewById<TextView>(R.id.tv_frase)
+
+        // Configurar los textos y otros elementos
+        // Obtener el título traducido
+        val tituloLibro = getTituloLibro(libro?.nombrePortada ?: "portada_elcamino")
+        textViewMessage.text = tituloLibro
+
+        val fraseResId = when (libro?.nombrePortada) {
+            "portada_elcamino" -> R.string.frase_elcamino
+            "portada_palabrasradiantes" -> R.string.frase_palabrasradiantes
+            "portada_juramentada" -> R.string.frase_juramentada
+            "portada_elritmoguerra" -> R.string.frase_elritmoguerra
+            "portada_elaliento" -> R.string.frase_elaliento
+            "portada_nacidos" -> R.string.frase_nacidos // Usando el nombre único
+            "portada_elheroe" -> R.string.frase_elheroe
+            "portada_elpozo" -> R.string.frase_elpozo
+            else -> R.string.frase_elcamino
+        }
+
+        fraseViewMessage.setText(fraseResId)
+
+
+        // Crear y mostrar el diálogo
+        val dialog = AlertDialog.Builder(this)
+            .setView(view)
+            .create()
+
+        // Acción del botón para cerrar el diálogo
+        buttonClose.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.show()
+
+
+        // Ajustar las dimensiones de la ventana para que se ajusten al contenido
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+    }
+
+    fun Context.getTituloLibro(nombrePortada: String): String {
+        return when (nombrePortada) {
+            "portada_elimperiofinal" -> getString(R.string.titulo_el_imperio_final)
+            "portada_elpozo" -> getString(R.string.titulo_el_pozo_de_la_ascension)
+            "portada_elheroe" -> getString(R.string.titulo_el_heroe_de_las_eras)
+            "portada_elaliento" -> getString(R.string.titulo_el_aliento_de_los_dioses)
+            "portada_elcamino" -> getString(R.string.titulo_el_camino_de_los_reyes)
+            "portada_palabrasradiantes" -> getString(R.string.titulo_palabras_radiantes)
+            "portada_juramentada" -> getString(R.string.titulo_juramentada)
+            "portada_elritmoguerra" -> getString(R.string.titulo_el_ritmo_de_la_guerra)
+            else -> getString(R.string.titulo_el_camino_de_los_reyes) // Valor por defecto
+        }
+    }
+
 }

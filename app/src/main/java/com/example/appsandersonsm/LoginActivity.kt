@@ -446,7 +446,8 @@ class LoginActivity : AppCompatActivity() {
                         "valoracion" to libro.valoracion,
                         "numeroNotas" to libro.numeroNotas,
                         "empezarLeer" to libro.empezarLeer,
-                        "userId" to libro.userId
+                        "userId" to libro.userId,
+                        "leido" to libro.leido
                     )
                     libroDocRef.set(libroMap, SetOptions.merge()).await()
 

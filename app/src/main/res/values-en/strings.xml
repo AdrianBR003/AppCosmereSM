@@ -45,6 +45,29 @@
     <string name="not_started_default">Not Started</string>
     <string name="error_sincronizacion">synchronization error</string>
     <string name="no_internet_connection">There is no internet access</string>
+    <string name="felicidades">Congratulations!</string>
+    <string name="completado_libro">You have completed the book</string>
+    <string name="cerrar">Close</string>
+
+    <!-- Popup -->
+    <string name="frase_nacidos">“If you’re always on time, that means you never have anything better to do.”</string>
+    <string name="frase_elpozo">“I write these words in steel, for anything not etched in metal is untrustworthy.”</string>
+    <string name="frase_elheroe">“It\'s a matter of nature. For every push, there\'s a pull. A consequence.”</string>
+    <string name="frase_elaliento">“I was forged to destroy things that were evil. I\'m pretty good at it. I think she would be very proud of me.”</string>
+    <string name="frase_elcamino">“Life before death. Strength before weakness. Journey before destination.”</string>
+    <string name="frase_palabrasradiantes">“If I have to watch this world crumble and burn to get what I need, I will. With tears, yes, but I will let it happen.”</string>
+    <string name="frase_juramentada">“We snatched the splintered pages from the women and they took away our reading and writing. I wonder who came out better.”</string>
+    <string name="frase_elritmoguerra">“In a perfect world, no one would have to train for battle. We do not live in a perfect world.”</string>
+
+    <!-- Títulos de Libros -->
+    <string name="titulo_el_imperio_final">The Final Empire</string>
+    <string name="titulo_el_pozo_de_la_ascension">The Well of Ascension</string>
+    <string name="titulo_el_heroe_de_las_eras">The Hero of Ages</string>
+    <string name="titulo_el_aliento_de_los_dioses">The Breath of the Gods</string>
+    <string name="titulo_el_camino_de_los_reyes">The Way of Kings</string>
+    <string name="titulo_palabras_radiantes">Words of Radiance</string>
+    <string name="titulo_juramentada">Oathbringer</string>
+    <string name="titulo_el_ritmo_de_la_guerra">Rhythm of War</string>
 
 
 </resources>

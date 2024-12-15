@@ -65,6 +65,29 @@
     <string name="title_activity_login" translatable="false">LoginActivity</string>
     <string name="error_sincronizacion">Error de Sincronizacion\n</string>
     <string name="no_internet_connection">No hay acceso a Internet</string>
+    <string name="felicidades">¡Felicidades!</string>
+    <string name="completado_libro">"Has completado el libro "</string>
+    <string name="cerrar">Cerrar</string>
+
+    <string name="frase_nacidos">“Si siempre llegas a tiempo, eso significa que nunca tienes nada mejor que hacer.”</string>
+    <string name="frase_elpozo">“Escribo estas palabras en acero, pues todo lo que no esté grabado en metal es indigno de confianza.”</string>
+    <string name="frase_elheroe">“Es cosa de la naturaleza. A cada empujón le corresponde un tirón. Una consecuencia.”</string>
+    <string name="frase_elaliento">“Me forjó para destruir las cosas que eran malignas. Soy bastante bueno en ello. Creo que estaría muy orgullosa de mí.”</string>
+    <string name="frase_elcamino">“Vida antes que muerte.Fuerza antes que debilidad.Viaje antes que destino.”</string>
+    <string name="frase_palabrasradiantes">“Si tengo que ver este mundo desmoronarse y arder para conseguir lo que necesito, lo haré. Con lágrimas, sí, pero dejaré que suceda.”</string>
+    <string name="frase_juramentada">“Arrebatamos las hojas esquirladas a las mujeres y ellas nos quitaron la lectura y la escritura.
+Me pregunto quién salió mejor parado.”</string>
+    <string name="frase_elritmoguerra">“En un mundo perfecto, nadie tendría que entrenar para la batalla. No vivimos en un mundo perfecto.”</string>
+
+    <!-- Títulos de Libros -->
+    <string name="titulo_el_imperio_final">El Imperio Final</string>
+    <string name="titulo_el_pozo_de_la_ascension">El Pozo de la Ascensión</string>
+    <string name="titulo_el_heroe_de_las_eras">El Héroe de las Eras</string>
+    <string name="titulo_el_aliento_de_los_dioses">El Aliento de los Dioses</string>
+    <string name="titulo_el_camino_de_los_reyes">El Camino de los Reyes</string>
+    <string name="titulo_palabras_radiantes">Palabras Radiantes</string>
+    <string name="titulo_juramentada">Juramentada</string>
+    <string name="titulo_el_ritmo_de_la_guerra">El Ritmo de la Guerra</string>
 
 
 </resources>

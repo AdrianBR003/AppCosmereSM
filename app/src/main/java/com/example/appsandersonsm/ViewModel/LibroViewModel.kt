@@ -29,6 +29,12 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
         return repository.getNotasPorLibroYUsuario(idNotaL, userId)
     }
 
+    fun actualizarEstadoLeido(idLibro: Int, leido: Boolean) {
+        viewModelScope.launch {
+            repository.actualizarEstadoLeido(idLibro, leido)
+        }
+    }
+
     fun getAllLibrosByUsuario(userId: String): LiveData<List<Libro>> {
         return repository.getAllLibrosByUsuario(userId)
     }
@@ -130,6 +136,7 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
                     "numeroNotas" to libro.numeroNotas,
                     "empezarLeer" to libro.empezarLeer,
                     "userId" to libro.userId,
+                    "leido" to libro.leido,
                 )
 
                 val batch = firestore.batch()

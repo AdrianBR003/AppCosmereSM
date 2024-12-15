@@ -29,5 +29,6 @@ data class Libro(
     var valoracion: Float = 0.0f,
     var numeroNotas: Int = 0,
     var empezarLeer: Boolean = false,
-    val userId: String=""
+    val userId: String="",
+    var leido: Boolean=false
 )

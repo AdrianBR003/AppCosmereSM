@@ -56,6 +56,11 @@ class LibroRepository(private val libroDao: LibroDao, private val notaDao: NotaD
         }
     }
 
+    suspend fun actualizarEstadoLeido(idLibro: Int, leido: Boolean) {
+        libroDao.actualizarEstadoLeido(idLibro, leido)
+    }
+
+
     suspend fun insertLibros(libros: List<Libro>) {
         libroDao.insertLibros(libros)
     }
