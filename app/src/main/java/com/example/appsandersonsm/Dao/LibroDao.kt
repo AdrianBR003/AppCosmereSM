@@ -23,6 +23,9 @@ interface LibroDao {
         userId: String
     )
 
+    @Query("UPDATE libros SET inicialSaga = :inicialSaga WHERE id = :id AND userId = :userId")
+    suspend fun updateInicialSaga(id: Int, inicialSaga: Boolean, userId: String)
+
     @Query("SELECT * FROM libros WHERE userId = :userId")
     suspend fun obtenerLibrosPorUsuario(userId: String): List<Libro>
 

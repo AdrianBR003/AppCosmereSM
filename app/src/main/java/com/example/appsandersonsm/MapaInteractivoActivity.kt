@@ -36,6 +36,7 @@ import com.example.appsandersonsm.Dao.LibroDao
 import com.example.appsandersonsm.Dao.NotaDao
 import com.example.appsandersonsm.Dao.UsuarioDao
 import com.example.appsandersonsm.DataBase.AppDatabase
+import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Locale.LocaleHelper
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
@@ -44,8 +45,11 @@ import com.google.gson.Gson
 import io.getstream.photoview.PhotoView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONException
 import java.io.IOException
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -73,7 +77,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
     private lateinit var arrowOverlayView: ArrowOverlayView
     private lateinit var libroDao: LibroDao
     private lateinit var notaDao: NotaDao
-    private lateinit var usuarioDao: UsuarioDao
     private var isLeyendaVisible = false
     private var userId = ""
     var photoViewReady = false
@@ -112,10 +115,19 @@ class MapaInteractivoActivity : AppCompatActivity() {
         LibroViewModel.LibroViewModelFactory((application as InitApplication).libroRepository)
     }
 
+    private val applicationScope = CoroutineScope(SupervisorJob())
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapa_interactivo)
         supportActionBar?.hide() // Ocult   ar la barra de acción predeterminada
+
+
+
+        val database = AppDatabase.getDatabase(applicationContext, applicationScope)
+        libroDao = database.libroDao()
+        notaDao = database.notaDao()
 
         // Obtener el ID del usuario desde el Intent
         userId = intent.getStringExtra("USER_ID") ?: ""
@@ -138,7 +150,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 Log.d("MapaInteractivo", "Libros cargados: ${libros.size}")
                 listaLibros = libros
                 listaLibrosReady=true
-                // Asegúrate de que esta función maneje correctamente los datos
+                Log.d("MapaInteractivo", "Actualizando Inicial Saga")
             }
         })
 
@@ -442,4 +454,5 @@ class MapaInteractivoActivity : AppCompatActivity() {
         Log.d("MapaInteractivo", "Extras: ${intent?.extras}")
         startActivity(intent)
     }
+
 }

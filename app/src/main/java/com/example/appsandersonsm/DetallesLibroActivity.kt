@@ -174,7 +174,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     override fun onStop() {
         super.onStop()
         libro?.let { libroActualizado ->
-            Log.d( 
+            Log.d(
                 "DetallesLibroActivity",
                 "Guardando en nube el libro: ${libroActualizado.id} con progreso=${libroActualizado.progreso}, totalPaginas=${libroActualizado.totalPaginas}, userId=$userId"
             )

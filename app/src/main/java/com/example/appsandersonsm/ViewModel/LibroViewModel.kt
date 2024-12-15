@@ -119,6 +119,7 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
 
                 val data = mapOf(
                     "id" to libro.id,
+                    "inicialSaga" to libro.inicialSaga,
                     "nombreLibro" to libro.nombreLibro,
                     "nombreSaga" to libro.nombreSaga,
                     "nombrePortada" to libro.nombrePortada,
@@ -140,12 +141,14 @@ class LibroViewModel(private val repository: LibroRepository) : ViewModel() {
                     val notaDocRef = libroDocRef.collection("notas").document(nota.id.toString())
                     val notaData = mapOf(
                         "id" to nota.id,
+                        "titulo" to nota.titulo,
                         "contenido" to nota.contenido,
                         "userId" to nota.userId,
                         "idLibroN" to nota.idLibroN
                     )
                     batch.set(notaDocRef, notaData, SetOptions.merge())
                     Log.d("Nube", "Añadida nota al batch: ${nota.id}")
+                    Log.d("Nube", "Nota: $nota")
                 }
 
                 batch.commit().await()

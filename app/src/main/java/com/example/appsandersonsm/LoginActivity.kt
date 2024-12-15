@@ -395,72 +395,137 @@ class LoginActivity : AppCompatActivity() {
         try {
             Log.d("sincronizarDatosConFirestore", "Iniciando sincronización para el usuario: $userId")
 
-            val localUsuario = usuarioDao.obtenerUsuarioPorId(userId)
-            val localLibros = libroDao.obtenerLibrosPorUsuario(userId)
-            val localNotas = notaDao.getAllNotasByUsuario(userId).getOrAwaitValue() ?: emptyList()
-
-            Log.d(
-                "sincronizarDatosConFirestore",
-                "Datos locales obtenidos: usuario=${localUsuario?.nombre}, libros=${localLibros.size}, notas=${localNotas.size}"
-            )
-
-            if (localUsuario == null) {
-                Log.e("sincronizarDatosConFirestore", "Usuario local es null. Abortando sincronización.")
+            // Verificar que el usuario está autenticado y que el userId coincide
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser == null || currentUser.uid != userId) {
+                Log.e("sincronizarDatosConFirestore", "Usuario no autenticado o userId no coincide.")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@LoginActivity,
+                        getString(R.string.error_iniciar_sesion),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
                 return
             }
 
-            withContext(Dispatchers.IO) {
-                val userDocRef = firestore.collection("users").document(userId)
-                val userSnapshot = userDocRef.get().await()
+            val userDocRef = firestore.collection("users").document(userId)
+            val userSnapshot = userDocRef.get().await()
 
-                if (!userSnapshot.exists()) {
-                    Log.d(
-                        "sincronizarDatosConFirestore",
-                        "No existen datos en Firestore. Subiendo datos locales a la nube..."
+            if (!userSnapshot.exists()) {
+                Log.d("sincronizarDatosConFirestore", "No existen datos en Firestore. Subiendo datos locales a la nube...")
+
+                // Obtener datos locales de Room
+                val localUsuario = usuarioDao.obtenerUsuarioPorId(userId)
+                val localLibros = libroDao.obtenerLibrosPorUsuario(userId)
+                val localNotas = notaDao.getAllNotasByUsuario(userId).getOrAwaitValue() ?: emptyList()
+
+                // Crear un mapa para el usuario
+                val usuarioMap = hashMapOf(
+                    "id" to localUsuario?.id,
+                    "nombre" to localUsuario?.nombre,
+                    "email" to localUsuario?.email,
+                    "esInvitado" to localUsuario?.esInvitado
+                )
+
+                // Subir datos del usuario a Firestore
+                userDocRef.set(usuarioMap, SetOptions.merge()).await()
+
+                // Subir cada libro y sus notas asociadas
+                for (libro in localLibros) {
+                    val libroDocRef = userDocRef.collection("libros").document(libro.id.toString())
+                    val libroMap = hashMapOf(
+                        "id" to libro.id,
+                        "inicialSaga" to libro.inicialSaga,
+                        "nombreLibro" to libro.nombreLibro,
+                        "nombreSaga" to libro.nombreSaga,
+                        "nombrePortada" to libro.nombrePortada,
+                        "progreso" to libro.progreso,
+                        "totalPaginas" to libro.totalPaginas,
+                        "sinopsis" to libro.sinopsis,
+                        "valoracion" to libro.valoracion,
+                        "numeroNotas" to libro.numeroNotas,
+                        "empezarLeer" to libro.empezarLeer,
+                        "userId" to libro.userId
                     )
+                    libroDocRef.set(libroMap, SetOptions.merge()).await()
 
-                    val usuarioMap = hashMapOf(
-                        "id" to localUsuario.id,
-                        "nombre" to localUsuario.nombre,
-                        "email" to localUsuario.email,
-                        "esInvitado" to localUsuario.esInvitado
-                    )
-
-                    userDocRef.set(usuarioMap, SetOptions.merge()).await()
-
-                    localLibros.forEach { libro ->
-                        val libroDocRef = userDocRef.collection("libros").document(libro.id.toString())
-                        val libroMap = hashMapOf(
-                            "id" to libro.id,
-                            "nombreLibro" to libro.nombreLibro,
-                            "nombreSaga" to libro.nombreSaga,
-                            "nombrePortada" to libro.nombrePortada,
-                            "progreso" to libro.progreso,
-                            "totalPaginas" to libro.totalPaginas,
-                            "inicialSaga" to libro.inicialSaga,
-                            "sinopsis" to libro.sinopsis,
-                            "valoracion" to libro.valoracion,
-                            "numeroNotas" to libro.numeroNotas,
-                            "empezarLeer" to libro.empezarLeer,
-                            "userId" to libro.userId
-                        )
-                        libroDocRef.set(libroMap, SetOptions.merge()).await()
-                    }
-
-                    localNotas.forEach { nota ->
-                        val notaDocRef = userDocRef.collection("notas").document(nota.id.toString())
+                    // Subir cada nota asociada al libro
+                    for (nota in localNotas.filter { it.idLibroN == libro.id }) {
+                        val notaDocRef = libroDocRef.collection("notas").document(nota.id.toString())
                         val notaMap = hashMapOf(
                             "id" to nota.id,
+                            "titulo" to nota.titulo,
                             "contenido" to nota.contenido,
-                            "userId" to nota.userId
+                            "userId" to nota.userId,
+                            "idLibroN" to nota.idLibroN
                         )
                         notaDocRef.set(notaMap, SetOptions.merge()).await()
                     }
+                }
 
+                Log.d("sincronizarDatosConFirestore", "Datos locales subidos correctamente a Firestore.")
+                saveUserSession(userId)
+                withContext(Dispatchers.Main) {
+                    navigateToMainActivity(userId)
+                }
+            } else {
+                Log.d("sincronizarDatosConFirestore", "Existen datos en Firestore. Descargando y sincronizando...")
+
+                // Obtener datos de Firestore
+                val usuarioFirestore = userSnapshot.toObject(Usuario::class.java)
+                val librosFirestoreSnapshot = userDocRef.collection("libros").get().await()
+                val librosFirestore = librosFirestoreSnapshot.documents.mapNotNull { it.toObject(Libro::class.java) }
+
+                // Obtener todas las notas de cada libro
+                val notasFirestore = mutableListOf<Nota>()
+                for (libro in librosFirestore) {
+                    val notasSnapshot = userDocRef.collection("libros").document(libro.id.toString())
+                        .collection("notas").get().await()
+                    val notas = notasSnapshot.documents.mapNotNull { it.toObject(Nota::class.java) }
+                    notasFirestore.addAll(notas)
+                }
+
+                Log.d(
+                    "sincronizarDatosConFirestore",
+                    "Datos de Firestore: usuario=${usuarioFirestore?.nombre}, libros=${librosFirestore.size}, notas=${notasFirestore.size}"
+                )
+
+                // Obtener datos locales de Room
+                val localUsuario = usuarioDao.obtenerUsuarioPorId(userId)
+                val localLibros = libroDao.obtenerLibrosPorUsuario(userId)
+                val localNotas = notaDao.getAllNotasByUsuario(userId).getOrAwaitValue() ?: emptyList()
+
+                // Comparar datos
+                val datosCoincidenLocal = datosCoinciden(localUsuario, usuarioFirestore)
+                val librosCoinciden = listasCoinciden(localLibros, librosFirestore)
+                val notasCoinciden = listasCoinciden(localNotas, notasFirestore)
+
+                Log.d(
+                    "sincronizarDatosConFirestore",
+                    "Coinciden datos: usuario=$datosCoincidenLocal, libros=$librosCoinciden, notas=$notasCoinciden"
+                )
+
+                if (!datosCoincidenLocal || !librosCoinciden || !notasCoinciden) {
                     Log.d(
                         "sincronizarDatosConFirestore",
-                        "Datos locales subidos correctamente a Firestore."
+                        "Los datos no coinciden. Sobrescribiendo datos locales con los de Firestore..."
                     )
+                     sobrescribirDatosLocales(userId, usuarioFirestore, librosFirestore, notasFirestore)
+
+                    // Borrar datos locales de Room
+                    libroDao.borrarTodosLosLibros()
+                    notaDao.borrarTodasLasNotas()
+                    Log.d("sincronizarDatosConFirestore", "Datos locales borrados.")
+
+                    // Insertar datos de Firestore en Room
+                    if (usuarioFirestore != null) {
+                        usuarioDao.insertarUsuario(usuarioFirestore)
+                    }
+                    libroDao.insertLibros(librosFirestore)
+                    notaDao.insertarNotas(notasFirestore)
+
+                    Log.d("sincronizarDatosConFirestore", "Datos de Firestore sincronizados con Room.")
                     saveUserSession(userId)
                     withContext(Dispatchers.Main) {
                         navigateToMainActivity(userId)
@@ -468,65 +533,11 @@ class LoginActivity : AppCompatActivity() {
                 } else {
                     Log.d(
                         "sincronizarDatosConFirestore",
-                        "Existen datos en Firestore. Comparando y sincronizando..."
+                        "Los datos coinciden. No es necesario sincronizar."
                     )
-
-                    val usuarioFirestore = userSnapshot.getString("nombre")?.let {
-                        Usuario(
-                            id = userSnapshot.getString("id") ?: "",
-                            nombre = it,
-                            email = userSnapshot.getString("email"),
-                            esInvitado = userSnapshot.getBoolean("esInvitado") ?: false
-                        )
-                    }
-
-                    val librosFirestoreSnapshot = userDocRef.collection("libros").get().await()
-                    val librosFirestore = librosFirestoreSnapshot.documents.mapNotNull { doc ->
-                        doc.toObject(Libro::class.java)
-                    }
-
-                    val notasFirestoreSnapshot = userDocRef.collection("notas").get().await()
-                    val notasFirestore = notasFirestoreSnapshot.documents.mapNotNull { doc ->
-                        doc.toObject(Nota::class.java)
-                    }
-
-                    Log.d(
-                        "sincronizarDatosConFirestore",
-                        "Datos de Firestore: usuario=${usuarioFirestore?.nombre}, libros=${librosFirestore.size}, notas=${notasFirestore.size}"
-                    )
-
-                    val datosCoincidenLocal = datosCoinciden(localUsuario, usuarioFirestore)
-                    val librosCoinciden = listasCoinciden(localLibros, librosFirestore)
-                    val notasCoinciden = listasCoinciden(localNotas, notasFirestore)
-
-                    Log.d(
-                        "sincronizarDatosConFirestore",
-                        "Coinciden datos: usuario=$datosCoincidenLocal, libros=$librosCoinciden, notas=$notasCoinciden"
-                    )
-
-                    if (!datosCoincidenLocal || !librosCoinciden || !notasCoinciden) {
-                        Log.d(
-                            "sincronizarDatosConFirestore",
-                            "Los datos no coinciden. Sobrescribiendo datos locales con los de Firestore..."
-                        )
-
-                        Log.d("sincronizarDatosConFirestore", "Id usuario ${userId}")
-
-                        sobrescribirDatosLocales(
-                            userId,
-                            usuarioFirestore,
-                            librosFirestore,
-                            notasFirestore
-                        )
-                    } else {
-                        Log.d(
-                            "sincronizarDatosConFirestore",
-                            "Los datos coinciden. Guardando sesión..."
-                        )
-                        saveUserSession(userId)
-                        withContext(Dispatchers.Main) {
-                            navigateToMainActivity(userId)
-                        }
+                    saveUserSession(userId)
+                    withContext(Dispatchers.Main) {
+                        navigateToMainActivity(userId)
                     }
                 }
             }
@@ -545,6 +556,7 @@ class LoginActivity : AppCompatActivity() {
             }
         }
     }
+
 
     private suspend fun sobrescribirDatosLocales(
         userId: String,
