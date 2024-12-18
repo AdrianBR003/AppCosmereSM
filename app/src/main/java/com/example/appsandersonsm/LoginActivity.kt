@@ -7,14 +7,11 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.os.Handler
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -25,19 +22,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.map
 import com.example.appsandersonsm.Dao.LibroDao
 import com.example.appsandersonsm.Dao.NotaDao
 import com.example.appsandersonsm.Dao.UsuarioDao
 import com.example.appsandersonsm.DataBase.AppDatabase
 import com.example.appsandersonsm.DataBase.JsonHandler
-import com.example.appsandersonsm.Firestore.DataRepository
 import com.example.appsandersonsm.Locale.LocaleHelper
-import com.example.appsandersonsm.MapaInteractivoActivity
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.Modelo.Usuario
-import com.example.appsandersonsm.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -54,19 +47,18 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
-
 import kotlin.random.Random
 import android.widget.*
 import kotlinx.coroutines.*
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import com.example.appsandersonsm.ViewModel.LibroViewModel
-
 import com.google.android.gms.tasks.Task
-
+/**
+ * LoginActivity maneja la autenticación de usuarios mediante Google Sign-In, gestiona las sesiones de usuario,
+ * sincroniza los datos locales con Firestore y proporciona funcionalidad para cambiar el idioma de la aplicación.
+ */
 class LoginActivity : AppCompatActivity() {
 
-    // Declaración de variables tardías (lateinit)
     private lateinit var bookContainer: FrameLayout
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var rlToggleLanguage: RelativeLayout
@@ -79,7 +71,6 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var notaDao: NotaDao
     private lateinit var tvFraseCarga: TextView
 
-
     companion object {
         private const val RC_SIGN_IN = 9001
         private const val PREFS_NAME = "AppPreferences"
@@ -91,6 +82,11 @@ class LoginActivity : AppCompatActivity() {
 
     private val firestore = FirebaseFirestore.getInstance()
 
+    /**
+     * Adjunta un nuevo contexto base con el idioma seleccionado.
+     *
+     * @param newBase El nuevo contexto base.
+     */
     override fun attachBaseContext(newBase: Context?) {
         val baseContext = newBase ?: this
         val prefs = baseContext.getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
@@ -98,6 +94,12 @@ class LoginActivity : AppCompatActivity() {
         super.attachBaseContext(LocaleHelper.setLocale(baseContext, language))
     }
 
+    /**
+     * Inicializa la actividad, configura los elementos de la interfaz de usuario, maneja las comprobaciones de sesión del usuario
+     * y configura los ajustes de idioma.
+     *
+     * @param savedInstanceState El estado previamente guardado de la actividad.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -107,13 +109,12 @@ class LoginActivity : AppCompatActivity() {
         val isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
         val userId = prefs.getString(KEY_USER_ID, null)
 
-        bookContainer = findViewById<FrameLayout>(R.id.bookContainer)
+        bookContainer = findViewById(R.id.bookContainer)
         val imageView = findViewById<ImageView>(R.id.imageViewPortada)
         val llgoogle = findViewById<LinearLayout>(R.id.llgoogle)
         val btn_skip_login = findViewById<Button>(R.id.btn_skip_login)
-        val contenedorCarga= findViewById<LinearLayout>(R.id.contenedorCarga)
+        val contenedorCarga = findViewById<LinearLayout>(R.id.contenedorCarga)
         tvFraseCarga = findViewById(R.id.tvFraseCarga)
-
 
         imageView.visibility = View.GONE
         llgoogle.visibility = View.GONE
@@ -121,9 +122,7 @@ class LoginActivity : AppCompatActivity() {
         bookContainer.visibility = View.GONE
         contenedorCarga.visibility = View.VISIBLE
 
-        // Iniciar Frases Aleatorias
         iniciarCicloFrases()
-
 
         val editor = prefs.edit()
 
@@ -148,7 +147,6 @@ class LoginActivity : AppCompatActivity() {
         val language = prefs.getString(KEY_LANGUAGE, "es") ?: "es"
         LocaleHelper.setLocale(this, language)
 
-
         auth = FirebaseAuth.getInstance()
         configureGoogleSignIn()
 
@@ -164,14 +162,10 @@ class LoginActivity : AppCompatActivity() {
         setBackgroundBasedOnLanguage(language)
         updateLanguageState(language)
 
-
-        // Si ya está logueado o ha hecho skip anteriormente
         if ((isLoggedIn && userId != null) || (isLoginSkipped && userId != null)) {
-            // Ocultar la interfaz de usuario si se va a saltar el login
             lifecycleScope.launch {
                 delay(2000L)
-                // Haces la sincronización que necesites aquí
-                if (!userId.equals("id_default")) {
+                if (userId != "id_default") {
                     sincronizarDatosConFirestore(userId)
                 }
                 navigateToMainActivity(userId)
@@ -185,8 +179,6 @@ class LoginActivity : AppCompatActivity() {
             bookContainer.visibility = View.VISIBLE
         }
 
-
-        // Crear libros predeterminados para id_default si no existen
         lifecycleScope.launch(Dispatchers.IO) {
             crearLibrosPredeterminadosSiNoExisten("id_default", language)
         }
@@ -212,25 +204,36 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Restablece las banderas de cambio de idioma cuando la actividad se reanuda.
+     */
     override fun onResume() {
         super.onResume()
         isChangingLanguage = false
         rlToggleLanguage.isEnabled = true
     }
 
+    /**
+     * Inicia una corrutina para ciclar frases de carga periódicamente.
+     */
     private fun iniciarCicloFrases() {
         lifecycleScope.launch {
             val frases = resources.getStringArray(R.array.frases_carga)
-            while (isActive) { // isActive es true mientras la coroutine está activa
+            while (isActive) {
                 val fraseAleatoria = frases.random()
                 withContext(Dispatchers.Main) {
                     tvFraseCarga.text = fraseAleatoria
                 }
-                delay(3000) // Cambiar frase cada 3 segundos
+                delay(3000)
             }
         }
     }
 
+    /**
+     * Verifica y actualiza el texto del botón de Google Sign-In según el idioma seleccionado.
+     *
+     * @param googleSignInButton La vista del botón de Google Sign-In.
+     */
     private fun verificarTextoGoogleSignIn(googleSignInButton: View) {
         if (googleSignInButton is SignInButton) {
             for (i in 0 until googleSignInButton.childCount) {
@@ -241,8 +244,8 @@ class LoginActivity : AppCompatActivity() {
 
                     val customText = when (language) {
                         "en" -> "Login Session"
-                        "es" -> "Iniciar Sesion"
-                        else -> "Iniciar Sesion"
+                        "es" -> "Iniciar Sesión"
+                        else -> "Iniciar Sesión"
                     }
 
                     child.text = customText
@@ -255,6 +258,9 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Alterna el idioma de la aplicación entre español e inglés.
+     */
     private fun toggleLanguage() {
         isChangingLanguage = true
         rlToggleLanguage.isEnabled = false
@@ -269,6 +275,11 @@ class LoginActivity : AppCompatActivity() {
         recreate()
     }
 
+    /**
+     * Establece el fondo del selector de idioma basado en el idioma actual.
+     *
+     * @param language El código del idioma actual.
+     */
     private fun setBackgroundBasedOnLanguage(language: String?) {
         when (language?.lowercase()) {
             "es", "spanish" -> {
@@ -285,6 +296,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Actualiza el estado del idioma mostrado en la interfaz de usuario.
+     *
+     * @param language El código del idioma actual.
+     */
     private fun updateLanguageState(language: String?) {
         tvLanguageState.text = when (language?.lowercase()) {
             "es", "spanish" -> getString(R.string.espanol)
@@ -293,6 +309,9 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Omite el inicio de sesión y navega a la actividad principal como usuario invitado.
+     */
     private fun skipLogin() {
         val userId = "id_default"
 
@@ -300,6 +319,9 @@ class LoginActivity : AppCompatActivity() {
         navigateToMainActivity(userId)
     }
 
+    /**
+     * Configura el cliente de Google Sign-In con las opciones necesarias.
+     */
     private fun configureGoogleSignIn() {
         val idiomaActual = LocaleHelper.getLanguage(this)
 
@@ -311,6 +333,9 @@ class LoginActivity : AppCompatActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso)
     }
 
+    /**
+     * Inicia el proceso de inicio de sesión con Google.
+     */
     private fun signInWithGoogle() {
         if (!isNetworkAvailable()) {
             Toast.makeText(this, getString(R.string.no_internet_connection), Toast.LENGTH_SHORT)
@@ -327,6 +352,13 @@ class LoginActivity : AppCompatActivity() {
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
+    /**
+     * Maneja el resultado de la actividad de inicio de sesión de Google.
+     *
+     * @param requestCode El código de solicitud original.
+     * @param resultCode El código de resultado.
+     * @param data Los datos devueltos por la actividad.
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -343,6 +375,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Maneja la autenticación del usuario con la cuenta de Google.
+     *
+     * @param account La cuenta de Google autenticada.
+     */
     private fun handleGoogleSignIn(account: GoogleSignInAccount?) {
         if (account != null) {
             val credential = GoogleAuthProvider.getCredential(account.idToken, null)
@@ -362,7 +399,6 @@ class LoginActivity : AppCompatActivity() {
                     Log.d("LoginActivity", "User ID: $userId")
 
                     lifecycleScope.launch(Dispatchers.IO) {
-                        // 1. Crear el nuevo usuario con userId (si no existe)
                         val usuarioExistente = usuarioDao.obtenerUsuarioPorId(userId)
                         if (usuarioExistente == null) {
                             val nuevoUsuario = Usuario(
@@ -374,41 +410,31 @@ class LoginActivity : AppCompatActivity() {
                             usuarioDao.insertarUsuario(nuevoUsuario)
                         }
 
-                        // 2. Actualizar referencias de libros y notas desde 'id_default' al nuevo userId
                         libroDao.actualizarLibrosIdDefault(userId)
                         notaDao.actualizarNotasIdDefault(userId)
 
-                        // 3. Borrar el usuario 'id_default'
                         usuarioDao.borrarUsuario("id_default")
 
-                        // Guardar datos actuales del nuevo usuario
                         val librosActuales = libroDao.obtenerLibrosPorUsuario(userId)
                         val notasActuales =
                             notaDao.getAllNotasByUsuario(userId).getOrAwaitValue() ?: emptyList()
 
-                        // 4. Borrar todos los registros locales para reiniciar IDs
                         notaDao.borrarTodasLasNotas()
                         libroDao.borrarTodosLosLibros()
 
-                        // 5. Resetear secuencias para que IDs empiecen desde 1
                         libroDao.resetearSecuenciaLibros()
                         notaDao.resetearSecuenciaNotas()
 
-                        // 6. Reinsertar los datos con id=0, de esta manera Room generará IDs desde 1
                         val librosReiniciados = librosActuales.map { it.copy(id = 0) }
                         val notasReiniciadas = notasActuales.map { it.copy(id = 0) }
 
                         libroDao.insertLibros(librosReiniciados)
                         notaDao.insertarNotas(notasReiniciadas)
 
-                        // Verificación: Contar los libros guardados
                         val countLibros = libroDao.getCountByUsuario(userId)
                         Log.d("LoginActivity", "Libros guardados para $userId: $countLibros")
 
-                        // 7. Sincronizar con Firestore
                         sincronizarDatosConFirestore(userId)
-
-
                     }
                 } else {
                     Log.e(
@@ -429,7 +455,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
+    /**
+     * Sincroniza los datos locales con Firestore para el usuario especificado.
+     *
+     * @param userId El ID del usuario.
+     */
     private suspend fun sincronizarDatosConFirestore(userId: String) {
         try {
             Log.d(
@@ -437,7 +467,6 @@ class LoginActivity : AppCompatActivity() {
                 "Iniciando sincronización para el usuario: $userId"
             )
 
-            // Verificar que el usuario está autenticado y que el userId coincide
             val currentUser = FirebaseAuth.getInstance().currentUser
             if (currentUser == null || currentUser.uid != userId) {
                 Log.e(
@@ -463,13 +492,11 @@ class LoginActivity : AppCompatActivity() {
                     "No existen datos en Firestore. Subiendo datos locales a la nube..."
                 )
 
-                // Obtener datos locales de Room
                 val localUsuario = usuarioDao.obtenerUsuarioPorId(userId)
                 val localLibros = libroDao.obtenerLibrosPorUsuario(userId)
                 val localNotas =
                     notaDao.getAllNotasByUsuario(userId).getOrAwaitValue() ?: emptyList()
 
-                // Crear un mapa para el usuario
                 val usuarioMap = hashMapOf(
                     "id" to localUsuario?.id,
                     "nombre" to localUsuario?.nombre,
@@ -477,10 +504,8 @@ class LoginActivity : AppCompatActivity() {
                     "esInvitado" to localUsuario?.esInvitado
                 )
 
-                // Subir datos del usuario a Firestore
                 userDocRef.set(usuarioMap, SetOptions.merge()).await()
 
-                // Subir cada libro y sus notas asociadas
                 for (libro in localLibros) {
                     val libroDocRef = userDocRef.collection("libros").document(libro.id.toString())
                     val libroMap = hashMapOf(
@@ -500,7 +525,6 @@ class LoginActivity : AppCompatActivity() {
                     )
                     libroDocRef.set(libroMap, SetOptions.merge()).await()
 
-                    // Subir cada nota asociada al libro
                     for (nota in localNotas.filter { it.idLibroN == libro.id }) {
                         val notaDocRef =
                             libroDocRef.collection("notas").document(nota.id.toString())
@@ -529,13 +553,11 @@ class LoginActivity : AppCompatActivity() {
                     "Existen datos en Firestore. Descargando y sincronizando..."
                 )
 
-                // Obtener datos de Firestore
                 val usuarioFirestore = userSnapshot.toObject(Usuario::class.java)
                 val librosFirestoreSnapshot = userDocRef.collection("libros").get().await()
                 val librosFirestore =
                     librosFirestoreSnapshot.documents.mapNotNull { it.toObject(Libro::class.java) }
 
-                // Obtener todas las notas de cada libro
                 val notasFirestore = mutableListOf<Nota>()
                 for (libro in librosFirestore) {
                     val notasSnapshot =
@@ -550,13 +572,11 @@ class LoginActivity : AppCompatActivity() {
                     "Datos de Firestore: usuario=${usuarioFirestore?.nombre}, libros=${librosFirestore.size}, notas=${notasFirestore.size}"
                 )
 
-                // Obtener datos locales de Room
                 val localUsuario = usuarioDao.obtenerUsuarioPorId(userId)
                 val localLibros = libroDao.obtenerLibrosPorUsuario(userId)
                 val localNotas =
                     notaDao.getAllNotasByUsuario(userId).getOrAwaitValue() ?: emptyList()
 
-                // Comparar datos
                 val datosCoincidenLocal = datosCoinciden(localUsuario, usuarioFirestore)
                 val librosCoinciden = listasCoinciden(localLibros, librosFirestore)
                 val notasCoinciden = listasCoinciden(localNotas, notasFirestore)
@@ -578,12 +598,10 @@ class LoginActivity : AppCompatActivity() {
                         notasFirestore
                     )
 
-                    // Borrar datos locales de Room
                     libroDao.borrarTodosLosLibros()
                     notaDao.borrarTodasLasNotas()
                     Log.d("sincronizarDatosConFirestore", "Datos locales borrados.")
 
-                    // Insertar datos de Firestore en Room
                     if (usuarioFirestore != null) {
                         usuarioDao.insertarUsuario(usuarioFirestore)
                     }
@@ -625,7 +643,14 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
+    /**
+     * Sobrescribe los datos locales con los datos obtenidos de Firestore.
+     *
+     * @param userId El ID del usuario.
+     * @param usuarioFirebase Los datos del usuario desde Firestore.
+     * @param librosFirebase La lista de libros desde Firestore.
+     * @param notasFirebase La lista de notas desde Firestore.
+     */
     private suspend fun sobrescribirDatosLocales(
         userId: String,
         usuarioFirebase: Usuario?,
@@ -640,17 +665,13 @@ class LoginActivity : AppCompatActivity() {
                 "UsuarioFirebase: ${usuarioFirebase?.id}, ${usuarioFirebase?.nombre}, ${usuarioFirebase?.email}, ${usuarioFirebase?.esInvitado}"
             )
 
-            // Insertar el usuario primero, si existe
             if (usuarioFirebase != null) {
                 Log.d("LoginActivity", "Insertando usuario en la base local...")
                 usuarioDao.insertarUsuario(usuarioFirebase)
                 Log.d("LoginActivity", "Usuario insertado: ${usuarioFirebase.id}")
             } else {
-                // Si usuarioFirebase es null, deberías asegurarte de tener un usuario existente
-                // o crear uno nuevo con el userId actual.
                 val existingUser = usuarioDao.obtenerUsuarioPorId(userId)
                 if (existingUser == null) {
-                    // Crea un usuario por defecto si no existe
                     Log.d(
                         "LoginActivity",
                         "UsuarioFirebase es null, creando usuario por defecto con userId: $userId"
@@ -671,7 +692,6 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
 
-            // Verificar que el usuario está ahora en la base de datos
             val usuarioEnBD = usuarioDao.obtenerUsuarioPorId(userId)
             if (usuarioEnBD == null) {
                 Log.e(
@@ -686,17 +706,14 @@ class LoginActivity : AppCompatActivity() {
                 )
             }
 
-            // Borramos datos locales
             Log.d("LoginActivity", "Borrando todos los libros y notas locales.")
             libroDao.borrarTodosLosLibros()
             notaDao.borrarTodasLasNotas()
 
-            // Reseteamos secuencias
             libroDao.resetearSecuenciaLibros()
             notaDao.resetearSecuenciaNotas()
             Log.d("LoginActivity", "Secuencias reseteadas.")
 
-            // Insertamos libros
             Log.d(
                 "LoginActivity",
                 "Insertando ${librosFirebase.size} libros de Firestore en la base local."
@@ -704,7 +721,6 @@ class LoginActivity : AppCompatActivity() {
             libroDao.insertLibros(librosFirebase)
             Log.d("LoginActivity", "Libros insertados correctamente.")
 
-            // Insertamos notas
             Log.d(
                 "LoginActivity",
                 "Insertando ${notasFirebase.size} notas de Firestore en la base local."
@@ -722,7 +738,13 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
+    /**
+     * Verifica si los datos locales y remotos del usuario coinciden.
+     *
+     * @param local El usuario local.
+     * @param remoto El usuario remoto desde Firestore.
+     * @return `true` si los datos coinciden, de lo contrario `false`.
+     */
     private fun datosCoinciden(local: Usuario?, remoto: Usuario?): Boolean {
         if (local == null && remoto == null) return true
         if (local == null || remoto == null) return false
@@ -731,11 +753,23 @@ class LoginActivity : AppCompatActivity() {
                 local.esInvitado == remoto.esInvitado
     }
 
+    /**
+     * Verifica si dos listas de objetos coinciden en contenido.
+     *
+     * @param localList La lista local.
+     * @param remoteList La lista remota desde Firestore.
+     * @return `true` si las listas coinciden, de lo contrario `false`.
+     */
     private fun <T> listasCoinciden(localList: List<T>, remoteList: List<T>): Boolean {
         if (localList.size != remoteList.size) return false
         return localList.toSet() == remoteList.toSet()
     }
 
+    /**
+     * Navega a la actividad principal de la aplicación pasando el ID del usuario.
+     *
+     * @param userId El ID del usuario.
+     */
     private fun navigateToMainActivity(userId: String) {
         val intent = Intent(this, MapaInteractivoActivity::class.java).apply {
             putExtra("USER_ID", userId)
@@ -744,11 +778,15 @@ class LoginActivity : AppCompatActivity() {
         finish()
     }
 
+    /**
+     * Navega a la actividad principal omitiendo el inicio de sesión y sincronizando datos.
+     *
+     * @param userId El ID del usuario.
+     */
     private fun navigateToMainActivitySkip(userId: String) {
         lifecycleScope.launch {
             Log.d("LoginActivity", "SKIP con el usuario con id ${userId}")
             sincronizarDatosConFirestore(userId)
-            // Una vez completada la sincronización, navegas a MainActivity
             val intent = Intent(this@LoginActivity, MapaInteractivoActivity::class.java).apply {
                 putExtra("USER_ID", userId)
             }
@@ -757,7 +795,9 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
+    /**
+     * Añade un efecto pulsante al borde del botón de Google Sign-In.
+     */
     private fun addPulsatingEffectToBorder() {
         val container = findViewById<FrameLayout>(R.id.btn_google_sign_in_container)
         val background = container.background.mutate() as? GradientDrawable
@@ -776,6 +816,11 @@ class LoginActivity : AppCompatActivity() {
         animator.start()
     }
 
+    /**
+     * Carga los libros desde un archivo JSON y configura las animaciones correspondientes.
+     *
+     * @param languageCode El código del idioma para cargar los libros.
+     */
     private fun cargarLibrosYConfigurarAnimaciones(languageCode: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             val libros = jsonHandler.cargarLibrosDesdeJson(languageCode)
@@ -799,6 +844,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Configura las animaciones para las portadas de los libros cargados.
+     *
+     * @param libros La lista de libros cargados.
+     */
     private fun setupBookAnimations(libros: List<Libro>) {
         Log.d("LoginActivity", "setupBookAnimations llamado con ${libros.size} libros.")
         bookContainer.post {
@@ -841,6 +891,14 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Anima una portada de libro con movimiento y efecto de desvanecimiento.
+     *
+     * @param bookCover La vista de la portada del libro.
+     * @param containerWidth El ancho del contenedor.
+     * @param containerHeight El alto del contenedor.
+     * @param index El índice del libro en la lista.
+     */
     private fun animateBookCover(
         bookCover: ImageView,
         containerWidth: Float,
@@ -887,6 +945,12 @@ class LoginActivity : AppCompatActivity() {
         animatorSet.start()
     }
 
+    /**
+     * Obtiene el ID del recurso drawable basado en el nombre proporcionado.
+     *
+     * @param nombre El nombre del drawable.
+     * @return El ID del drawable o una portada por defecto si no se encuentra.
+     */
     private fun obtenerDrawablePorNombre(nombre: String): Int {
         val drawableId = resources.getIdentifier(nombre, "drawable", packageName)
         if (drawableId == 0) {
@@ -899,6 +963,12 @@ class LoginActivity : AppCompatActivity() {
         return drawableId
     }
 
+    /**
+     * Crea libros predeterminados para un usuario si no existen en la base de datos local.
+     *
+     * @param userId El ID del usuario.
+     * @param languageCode El código del idioma para cargar los libros.
+     */
     private suspend fun crearLibrosPredeterminadosSiNoExisten(
         userId: String,
         languageCode: String = "es"
@@ -925,11 +995,10 @@ class LoginActivity : AppCompatActivity() {
                 val librosDefault = libroDao.obtenerLibrosPorUsuario("id_default")
                 if (librosDefault.isNotEmpty()) {
                     val librosCopia = librosDefault.map { libro ->
-                        libro.copy(id = 0, userId = userId) // Muy importante: id = 0
+                        libro.copy(id = 0, userId = userId)
                     }
                     libroDao.insertLibros(librosCopia)
 
-                    // Borramos todos los libros del usuario actual (si hubiera) y reiniciamos
                     libroDao.borrarTodosLosLibros()
                     notaDao.borrarTodasLasNotas()
                     libroDao.resetearSecuenciaLibros()
@@ -954,6 +1023,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Obtiene el valor de un LiveData de forma síncrona.
+     *
+     * @return El valor actual del LiveData.
+     */
     private suspend fun <T> LiveData<T>.getOrAwaitValue(): T {
         return withContext(Dispatchers.Main) {
             suspendCancellableCoroutine<T> { continuation ->
@@ -973,6 +1047,12 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Guarda la sesión del usuario en las preferencias compartidas.
+     *
+     * @param userId El ID del usuario.
+     * @param isLoginSkipped Indica si el inicio de sesión fue omitido.
+     */
     private fun saveUserSession(userId: String, isLoginSkipped: Boolean = false) {
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         prefs.edit().apply {
@@ -983,8 +1063,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
-    // Dentro de tu LoginActivity
+    /**
+     * Verifica si hay una conexión de red disponible.
+     *
+     * @return `true` si hay conexión, de lo contrario `false`.
+     */
     private fun isNetworkAvailable(): Boolean {
         val connectivityManager =
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -1002,6 +1085,4 @@ class LoginActivity : AppCompatActivity() {
             return networkInfo != null && networkInfo.isConnected
         }
     }
-
-
 }
