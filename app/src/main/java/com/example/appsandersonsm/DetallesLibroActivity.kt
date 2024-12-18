@@ -5,12 +5,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.drawable.shapes.Shape
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.util.Size
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +23,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -39,24 +36,36 @@ import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.example.appsandersonsm.ViewModel.NotaViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.launch
-import androidx.lifecycle.viewModelScope
-import androidx.room.Room
 import com.airbnb.lottie.LottieAnimationView
-import com.example.appsandersonsm.Dao.LibroDao
-import com.example.appsandersonsm.DataBase.AppDatabase
-import com.example.appsandersonsm.Repository.LibroRepository
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.example.appsandersonsm.ViewModel.NotaViewModel.NotaViewModelFactory
 
 
 
+/**
+ * DetallesLibroActivity muestra los detalles de un libro seleccionado, incluyendo su progreso, sinopsis,
+ * valoraciones y notas asociadas. Permite al usuario editar el progreso, agregar nuevas notas y ver detalles
+ * adicionales del libro. Además, maneja la sincronización de datos con la nube y la actualización de la interfaz
+ * de usuario según los cambios de idioma.
+ */
 class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListener {
+
+    companion object {
+        private const val PREFS_NAME = "app_prefs"
+        private const val KEY_IS_FIRST_TIME = "isFirstTime"
+    }
+
+    private var isReceiverRegistered = false
+
+    private val languageChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "LANGUAGE_CHANGED") {
+                recreate()
+            }
+        }
+    }
 
     private lateinit var notaViewModel: NotaViewModel
     private lateinit var libroViewModel: LibroViewModel
@@ -85,27 +94,21 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private var userId = ""
     private var idNotaEliminada = -1
     private var isnotaEliminada = false
-    private val languageChangeReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "LANGUAGE_CHANGED") {
-                recreate()
-            }
-        }
-    }
 
+    /**
+     * Inicializa la actividad, configura las vistas, los ViewModels, los listeners y observa los cambios en los datos.
+     *
+     * @param savedInstanceState El estado previamente guardado de la actividad.
+     */
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("DetallesLibroActivity", "Application context: $applicationContext")
         setContentView(R.layout.activity_detalles_libro)
 
-        // Coger el ID del Intent del Login
         userId = intent.getStringExtra("USER_ID") ?: ""
-        // Obtener el Id Nota Eliminada
         idNotaEliminada = intent.getIntExtra("notaId", -1)
-        // Obtener verificacion de eliminar nota
         isnotaEliminada = intent.getBooleanExtra("IS_NOTA", false)
-        // Obtener el ID del libro del Intent
         idLibro = intent.getIntExtra("LIBRO_ID", -1)
         Log.d("DetallesLibroActivity", "Libro ID: $idLibro")
 
@@ -119,7 +122,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         observarNotas()
         inicializarDatosLibro()
 
-        // Observar el estado de guardado
         libroViewModel.guardarEstado.observe(this, Observer { exito ->
             if (exito) {
                 Toast.makeText(
@@ -140,18 +142,15 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         btnExpandirSinopsis = findViewById(R.id.btnExpandirSinopsis)
         nestedScrollViewSinopsis.visibility = View.GONE
 
-        // Configurar el botón de expandir
         btnExpandirSinopsis.setOnClickListener {
             toggleSinopsisVisibility(nestedScrollViewSinopsis, btnExpandirSinopsis)
         }
 
-        // Añadir la nota
         val addNotaImageView = findViewById<ImageView>(R.id.btn_anyadirnotas)
         addNotaImageView.setOnClickListener {
             agregarNuevaNota()
         }
 
-        // Configurar el comportamiento táctil del NestedScrollView
         nestedScrollViewSinopsis.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
@@ -159,7 +158,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                         nestedScrollViewSinopsis.canScrollVertically(-1) || nestedScrollViewSinopsis.canScrollVertically(1)
                     )
                 }
-
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     nestedScrollViewSinopsis.parent.requestDisallowInterceptTouchEvent(false)
                 }
@@ -167,18 +165,20 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             false
         }
 
-        if(isnotaEliminada && idNotaEliminada != -1){
+        if (isnotaEliminada && idNotaEliminada != -1) {
             Log.d("DetallesLibroActivity", "Preparando para eliminar nota con ID: $idNotaEliminada")
-                libro?.let { libroActualizado ->
-                    lifecycleScope.launch {
-                        val notasDelLibro = obtenerNotasDelLibro(libroActualizado.id, userId)
-                        libroViewModel.guardarLibroEnLaNube(libroActualizado,notasDelLibro,idNotaEliminada)
-                    }
+            libro?.let { libroActualizado ->
+                lifecycleScope.launch {
+                    val notasDelLibro = obtenerNotasDelLibro(libroActualizado.id, userId)
+                    libroViewModel.guardarLibroEnLaNube(libroActualizado, notasDelLibro, idNotaEliminada)
                 }
+            }
         }
-
     }
 
+    /**
+     * Registra el receptor de cambios de idioma cuando la actividad se reanuda.
+     */
     override fun onResume() {
         super.onResume()
         LocalBroadcastManager.getInstance(this).registerReceiver(
@@ -187,23 +187,22 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         )
     }
 
+    /**
+     * Pausa todas las animaciones y cancela el registro del receptor cuando la actividad está en pausa.
+     */
     override fun onPause() {
         super.onPause()
         libro?.let { libroActualizado ->
-            // Extraer el ID de la nota para verificar si una eliminación es necesaria
             val idNotaEliminada = intent.getIntExtra("notaId", -1)
 
-            // Verificar si se requiere eliminar alguna nota
             if (idNotaEliminada != -1) {
                 Log.d("DetallesLibroActivity", "Preparando para eliminar nota con ID: $idNotaEliminada y guardar cambios en el libro.")
-                // Este bloque maneja la eliminación de la nota además del guardado del libro
                 lifecycleScope.launch {
                     val notasDelLibro = obtenerNotasDelLibro(libroActualizado.id, userId)
                     val notasActualizadas = notasDelLibro.filter { it.id != idNotaEliminada }
                     libroViewModel.guardarLibroEnLaNube(libroActualizado, notasActualizadas, idNotaEliminada)
                 }
             } else {
-                // Solo guardar cambios en el libro si no hay notas a eliminar
                 Log.d("DetallesLibroActivity", "Guardando cambios en el libro sin eliminar ninguna nota.")
                 lifecycleScope.launch {
                     val notasDelLibro = obtenerNotasDelLibro(libroActualizado.id, userId)
@@ -214,15 +213,16 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         LocalBroadcastManager.getInstance(this).unregisterReceiver(languageChangeReceiver)
     }
 
+    /**
+     * Inicializa los ViewModels para notas y libros utilizando las factories correspondientes.
+     */
     private fun inicializarViewModels() {
-        // Crear una instancia de la Factory desde LibroViewModel
         val libroViewModelFactory = LibroViewModel.LibroViewModelFactory(app.libroRepository)
         libroViewModel = ViewModelProvider(
             this,
             libroViewModelFactory
         ).get(LibroViewModel::class.java)
 
-        // Supongo que tienes una factory similar para NotaViewModel
         val notaViewModelFactory = NotaViewModelFactory(app.notaRepository)
         notaViewModel = ViewModelProvider(
             this,
@@ -230,6 +230,9 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         ).get(NotaViewModel::class.java)
     }
 
+    /**
+     * Inicializa las vistas de la interfaz de usuario.
+     */
     private fun inicializarVistas() {
         progressBar = findViewById(R.id.progressBar)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
@@ -241,6 +244,9 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         ratingBarValoracion = findViewById(R.id.ratingBar)
     }
 
+    /**
+     * Configura el RecyclerView para mostrar las notas asociadas al libro.
+     */
     @SuppressLint("ClickableViewAccessibility")
     private fun configurarRecyclerView() {
         val recyclerViewNotas = findViewById<RecyclerView>(R.id.recyclerViewNotas)
@@ -256,13 +262,15 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                         recyclerViewNotas.canScrollVertically(-1) || recyclerViewNotas.canScrollVertically(1)
                     )
                 }
-
                 else -> recyclerViewNotas.parent.requestDisallowInterceptTouchEvent(false)
             }
             false
         }
     }
 
+    /**
+     * Configura la barra de navegación inferior para permitir la navegación entre actividades.
+     */
     private fun configurarBottomNavigation() {
         bottomNavigationView.selectedItemId = R.id.nav_book
         bottomNavigationView.setOnItemSelectedListener { item ->
@@ -293,6 +301,12 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+    /**
+     * Alterna la visibilidad de la sinopsis con una animación.
+     *
+     * @param llNetScroll La vista NestedScrollView de la sinopsis.
+     * @param btnExpandirSinopsis El botón para expandir o contraer la sinopsis.
+     */
     fun toggleSinopsisVisibility(llNetScroll: NestedScrollView, btnExpandirSinopsis: ImageView) {
         val duration = 300L
         val interpolator = AccelerateDecelerateInterpolator()
@@ -331,6 +345,9 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         isExpanded = !isExpanded
     }
 
+    /**
+     * Configura los listeners para los elementos interactivos de la interfaz de usuario.
+     */
     private fun configurarListeners() {
         editTextProgressCurrent.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -357,9 +374,15 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+    /**
+     * Inicializa los datos del libro seleccionado y actualiza la interfaz de usuario con estos datos.
+     */
     private fun inicializarDatosLibro() {
         contarNotas(idLibro) { numeroNotas ->
-            Log.d("DetallesLibroActivity", "Número de notas para libro $idLibro: $numeroNotas")
+            Log.d(
+                "DetallesLibroActivity",
+                "Número de notas para libro $idLibro: $numeroNotas"
+            )
 
             cargarDatosLibro(idLibro) { libroCargado ->
                 libro = libroCargado
@@ -369,12 +392,24 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+    /**
+     * Cuenta el número de notas asociadas a un libro específico.
+     *
+     * @param libroId El ID del libro.
+     * @param callback La función a llamar con el número de notas.
+     */
     private fun contarNotas(libroId: Int, callback: (Int) -> Unit) {
         notaViewModel.contarNotasPorLibro(libroId, userId).observe(this) { numeroNotas ->
             callback(numeroNotas ?: 0)
         }
     }
 
+    /**
+     * Carga los datos de un libro específico desde el ViewModel.
+     *
+     * @param libroId El ID del libro.
+     * @param callback La función a llamar con el libro cargado.
+     */
     private fun cargarDatosLibro(libroId: Int, callback: (Libro?) -> Unit) {
         libroViewModel.getLibroByIdAndUsuario(libroId, userId).observe(this) { libroCargado ->
             if (libroCargado == null) {
@@ -387,6 +422,11 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+    /**
+     * Actualiza la interfaz de usuario con los datos del libro cargado.
+     *
+     * @param libro El libro cargado.
+     */
     private fun actualizarUIConDatosLibro(libro: Libro?) {
         libro?.let {
             val resID = resources.getIdentifier(it.nombrePortada, "drawable", packageName)
@@ -400,6 +440,9 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+    /**
+     * Guarda el progreso actual del libro en la base de datos y actualiza la interfaz de usuario.
+     */
     private fun guardarProgresoEnBaseDeDatos() {
         val current = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
         val total = editTextProgressTotal.text.toString().toIntOrNull() ?: 0
@@ -411,10 +454,9 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
                 contarNotas(idLibro) { numeroNotas ->
                     libroActualizado.numeroNotas = numeroNotas
                     Log.d("DetallesLibroActivity", "Progreso actualizado: $current / $total")
-                    // Mostrar popup si se completó el libro por primera vez
                     if (current == total && !libroActualizado.leido) {
                         mostrarPopupCelebracion()
-                        libroActualizado.leido=true
+                        libroActualizado.leido = true
                     }
                     libroViewModel.updateLibro(libroActualizado)
                 }
@@ -427,60 +469,62 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+    /**
+     * Actualiza la ProgressBar con el porcentaje de progreso calculado.
+     */
     private fun updateProgressBar() {
-        // Obtener el valor actual ingresado por el usuario
         val currentInput = editTextProgressCurrent.text.toString().toIntOrNull() ?: 0
-
-        // Obtener el valor total, ya sea ingresado por el usuario o de 'libro'
         val totalInput = editTextProgressTotal.text.toString().toIntOrNull() ?: libro?.totalPaginas ?: 100
 
-        // Validar que 'totalInput' no sea cero para evitar división por cero
         if (totalInput <= 0) {
             editTextProgressTotal.error = "El total debe ser mayor que cero."
             progressBar.progress = 0
             return
         }
 
-        // Validar que 'currentInput' no exceda 'totalInput'
         val current = if (currentInput > totalInput) {
-            // Mostrar mensaje de error
             editTextProgressCurrent.error = getString(R.string.error_progress)
-
-            // Ajustar el valor actual al total
             totalInput
-
-            // Opcional: Actualizar el campo de texto para reflejar el cambio
-            // editTextProgressCurrent.setText(totalInput.toString())
-
         } else {
-            // Limpiar cualquier error previo
             editTextProgressCurrent.error = null
             currentInput
         }
 
-        // Calcular el porcentaje de progreso
         val progressPercent = calcularProgreso(current, totalInput).coerceIn(0, 100)
 
-        // Configurar la ProgressBar
         progressBar.max = 100
         progressBar.progress = progressPercent
     }
 
-
+    /**
+     * Calcula el porcentaje de progreso basado en el progreso actual y el total.
+     *
+     * @param current El progreso actual.
+     * @param total El progreso total.
+     * @return El porcentaje de progreso.
+     */
     private fun calcularProgreso(current: Int, total: Int): Int {
         return if (total > 0) (current * 100) / total else 0
     }
 
+    /**
+     * Maneja el clic en una nota, abriendo la actividad de edición de la nota seleccionada.
+     *
+     * @param nota La nota seleccionada.
+     */
     override fun onNotaClick(nota: Nota) {
         Toast.makeText(this, "Nota seleccionada: ${nota.titulo}", Toast.LENGTH_SHORT).show()
         userId = intent.getStringExtra("USER_ID") ?: ""
         val intent = Intent(this, EditarNotaActivity::class.java)
         intent.putExtra("NOTA_ID", nota.id)
         intent.putExtra("USER_ID", userId)
-        intent.putExtra("LIBRO_ID",idLibro)
+        intent.putExtra("LIBRO_ID", idLibro)
         startActivity(intent)
     }
 
+    /**
+     * Observa los cambios en las notas asociadas al libro y actualiza el adaptador del RecyclerView.
+     */
     private fun observarNotas() {
         notaViewModel.getNotasByLibroId(idLibro, userId = userId).observe(this) { notas ->
             Log.d(
@@ -491,6 +535,9 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+    /**
+     * Agrega una nueva nota al libro y actualiza la interfaz de usuario.
+     */
     private fun agregarNuevaNota() {
         contadorNotas++
 
@@ -506,24 +553,31 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         Toast.makeText(this, "Nota $contadorNotas añadida", Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * Obtiene todas las notas asociadas a un libro de forma asíncrona.
+     *
+     * @param idNotaL El ID del libro.
+     * @param userId El ID del usuario.
+     * @return La lista de notas asociadas al libro.
+     */
     private suspend fun obtenerNotasDelLibro(idNotaL: Int, userId: String): List<Nota> {
         return withContext(Dispatchers.IO) {
             libroViewModel.obtenerNotasDelLibro(idNotaL, userId)
         }
     }
 
-
+    /**
+     * Muestra un popup de celebración cuando se completa un libro.
+     */
     private fun mostrarPopupCelebracion() {
         val inflater = layoutInflater
         val view = inflater.inflate(R.layout.custom_popup, null)
         val buttonClose = view.findViewById<Button>(R.id.buttonClose)
 
-        // Inicializar los elementos del diseño
         val textViewMessage = view.findViewById<TextView>(R.id.tv_libro)
         val fraseViewMessage = view.findViewById<TextView>(R.id.tv_frase)
         val lottieConfetti = view.findViewById<LottieAnimationView>(R.id.lottieConfetti)
 
-        // Configurar los textos y otros elementos
         val tituloLibro = getTituloLibro(libro?.nombrePortada ?: "portada_elcamino")
         textViewMessage.text = tituloLibro
 
@@ -541,12 +595,10 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
         fraseViewMessage.setText(fraseResId)
 
-        // Crear y mostrar el diálogo
         val dialog = AlertDialog.Builder(this)
             .setView(view)
             .create()
 
-        // Acción del botón para cerrar el diálogo
         buttonClose.setOnClickListener {
             dialog.dismiss()
         }
@@ -554,21 +606,23 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.show()
 
-        // Aplicar animaciones al mostrar el popup
         dialog.window?.attributes?.windowAnimations = R.style.PopupAnimation
 
-        // Ajustar las dimensiones de la ventana para que se ajusten al contenido
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
 
-        // Iniciar y reproducir la animación de confetti
         lottieConfetti.visibility = View.VISIBLE
         lottieConfetti.playAnimation()
     }
 
-
+    /**
+     * Obtiene el título del libro basado en el nombre de la portada.
+     *
+     * @param nombrePortada El nombre de la portada del libro.
+     * @return El título del libro.
+     */
     fun Context.getTituloLibro(nombrePortada: String): String {
         return when (nombrePortada) {
             "portada_elimperiofinal" -> getString(R.string.titulo_el_imperio_final)
@@ -579,8 +633,7 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             "portada_palabrasradiantes" -> getString(R.string.titulo_palabras_radiantes)
             "portada_juramentada" -> getString(R.string.titulo_juramentada)
             "portada_elritmoguerra" -> getString(R.string.titulo_el_ritmo_de_la_guerra)
-            else -> getString(R.string.titulo_el_camino_de_los_reyes) // Valor por defecto
+            else -> getString(R.string.titulo_el_camino_de_los_reyes)
         }
     }
-
 }
