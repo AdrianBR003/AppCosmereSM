@@ -1,21 +1,15 @@
 package com.example.appsandersonsm
 
-import android.app.Activity
 import android.content.Intent
-import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.appsandersonsm.Modelo.Nota
 import com.example.appsandersonsm.ViewModel.NotaViewModel
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.firestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -79,7 +73,6 @@ class EditarNotaActivity : AppCompatActivity() {
                 editTextTitulo.setText(nota.titulo)
                 editTextContenido.setText(nota.contenido)
             } else {
-                Toast.makeText(this, "Nota no encontrada", Toast.LENGTH_SHORT).show()
                 finish()
             }
         }
@@ -101,7 +94,6 @@ class EditarNotaActivity : AppCompatActivity() {
     private fun guardarCambios() {
         // Validar que la nota no sea nula
         val notaActual = nota ?: run {
-            Toast.makeText(this, "No se encontró la nota", Toast.LENGTH_SHORT).show()
             Log.e("EditarNotaActivity", "Intento de guardar cambios sin una nota válida")
             return
         }
@@ -132,7 +124,6 @@ class EditarNotaActivity : AppCompatActivity() {
         notaViewModel.updateNota(notaActual)
 
         // Opcional: Mostrar un mensaje de confirmación
-        Toast.makeText(this, "Nota actualizada correctamente", Toast.LENGTH_SHORT).show()
         Log.d("EditarNotaActivity", "Nota actualizada correctamente")
 
         // Finalizar la actividad
@@ -143,7 +134,6 @@ class EditarNotaActivity : AppCompatActivity() {
         isnotaEliminada = true
         notaViewModel.eliminarNotaPorId(idNota, userId)
         Log.d("EditarNotaActivity", "Notaid ${idNota}")
-        Toast.makeText(this, "Nota eliminada", Toast.LENGTH_SHORT).show()
         val i = Intent(this, DetallesLibroActivity::class.java)
         i.putExtra("USER_ID", userId)
         i.putExtra("LIBRO_ID", idLibro)

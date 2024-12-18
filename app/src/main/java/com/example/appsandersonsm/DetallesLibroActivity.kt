@@ -20,11 +20,9 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RatingBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -121,22 +119,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         configurarListeners()
         observarNotas()
         inicializarDatosLibro()
-
-        libroViewModel.guardarEstado.observe(this, Observer { exito ->
-            if (exito) {
-                Toast.makeText(
-                    this,
-                    "Libro y notas guardados exitosamente en la nube.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                Toast.makeText(
-                    this,
-                    "Error al guardar libro y notas en la nube.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        })
 
         nestedScrollViewSinopsis = findViewById(R.id.scrollViewSinopsis)
         btnExpandirSinopsis = findViewById(R.id.btnExpandirSinopsis)
@@ -513,7 +495,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
      * @param nota La nota seleccionada.
      */
     override fun onNotaClick(nota: Nota) {
-        Toast.makeText(this, "Nota seleccionada: ${nota.titulo}", Toast.LENGTH_SHORT).show()
         userId = intent.getStringExtra("USER_ID") ?: ""
         val intent = Intent(this, EditarNotaActivity::class.java)
         intent.putExtra("NOTA_ID", nota.id)
@@ -550,7 +531,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
 
         notaViewModel.insertarNota(nuevaNota)
 
-        Toast.makeText(this, "Nota $contadorNotas añadida", Toast.LENGTH_SHORT).show()
     }
 
     /**

@@ -9,7 +9,6 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.RatingBar
 import android.widget.Spinner
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,7 +18,6 @@ import com.example.appsandersonsm.DataBase.JsonHandler
 import com.example.appsandersonsm.Modelo.Libro
 import com.example.appsandersonsm.ViewModel.LibroViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import org.json.JSONArray
 import java.util.Locale
 
 class LibroActivity : AppCompatActivity() {

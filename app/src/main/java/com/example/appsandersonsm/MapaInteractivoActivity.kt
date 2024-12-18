@@ -20,7 +20,6 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -126,7 +125,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
         if (userId.isEmpty()) {
             Log.e("MapaInteractivo", "userId está vacío. Finalizando actividad.")
-            Toast.makeText(this, "Error: ID de usuario no proporcionado.", Toast.LENGTH_SHORT).show()
             finish()
             return
         }

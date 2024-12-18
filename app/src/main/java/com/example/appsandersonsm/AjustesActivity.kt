@@ -24,7 +24,6 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
@@ -375,12 +374,6 @@ class AjustesActivity : AppCompatActivity() {
                     if (noticiasFiltradas.isNotEmpty()) {
                         recyclerViewNoticias.adapter = NoticiasAdapter(noticiasFiltradas)
                         recyclerViewNoticias.visibility = View.VISIBLE
-                    } else {
-                        Toast.makeText(
-                            this@AjustesActivity,
-                            "No se encontraron noticias relacionadas con Brandon Sanderson o Cosmere.",
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                     progressBar.visibility = View.GONE
                 }
@@ -407,7 +400,6 @@ class AjustesActivity : AppCompatActivity() {
             val customTabsIntent = CustomTabsIntent.Builder().build()
             customTabsIntent.launchUrl(this, Uri.parse(url))
         } catch (e: Exception) {
-            Toast.makeText(this, "Error al abrir el enlace.", Toast.LENGTH_SHORT).show()
             Log.e("OpenWebPage", "Error: ${e.message}")
         }
     }
