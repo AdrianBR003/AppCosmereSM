@@ -77,7 +77,8 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var libroDao: LibroDao
     private lateinit var usuarioDao: UsuarioDao
     private lateinit var notaDao: NotaDao
-    private lateinit var libroViewModel: LibroViewModel
+    private lateinit var tvFraseCarga: TextView
+
 
     companion object {
         private const val RC_SIGN_IN = 9001
@@ -111,12 +112,18 @@ class LoginActivity : AppCompatActivity() {
         val llgoogle = findViewById<LinearLayout>(R.id.llgoogle)
         val btn_skip_login = findViewById<Button>(R.id.btn_skip_login)
         val contenedorCarga= findViewById<LinearLayout>(R.id.contenedorCarga)
+        tvFraseCarga = findViewById(R.id.tvFraseCarga)
+
 
         imageView.visibility = View.GONE
         llgoogle.visibility = View.GONE
         btn_skip_login.visibility = View.GONE
         bookContainer.visibility = View.GONE
         contenedorCarga.visibility = View.VISIBLE
+
+        // Iniciar Frases Aleatorias
+        iniciarCicloFrases()
+
 
         val editor = prefs.edit()
 
@@ -209,6 +216,19 @@ class LoginActivity : AppCompatActivity() {
         super.onResume()
         isChangingLanguage = false
         rlToggleLanguage.isEnabled = true
+    }
+
+    private fun iniciarCicloFrases() {
+        lifecycleScope.launch {
+            val frases = resources.getStringArray(R.array.frases_carga)
+            while (isActive) { // isActive es true mientras la coroutine está activa
+                val fraseAleatoria = frases.random()
+                withContext(Dispatchers.Main) {
+                    tvFraseCarga.text = fraseAleatoria
+                }
+                delay(3000) // Cambiar frase cada 3 segundos
+            }
+        }
     }
 
     private fun verificarTextoGoogleSignIn(googleSignInButton: View) {

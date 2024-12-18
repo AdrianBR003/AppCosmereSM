@@ -90,5 +90,16 @@ Me pregunto quién salió mejor parado.”</string>
     <string name="titulo_el_ritmo_de_la_guerra">El Ritmo de la Guerra</string>
     <string name="error_progress">El progreso actual no puede exceder el total.</string>
 
+    <string-array name="frases_carga">
+        <item>“Si siempre llegas a tiempo, eso significa que nunca tienes nada mejor que hacer.”</item>
+        <item>“Escribo estas palabras en acero, pues todo lo que no esté grabado en metal es indigno de confianza.”</item>
+        <item>“Es cosa de la naturaleza. A cada empujón le corresponde un tirón. Una consecuencia.”</item>
+        <item>“Me forjó para destruir las cosas que eran malignas. Soy bastante bueno en ello. Creo que estaría muy orgullosa de mí.”</item>
+        <item>“Vida antes que muerte.Fuerza antes que debilidad.Viaje antes que destino.”</item>
+        <item>“Si tengo que ver este mundo desmoronarse y arder para conseguir lo que necesito, lo haré. Con lágrimas, sí, pero dejaré que suceda.”</item>
+        <item>“Arrebatamos las hojas esquirladas a las mujeres y ellas nos quitaron la lectura y la escritura.
+Me pregunto quién salió mejor parado.”</item>
+        <item>“En un mundo perfecto, nadie tendría que entrenar para la batalla. No vivimos en un mundo perfecto.”</item>
+    </string-array>
 
 </resources>

@@ -7,150 +7,152 @@
     android:layout_height="match_parent"
     tools:context=".LoginActivity">
 
-        <!-- Contenedor para las portadas de libros -->
+    <!-- Contenedor para las portadas de libros -->
+    <FrameLayout
+        android:id="@+id/bookContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_vertical_imageViewL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.20" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_vertical_imageViewR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.8" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_horizontal_imageViewU"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.1" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_horizontal_imageViewD"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.4" />
+
+    <ImageView
+
+        android:id="@+id/imageViewPortada"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/inicioimage"
+        app:layout_constraintBottom_toTopOf="@id/guideline_horizontal_imageViewD"
+        app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
+        app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
+        app:layout_constraintTop_toBottomOf="@id/guideline_horizontal_imageViewU" />
+
+    <LinearLayout
+        android:id="@+id/llgoogle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
+        app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
+        app:layout_constraintTop_toBottomOf="@id/imageViewPortada">
+
         <FrameLayout
-            android:id="@+id/bookContainer"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:background="@android:color/transparent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_vertical_imageViewL"
+            android:id="@+id/btn_google_sign_in_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.20" />
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="32dp"
+            android:background="@drawable/pulsating_border">
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_vertical_imageViewR"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.8" />
+            <!-- Botón de Google Sign-In -->
+            <com.google.android.gms.common.SignInButton
+                android:id="@+id/btn_google_sign_in"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </FrameLayout>
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_horizontal_imageViewU"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.1" />
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_horizontal_imageViewD"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.4" />
-
-        <ImageView
-
-            android:id="@+id/imageViewPortada"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@drawable/inicioimage"
-            app:layout_constraintBottom_toTopOf="@id/guideline_horizontal_imageViewD"
-            app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
-            app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
-            app:layout_constraintTop_toBottomOf="@id/guideline_horizontal_imageViewU" />
-
-        <LinearLayout
-            android:id="@+id/llgoogle"
+        <RelativeLayout
+            android:id="@+id/rlToggleLanguage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
-            app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
-            app:layout_constraintTop_toBottomOf="@id/imageViewPortada">
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="30dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_es"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingVertical="14dp">
 
-            <FrameLayout
-                android:id="@+id/btn_google_sign_in_container"
+            <TextView
+                android:id="@+id/tvLanguageState"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:layout_marginBottom="32dp"
-                android:background="@drawable/pulsating_border">
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:text="ES"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
 
-                <!-- Botón de Google Sign-In -->
-                <com.google.android.gms.common.SignInButton
-                    android:id="@+id/btn_google_sign_in"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </FrameLayout>
+        </RelativeLayout>
 
-            <RelativeLayout
-                android:id="@+id/rlToggleLanguage"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="30dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_es"
-                android:clickable="true"
-                android:focusable="true"
-                android:paddingVertical="14dp">
+    </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvLanguageState"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_centerVertical="true"
-                    android:text="ES"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
-            </RelativeLayout>
-
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/btn_skip_login"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:background="@android:color/transparent"
-            android:text="@string/iniciarS"
-            android:textColor="@color/gold_s"
-            android:textSize="12dp"
-            android:textStyle="italic"
-            app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
-            app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
-            app:layout_constraintTop_toBottomOf="@id/llgoogle" />
+    <Button
+        android:id="@+id/btn_skip_login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@android:color/transparent"
+        android:text="@string/iniciarS"
+        android:textColor="@color/gold_s"
+        android:textSize="12dp"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@id/guideline_vertical_imageViewR"
+        app:layout_constraintStart_toStartOf="@id/guideline_vertical_imageViewL"
+        app:layout_constraintTop_toBottomOf="@id/llgoogle" />
 
     <LinearLayout
         android:id="@+id/contenedorCarga"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="parent"
-        android:visibility="gone"
-        >
+        app:layout_constraintTop_toBottomOf="parent">
 
         <ImageView
             android:id="@+id/imageViewPortadaOculta"
             android:layout_width="200dp"
             android:layout_height="200dp"
-            android:background="@drawable/inicioimage"
             android:layout_marginBottom="50dp"
-            />
+            android:background="@drawable/inicioimage" />
 
 
-        <ProgressBar
-            android:id="@+id/progressBar"
+        <TextView
+            android:id="@+id/tvFraseCarga"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:indeterminate="true"
-            android:backgroundTint="@color/gold"
-            />
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:paddingHorizontal="40dp"
+            android:text="Loading"
+            android:textColor="@color/gold_s"
+            android:textSize="16sp"
+            android:textStyle="italic" />
 
 
     </LinearLayout>

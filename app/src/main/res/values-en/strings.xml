@@ -70,5 +70,15 @@
     <string name="titulo_el_ritmo_de_la_guerra">Rhythm of War</string>
     <string name="error_progress">The current progress cannot exceed the total.</string>
 
+    <string-array name="frases_carga">
+        <item>"If you are always on time, it means you never have anything better to do."</item>
+        <item>"I write these words in steel, for anything not engraved in metal is unworthy of trust."</item>
+        <item>"It's a matter of nature. For every push, there is a pull. A consequence."</item>
+        <item>"She forged me to destroy the things that were evil. I'm quite good at it. I think she would be very proud of me."</item>
+        <item>"Life before death. Strength before weakness. Journey before destination."</item>
+        <item>"If I have to watch this world crumble and burn to get what I need, I will. With tears, yes, but I will let it happen."</item>
+        <item>"We snatched the Shardblades from the women, and they took reading and writing from us. I wonder who got the better deal."</item>
+        <item>"In a perfect world, no one would need to train for battle. We do not live in a perfect world."</item>
+    </string-array>
 
 </resources>
