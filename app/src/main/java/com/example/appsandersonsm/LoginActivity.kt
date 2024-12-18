@@ -168,8 +168,8 @@ class LoginActivity : AppCompatActivity() {
         // Si ya está logueado o ha hecho skip anteriormente
         if ((isLoggedIn && userId != null) || (isLoginSkipped && userId != null)) {
             // Ocultar la interfaz de usuario si se va a saltar el login
-
             lifecycleScope.launch {
+                delay(2000L)
                 // Haces la sincronización que necesites aquí
                 if (!userId.equals("id_default")) {
                     sincronizarDatosConFirestore(userId)
