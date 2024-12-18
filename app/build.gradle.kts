@@ -114,6 +114,10 @@ dependencies {
     implementation (libs.androidx.viewpager2)
     implementation (libs.material.v160)
 
+    // Animacion
+    implementation (libs.android.lottie)
+
+
     // LiveData y ViewModel
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")

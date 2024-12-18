@@ -16,5 +16,10 @@
     <color name="menuIconosApagado">#8B6E4E</color>
     <color name="inicio">#212026</color>
 
+    <color name="confetti_purple">#FFBB86FC</color>
+    <color name="confetti_blue">#FF6200EE</color>
+    <color name="confetti_green">#FF03DAC5</color>
+    <color name="confetti_yellow">#FFFFD700</color>
+    <color name="confetti_red">#FFFF4500</color>
 
 </resources>

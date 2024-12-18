@@ -5,10 +5,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.drawable.shapes.Shape
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.util.Size
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +25,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -40,6 +43,7 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
+import com.airbnb.lottie.LottieAnimationView
 import com.example.appsandersonsm.Dao.LibroDao
 import com.example.appsandersonsm.DataBase.AppDatabase
 import com.example.appsandersonsm.Repository.LibroRepository
@@ -49,7 +53,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.example.appsandersonsm.ViewModel.NotaViewModel.NotaViewModelFactory
-import com.google.firebase.firestore.FirebaseFirestore
+
 
 
 class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListener {
@@ -81,7 +85,6 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
     private var userId = ""
     private var idNotaEliminada = -1
     private var isnotaEliminada = false
-    private val firestore = FirebaseFirestore.getInstance()
     private val languageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "LANGUAGE_CHANGED") {
@@ -509,8 +512,8 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         }
     }
 
+
     private fun mostrarPopupCelebracion() {
-        // Inflar el diseño personalizado
         val inflater = layoutInflater
         val view = inflater.inflate(R.layout.custom_popup, null)
         val buttonClose = view.findViewById<Button>(R.id.buttonClose)
@@ -518,9 +521,9 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         // Inicializar los elementos del diseño
         val textViewMessage = view.findViewById<TextView>(R.id.tv_libro)
         val fraseViewMessage = view.findViewById<TextView>(R.id.tv_frase)
+        val lottieConfetti = view.findViewById<LottieAnimationView>(R.id.lottieConfetti)
 
         // Configurar los textos y otros elementos
-        // Obtener el título traducido
         val tituloLibro = getTituloLibro(libro?.nombrePortada ?: "portada_elcamino")
         textViewMessage.text = tituloLibro
 
@@ -530,14 +533,13 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             "portada_juramentada" -> R.string.frase_juramentada
             "portada_elritmoguerra" -> R.string.frase_elritmoguerra
             "portada_elaliento" -> R.string.frase_elaliento
-            "portada_nacidos" -> R.string.frase_nacidos // Usando el nombre único
+            "portada_nacidos" -> R.string.frase_nacidos
             "portada_elheroe" -> R.string.frase_elheroe
             "portada_elpozo" -> R.string.frase_elpozo
             else -> R.string.frase_elcamino
         }
 
         fraseViewMessage.setText(fraseResId)
-
 
         // Crear y mostrar el diálogo
         val dialog = AlertDialog.Builder(this)
@@ -552,6 +554,8 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.show()
 
+        // Aplicar animaciones al mostrar el popup
+        dialog.window?.attributes?.windowAnimations = R.style.PopupAnimation
 
         // Ajustar las dimensiones de la ventana para que se ajusten al contenido
         dialog.window?.setLayout(
@@ -559,7 +563,11 @@ class DetallesLibroActivity : AppCompatActivity(), NotasAdapter.OnNotaClickListe
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
 
+        // Iniciar y reproducir la animación de confetti
+        lottieConfetti.visibility = View.VISIBLE
+        lottieConfetti.playAnimation()
     }
+
 
     fun Context.getTituloLibro(nombrePortada: String): String {
         return when (nombrePortada) {
