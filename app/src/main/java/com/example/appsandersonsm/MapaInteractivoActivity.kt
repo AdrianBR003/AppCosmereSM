@@ -38,6 +38,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlin.math.roundToInt
 
+/**
+ * MapaInteractivoActivity muestra un mapa interactivo con marcadores para cada libro del usuario,
+ * maneja la navegación entre actividades, y gestiona la visualización de leyendas y tutoriales.
+ */
 class MapaInteractivoActivity : AppCompatActivity() {
 
     companion object {
@@ -69,23 +73,19 @@ class MapaInteractivoActivity : AppCompatActivity() {
     var photoViewReady = false
     var listaLibrosReady = false
 
-
-    // Lista para guardar las animaciones y poder gestionarlas
     private val animators = mutableListOf<ValueAnimator>()
 
-    // Coordenadas normalizadas asociadas por ID de libro
     private val libroCoordenadasNormalizadas = mapOf(
-        1 to PointF(0.38f, 0.80f),  // ID 1
-        2 to PointF(0.45f, 0.86f),  // ID 2
-        3 to PointF(0.55f, 0.88f),  // ID 3
-        4 to PointF(0.64f, 0.85f),  // ID 4
-        5 to PointF(0.06f, 0.76f),  // Aliento
-        6 to PointF(0.105f, 0.63f), // Héroe
-        7 to PointF(0.07f, 0.50f),  // Pozo
-        8 to PointF(0.12f, 0.40f)   // Nacidos
+        1 to PointF(0.38f, 0.80f),
+        2 to PointF(0.45f, 0.86f),
+        3 to PointF(0.55f, 0.88f),
+        4 to PointF(0.64f, 0.85f),
+        5 to PointF(0.06f, 0.76f),
+        6 to PointF(0.105f, 0.63f),
+        7 to PointF(0.07f, 0.50f),
+        8 to PointF(0.12f, 0.40f)
     )
 
-    // Definir relaciones cronológicas entre libros
     private val relacionesCronologicas = listOf(
         Pair(1, 2),
         Pair(2, 3),
@@ -94,23 +94,25 @@ class MapaInteractivoActivity : AppCompatActivity() {
         Pair(8, 7),
         Pair(7, 6),
         Pair(6, 5)
-        // Agrega más relaciones según tus necesidades
     )
 
-    // Inicializar el ViewModel usando el delegado by viewModels
     private val libroViewModel: LibroViewModel by viewModels {
         LibroViewModel.LibroViewModelFactory((application as InitApplication).libroRepository)
     }
 
     private val applicationScope = CoroutineScope(SupervisorJob())
 
-
+    /**
+     * Inicializa la actividad, configura las vistas, maneja la primera vez del usuario,
+     * y configura los marcadores en el mapa.
+     *
+     * @param savedInstanceState El estado previamente guardado de la actividad.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapa_interactivo)
-        supportActionBar?.hide() // Ocult   ar la barra de acción predeterminada
+        supportActionBar?.hide()
 
-        // Verificar si es la primera vez que el usuario accede
         if (isFirstTimeUser()) {
             showTutorial()
             setFirstTimeUser(false)
@@ -120,19 +122,15 @@ class MapaInteractivoActivity : AppCompatActivity() {
         libroDao = database.libroDao()
         notaDao = database.notaDao()
 
-        // Obtener el ID del usuario desde el Intent
         userId = intent.getStringExtra("USER_ID") ?: ""
 
         if (userId.isEmpty()) {
             Log.e("MapaInteractivo", "userId está vacío. Finalizando actividad.")
-            Toast.makeText(this, "Error: ID de usuario no proporcionado.", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(this, "Error: ID de usuario no proporcionado.", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
-        // Inicializa el ViewModel y observa los datos
-        // Observar los libros asociados al usuario
         Log.d("MapaInteractivo", "Observando libros del usuario: $userId")
         libroViewModel.getAllLibrosByUsuario(userId).observe(this, Observer { libros ->
             if (libros.isNullOrEmpty()) {
@@ -140,24 +138,20 @@ class MapaInteractivoActivity : AppCompatActivity() {
             } else {
                 Log.d("MapaInteractivo", "Libros cargados: ${libros.size}")
                 listaLibros = libros
-                listaLibrosReady=true
+                listaLibrosReady = true
                 Log.d("MapaInteractivo", "Actualizando Inicial Saga")
             }
         })
 
-        // Inicializar vistas
         photoView = findViewById(R.id.photoView)
         markerContainer = findViewById(R.id.mapContainerMarkers)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         arrowOverlayView = findViewById(R.id.arrowOverlayView)
 
-
-        // Configuración de la imagen en el PhotoView
         photoView.minimumScale = 1.0f
         photoView.mediumScale = 1.5f
         photoView.maximumScale = 3.0f
 
-        // Listener para inicializar los marcadores una vez que la vista está lista
         photoView.viewTreeObserver.addOnGlobalLayoutListener(object :
             ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
@@ -166,18 +160,13 @@ class MapaInteractivoActivity : AppCompatActivity() {
                     photoView.viewTreeObserver.removeOnGlobalLayoutListener(this)
                     intentarInicializarMarcadores()
                 } else {
-                    Log.d(
-                        "MapaInteractivo",
-                        "PhotoView listo, pero listaLibros aún no está inicializada."
-                    )
+                    Log.d("MapaInteractivo", "PhotoView listo, pero listaLibros aún no está inicializada.")
                 }
             }
         })
 
-        // Listener para actualizar la posición de los marcadores y las flechas
         photoView.setOnMatrixChangeListener { actualizarMarcadoresYFlechas() }
 
-        // Configuración de BottomNavigationView
         bottomNavigationView.selectedItemId = R.id.nav_map
 
         bottomNavigationView.setOnItemSelectedListener { item ->
@@ -191,7 +180,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 }
 
                 R.id.nav_map -> {
-                    // Ya estamos en MapaInteractivoActivity, no hacemos nada
                     true
                 }
 
@@ -207,10 +195,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
             }
         }
 
-        // Configurar las relaciones cronológicas en el ArrowOverlayView
         arrowOverlayView.relaciones = relacionesCronologicas
-
-        // Leyenda
 
         val followButton: ImageButton = findViewById(R.id.followButton)
         val leyendaView: View = findViewById(R.id.leyenda)
@@ -243,11 +228,8 @@ class MapaInteractivoActivity : AppCompatActivity() {
             }
         }
 
-
-        // Botón para ocultar la leyenda
         closeButton.setOnClickListener {
             if (isLeyendaVisible) {
-                // Animar la leyenda hacia arriba
                 val animator = ObjectAnimator.ofFloat(
                     leyendaView,
                     "translationY",
@@ -258,13 +240,11 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 animator.interpolator = AccelerateDecelerateInterpolator()
                 animator.start()
 
-                // Listener para ocultar la leyenda al final de la animación
                 animator.addListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
                         leyendaView.visibility = View.GONE
                         followButton.isEnabled = true
-                        leyendaView.translationY =
-                            0f // Reinicia la posición para futuras animaciones
+                        leyendaView.translationY = 0f
                     }
                 })
 
@@ -273,18 +253,25 @@ class MapaInteractivoActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Pausa todas las animaciones cuando la actividad está en pausa.
+     */
     override fun onPause() {
         super.onPause()
-        // Detener todas las animaciones cuando la actividad está en pausa
         animators.forEach { it.cancel() }
     }
 
+    /**
+     * Reanuda todas las animaciones cuando la actividad se reanuda.
+     */
     override fun onResume() {
         super.onResume()
-        // Reanudar todas las animaciones cuando la actividad se reanuda
         animators.forEach { it.start() }
     }
 
+    /**
+     * Limpia los receptores registrados cuando la actividad se destruye.
+     */
     override fun onDestroy() {
         super.onDestroy()
         if (isReceiverRegistered) {
@@ -295,6 +282,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
     /**
      * Verifica si es la primera vez que el usuario accede a esta actividad.
+     *
      * @return `true` si es la primera vez, `false` en caso contrario.
      */
     private fun isFirstTimeUser(): Boolean {
@@ -304,6 +292,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
 
     /**
      * Actualiza el estado de si es la primera vez que el usuario accede.
+     *
      * @param isFirstTime `false` después de que el usuario haya visto el tutorial.
      */
     private fun setFirstTimeUser(isFirstTime: Boolean) {
@@ -314,8 +303,9 @@ class MapaInteractivoActivity : AppCompatActivity() {
         }
     }
 
-
-
+    /**
+     * Intenta inicializar los marcadores si las vistas están listas.
+     */
     private fun intentarInicializarMarcadores() {
         if (photoViewReady && listaLibrosReady) {
             Log.d("MapaInteractivo", "Intentando inicializar marcadores.")
@@ -324,6 +314,9 @@ class MapaInteractivoActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Inicializa los marcadores en el mapa basándose en la lista de libros.
+     */
     private fun inicializarMarcadores() {
         if (listaLibros.isEmpty()) {
             Log.e("MapaInteractivo", "Intentando inicializar marcadores sin datos.")
@@ -334,13 +327,11 @@ class MapaInteractivoActivity : AppCompatActivity() {
         animators.clear()
 
         listaLibros.forEach { libro ->
-            // Definir el tamaño estándar
             var sizeInDpID = 60
             var red = 255
             var green = 255
             var blue = 255
 
-            // Si inicialSaga es true, aumentar el tamaño y cambiar el color
             if (libro.inicialSaga) {
                 sizeInDpID = 90
                 red = 214
@@ -368,7 +359,7 @@ class MapaInteractivoActivity : AppCompatActivity() {
                 val backgroundDrawable = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
                     setColor(Color.TRANSPARENT)
-                    val strokeWidth = (4 * scale + 0.5f).roundToInt() // 4dp
+                    val strokeWidth = (4 * scale + 0.5f).roundToInt()
                     val strokeColor = Color.BLACK
                     setStroke(strokeWidth, strokeColor)
                 }
@@ -388,14 +379,12 @@ class MapaInteractivoActivity : AppCompatActivity() {
                     abrirDetallesLibro(libro.id)
                 }
 
-                // Configurar la animación del trazo
                 val animator = ValueAnimator.ofInt(255, 50, 255).apply {
                     duration = 2500L
                     repeatMode = ValueAnimator.RESTART
                     repeatCount = ValueAnimator.INFINITE
                     addUpdateListener { animation ->
                         val alphaValue = animation.animatedValue as Int
-                        // Actualizar el color del trazo con el nuevo valor de alpha
                         val strokeColorWithAlpha = Color.argb(alphaValue, red, green, blue)
                         val strokeWidth = (2 * scale + 0.5f).roundToInt()
                         backgroundDrawable.setStroke(strokeWidth, strokeColorWithAlpha)
@@ -411,12 +400,14 @@ class MapaInteractivoActivity : AppCompatActivity() {
             markerContainer.addView(marker)
         }
 
-        // Llamar a actualizarMarcadoresYFlechas con un pequeño retraso para asegurar que PhotoView está listo
         Handler(Looper.getMainLooper()).postDelayed({
             actualizarMarcadoresYFlechas()
-        }, 100) // Ajusta el tiempo de retraso si es necesario
+        }, 100)
     }
 
+    /**
+     * Actualiza las posiciones de los marcadores y las flechas en el mapa.
+     */
     private fun actualizarMarcadoresYFlechas() {
         val matrix = FloatArray(9)
         photoView.imageMatrix.getValues(matrix)
@@ -432,7 +423,6 @@ class MapaInteractivoActivity : AppCompatActivity() {
         val scaledWidth = imageWidth * scaleX
         val scaledHeight = imageHeight * scaleY
 
-        // Mapa para almacenar las coordenadas en pantalla de cada libro
         val coordenadasPantalla = mutableMapOf<Int, Pair<Float, Float>>()
 
         markers.forEachIndexed { index, marker ->
@@ -442,25 +432,24 @@ class MapaInteractivoActivity : AppCompatActivity() {
             val absX = (coordNormalizada.x * scaledWidth) + transX
             val absY = (coordNormalizada.y * scaledHeight) + transY
 
-            // Centrar el marcador en las coordenadas calculadas
             marker.x = absX - (marker.width / 2)
             marker.y = absY - (marker.height / 2)
 
-            // Calcular las coordenadas centrales del ImageView
             val centerX = marker.x + (marker.width / 2)
             val centerY = marker.y + (marker.height / 2)
 
-            // Almacenar las coordenadas centrales en el mapa
             coordenadasPantalla[libro.id] = Pair(centerX, centerY)
         }
 
-        // Actualizar las coordenadas en el ArrowOverlayView
         arrowOverlayView.libroCoordenadasPantalla = coordenadasPantalla
-
-        // Redibujar las flechas
         arrowOverlayView.invalidate()
     }
 
+    /**
+     * Abre la actividad de detalles del libro seleccionado.
+     *
+     * @param libroId El ID del libro a mostrar.
+     */
     private fun abrirDetallesLibro(libroId: Int) {
         val intent = Intent(this, DetallesLibroActivity::class.java)
         intent.putExtra("LIBRO_ID", libroId)
@@ -468,9 +457,12 @@ class MapaInteractivoActivity : AppCompatActivity() {
         Log.d("MapaInteractivo", "Extras: ${intent?.extras}")
         startActivity(intent)
     }
+
+    /**
+     * Muestra el tutorial para la primera vez que el usuario accede a la actividad.
+     */
     private fun showTutorial() {
         val tutorialDialog = TutorialDialogFragment()
         tutorialDialog.show(supportFragmentManager, "tutorial_dialog")
     }
-
 }
