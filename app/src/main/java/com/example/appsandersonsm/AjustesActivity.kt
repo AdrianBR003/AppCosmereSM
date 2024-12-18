@@ -282,14 +282,8 @@ class AjustesActivity : AppCompatActivity() {
                     null
                 }
             }.joinToString(separator = "\n").ifEmpty {
-                getLocalizedString("Sagas empezadas: 0", "Sagas Started: 0")
+                getLocalizedString("Ninguna Actualmente", "None Currently")
             }
-
-            // Actualiza el texto de sagas empezadas
-            textViewSagasEmpezadas.text = getLocalizedString(
-                "Sagas empezadas:\n\n$sagasEmpezadasTexto",
-                "Sagas Started:\n\n$sagasEmpezadasTexto"
-            )
 
             // Genera el texto para sagas leídas
             val sagasLeidasTexto = librosPorSaga.entries.mapNotNull { (saga, librosDeLaSaga) ->
@@ -310,19 +304,21 @@ class AjustesActivity : AppCompatActivity() {
                     }
                 }
             }.joinToString(separator = "\n").ifEmpty {
-                getLocalizedString(
-                    "Sagas leídas: Ninguna saga completada",
-                    "Sagas Read: No sagas completed"
-                )
+                getLocalizedString("Ninguna Actualmente", "None Currently")
             }
 
-            // Actualiza el texto de sagas leídas
+            // Actualiza los TextView con los textos generados
             textViewSagasLeidas.text = getLocalizedString(
                 "Sagas leídas:\n\n$sagasLeidasTexto",
                 "Sagas Read:\n\n$sagasLeidasTexto"
             )
+            textViewSagasEmpezadas.text = getLocalizedString(
+                "Sagas empezadas:\n\n$sagasEmpezadasTexto",
+                "Sagas Started:\n\n$sagasEmpezadasTexto"
+            )
         }
     }
+
 
 
     private fun fetchNoticias() {
