@@ -40,17 +40,17 @@ class TutorialDialogFragment : DialogFragment() {
             TutorialPage(
                 title = "Guia de Lectura del Cosmere",
                 imageRes = R.drawable.img_fondocosmere,
-                description = "Esta guia te ayudará a registrar los libros que has leído del Cosmere"
+                description = "Esta aplicación te ayudará a registrar los libros que has leído del Cosmere"
             ),
             TutorialPage(
                 title = "Mapa Interactivo",
                 imageRes = R.drawable.img_mapainteractivo,
-                description = "Busca tus libros desplazando la pantalla horizontalmente, y pulsa para ver las distintas opciones!"
+                description = "Busca tus libros desplazando la pantalla horizontalmente, y pulsa en los libros para ver las distintas opciones!"
             ),
             TutorialPage(
-                title = "Comienza tu Aventura",
+                title = "Registra tus avances",
                 imageRes = R.drawable.img_detalleslibro,
-                description = "Registra tu progreso, crea tus notas y valora los libros!"
+                description = "Anota tu progreso, crea tus notas y valora los libros!"
             ),
             TutorialPage(
                 title = "Filtra entre tus Libros",
