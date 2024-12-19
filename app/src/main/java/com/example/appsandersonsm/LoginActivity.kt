@@ -168,7 +168,7 @@ class LoginActivity : AppCompatActivity() {
                 if (userId != "id_default") {
                     sincronizarDatosConFirestore(userId)
                 }
-                navigateToMainActivity(userId)
+                navigateToMainActivity(userId, false)
             }
             return
         } else {
@@ -224,7 +224,7 @@ class LoginActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     tvFraseCarga.text = fraseAleatoria
                 }
-                delay(3000)
+                delay(4000)
             }
         }
     }
@@ -316,7 +316,7 @@ class LoginActivity : AppCompatActivity() {
         val userId = "id_default"
 
         saveUserSession(userId, isLoginSkipped = true)
-        navigateToMainActivity(userId)
+        navigateToMainActivity(userId, true)
     }
 
     /**
@@ -545,7 +545,7 @@ class LoginActivity : AppCompatActivity() {
                 )
                 saveUserSession(userId)
                 withContext(Dispatchers.Main) {
-                    navigateToMainActivity(userId)
+                    navigateToMainActivity(userId, true)
                 }
             } else {
                 Log.d(
@@ -614,7 +614,7 @@ class LoginActivity : AppCompatActivity() {
                     )
                     saveUserSession(userId)
                     withContext(Dispatchers.Main) {
-                        navigateToMainActivity(userId)
+                        navigateToMainActivity(userId, true)
                     }
                 } else {
                     Log.d(
@@ -623,7 +623,7 @@ class LoginActivity : AppCompatActivity() {
                     )
                     saveUserSession(userId)
                     withContext(Dispatchers.Main) {
-                        navigateToMainActivity(userId)
+                        navigateToMainActivity(userId, true)
                     }
                 }
             }
@@ -731,7 +731,7 @@ class LoginActivity : AppCompatActivity() {
             Log.d("LoginActivity", "Datos locales sobrescritos con éxito.")
             saveUserSession(userId)
             withContext(Dispatchers.Main) {
-                navigateToMainActivity(userId)
+                navigateToMainActivity(userId, true)
             }
         } catch (e: Exception) {
             Log.e("LoginActivity", "Error al sobrescribir datos locales: ${e.message}", e)
@@ -770,29 +770,13 @@ class LoginActivity : AppCompatActivity() {
      *
      * @param userId El ID del usuario.
      */
-    private fun navigateToMainActivity(userId: String) {
+    private fun navigateToMainActivity(userId: String, isSkip: Boolean) {
         val intent = Intent(this, MapaInteractivoActivity::class.java).apply {
             putExtra("USER_ID", userId)
+            putExtra("IS_SKIP", isSkip)
         }
         startActivity(intent)
         finish()
-    }
-
-    /**
-     * Navega a la actividad principal omitiendo el inicio de sesión y sincronizando datos.
-     *
-     * @param userId El ID del usuario.
-     */
-    private fun navigateToMainActivitySkip(userId: String) {
-        lifecycleScope.launch {
-            Log.d("LoginActivity", "SKIP con el usuario con id ${userId}")
-            sincronizarDatosConFirestore(userId)
-            val intent = Intent(this@LoginActivity, MapaInteractivoActivity::class.java).apply {
-                putExtra("USER_ID", userId)
-            }
-            startActivity(intent)
-            finish()
-        }
     }
 
     /**

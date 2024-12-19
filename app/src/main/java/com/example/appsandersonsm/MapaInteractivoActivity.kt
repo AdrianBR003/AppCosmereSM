@@ -23,6 +23,7 @@ import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.appsandersonsm.Adapter.TutorialDialogFragment
@@ -35,6 +36,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import io.getstream.photoview.PhotoView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
@@ -112,7 +115,10 @@ class MapaInteractivoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_mapa_interactivo)
         supportActionBar?.hide()
 
-        if (isFirstTimeUser()) {
+        val isskip = intent.getBooleanExtra("IS_SKIP", false)
+
+
+        if (isskip) {
             showTutorial()
             setFirstTimeUser(false)
         }
@@ -158,7 +164,10 @@ class MapaInteractivoActivity : AppCompatActivity() {
                     photoView.viewTreeObserver.removeOnGlobalLayoutListener(this)
                     intentarInicializarMarcadores()
                 } else {
-                    Log.d("MapaInteractivo", "PhotoView listo, pero listaLibros aún no está inicializada.")
+                    Log.d(
+                        "MapaInteractivo",
+                        "PhotoView listo, pero listaLibros aún no está inicializada."
+                    )
                 }
             }
         })
@@ -460,7 +469,10 @@ class MapaInteractivoActivity : AppCompatActivity() {
      * Muestra el tutorial para la primera vez que el usuario accede a la actividad.
      */
     private fun showTutorial() {
-        val tutorialDialog = TutorialDialogFragment()
-        tutorialDialog.show(supportFragmentManager, "tutorial_dialog")
+        lifecycleScope.launch {
+            delay(200L)
+            val tutorialDialog = TutorialDialogFragment()
+            tutorialDialog.show(supportFragmentManager, "tutorial_dialog")
+        }
     }
 }

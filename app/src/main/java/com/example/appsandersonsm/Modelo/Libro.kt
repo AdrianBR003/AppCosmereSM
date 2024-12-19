@@ -10,12 +10,12 @@ import androidx.room.PrimaryKey
     foreignKeys = [
         ForeignKey(
             entity = Usuario::class,
-            parentColumns = ["id"], // Clave primaria de "usuarios"
-            childColumns = ["userId"], // Clave foránea en "libros"
-            onDelete = ForeignKey.CASCADE // Elimina los libros si el usuario se elimina
+            parentColumns = ["id"],
+            childColumns = ["userId"],
+            onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["userId"])] // Índice para mejorar la consulta por usuario
+    indices = [Index(value = ["userId"])]
 )
 data class Libro(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

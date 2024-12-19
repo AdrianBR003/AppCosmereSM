@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.appsandersonsm.Firestore.NotaFirestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

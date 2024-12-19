@@ -16,10 +16,8 @@ import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
-// InitApplication.kt
 class InitApplication : Application() {
 
-    // Instancia de la base de datos
     val appDatabase: AppDatabase by lazy {
         Room.databaseBuilder(
             applicationContext,
@@ -33,7 +31,6 @@ class InitApplication : Application() {
     // DAOs
     val libroDao: LibroDao by lazy { appDatabase.libroDao() }
     val notaDao: NotaDao by lazy { appDatabase.notaDao() }
-    val usuarioDao: UsuarioDao by lazy { appDatabase.usuarioDao() }
 
     // Repositorios
     val libroRepository: LibroRepository by lazy { LibroRepository(libroDao, notaDao) }
@@ -50,11 +47,5 @@ class InitApplication : Application() {
 
         FirebaseApp.initializeApp(this)
         Log.d("InitApplication", "InitApplication se inicializó correctamente")
-    }
-
-    fun setUserId(id: String) {
-        // Método para actualizar el userId si es necesario
-        // Este método puede ser llamado desde actividades donde se obtiene el userId
-        // Considera sincronizar si accedes desde múltiples hilos
     }
 }
