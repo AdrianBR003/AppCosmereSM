@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -54,50 +54,34 @@ android {
     }
 }
 
-
 dependencies {
-
-    // NewAPI & RetroFit
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
-    implementation (libs.glide)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.glide)
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
-    annotationProcessor (libs.compiler)
 
-
-
-    // ROOM
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx.v261)
     implementation(libs.androidx.room.ktx)
-    kapt("androidx.room:room-compiler:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-
-
+    ksp("androidx.room:room-compiler:2.6.1")
 
     implementation(libs.glide.v4120)
+    ksp("com.github.bumptech.glide:compiler:4.12.0")
     implementation(libs.glide.transformations)
 
-    // Firebase BOM (define versiones centralizadas para Firebase)
     implementation(platform(libs.firebase.bom))
-
-    // Firebase y Google Sign-In
-    implementation(libs.firebase.auth.ktx) // Se gestiona a través de Firebase BOM
-    implementation(libs.play.services.auth) // Verifica la versión correcta
-    implementation (libs.firebase.bom.v3220)// Actualiza a la última versión
-    implementation (libs.google.firebase.firestore.ktx)
-
-    // Otras dependencias
+    implementation(libs.firebase.auth.ktx)
     implementation(libs.play.services.auth)
+    implementation(libs.firebase.bom.v3220)
+    implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.firebase.analytics)
     implementation(libs.core.splashscreen)
     implementation(libs.labs.subsampling.scale.image.view)
-    implementation(libs.glide)
     implementation(libs.getstream.photoview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -108,25 +92,16 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat.v161)
     implementation(libs.materialratingbar.library)
-    implementation (libs.gson) // Asegúrate de usar la última versión
+    implementation(libs.gson)
+    implementation(libs.androidx.viewpager2)
+    implementation(libs.material.v160)
+    implementation(libs.android.lottie)
 
-    // ViewPager
-    implementation (libs.androidx.viewpager2)
-    implementation (libs.material.v160)
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    // Animacion
-    implementation (libs.android.lottie)
-
-
-    // LiveData y ViewModel
-    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
-
-    // Coroutines
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-
-    // Compose dependencies
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -135,14 +110,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.sqlite.ktx)
 
-    // Test dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
-    // Debug dependencies
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
